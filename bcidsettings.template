@@ -1,0 +1,28 @@
+# RDF Terms to use -- Be Careful modifying these terms!
+type = http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+geo = http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing
+datelastmodified = http://purl.org/dc/terms/modified
+hasSource = http://www.w3.org/ns/ma-ont#hasSource
+isSourceOf = http://www.w3.org/ns/ma-ont#isSourceOf
+relativeOf = http://biscicol.org/biscicol.rdf#relativeOf
+sameas = http://www.w3.org/2002/07/owl#sameAs
+agent = http://biscicol.org/biscicol.rdf#Agent
+isRelatedTo = http://www.w3.org/ns/ma-ont#isRelatedTo
+
+# BCID; EZID creation default account
+eziduser = apitest
+ezidpass = PutSomePasswordHere
+
+# Mysql username/password
+bcidUser = user
+bcidPassword = password
+bcidUrl = jdbc:mysql://darwin.berkeley.edu:3306/biscicoltest
+bcidClass = com.mysql.jdbc.Driver
+bcidShoulder = ark:/99999/fk4
+doiShoulder = doi:10.5072/FK2
+bcidStartingNumber = 900
+
+janrainapikey = SECRETKEY
+janrainbaseurl = https://biocode-commons-identifiers.rpxnow.com/
+
+
