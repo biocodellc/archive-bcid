@@ -12,8 +12,9 @@
         <intercept-url pattern="/secure/**" access="isAuthenticated()"/>
         <intercept-url pattern="/css/**" access="permitAll"/>
         <intercept-url pattern="/js/**" access="permitAll"/>
-        <intercept-url pattern="/rest/resolverService**" access="permitAll"/>
-        <intercept-url pattern="/rest/bcidService/select/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/api/resolver**" access="permitAll"/>
+        <intercept-url pattern="/api/resolver/**" access="permitAll"/>
+        <intercept-url pattern="/api/bcidService/select/resourceTypes**" access="permitAll"/>
         <intercept-url pattern="/javadoc/**" access="permitAll"/>
         <intercept-url pattern="/login.jsp" access="permitAll"/>
         <intercept-url pattern="/**" access="isAuthenticated()"/>

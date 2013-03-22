@@ -97,11 +97,23 @@ public class bcid {
         try {
             database db = new database();
             Statement stmt = db.conn.createStatement();
-            String datasets = "SELECT d.ezidMade,d.ezidRequest,d.prefix,d.ts,i.ezidMade,i.ezidRequest,i.suffixPassthrough,i.localid,i.webaddress,i.what,i.ts,d.users_id " +
-                    " FROM datasets d, identifiers i " +
-                    " WHERE d.datasets_id = i.datasets_id &&" +
+            String datasets = "SELECT " +
+                    "   d.ezidMade," +
+                    "   d.ezidRequest," +
+                    "   d.prefix,d.ts," +
+                    "   i.ezidMade," +
+                    "   i.ezidRequest," +
+                    "   i.suffixPassthrough," +
+                    "   i.localid," +
+                    "   i.webaddress," +
+                    "   i.what," +
+                    "   i.ts," +
+                    //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
+                    "   u.username " +
+                    " FROM datasets d, identifiers i, users u " +
+                    " WHERE d.datasets_id = i.datasets_id && " +
+                    " d.users_id = u.user_id && " +
                     " i.identifiers_id = " + identifiers_id.toString();
-
             ResultSet rs = stmt.executeQuery(datasets);
             rs.next();
             int count = 1;
@@ -136,10 +148,16 @@ public class bcid {
         try {
             database db = new database();
             Statement stmt = db.conn.createStatement();
-            String datasets = "SELECT d.ezidMade,d.ezidRequest,d.prefix,d.ts,d.users_id " +
-                    " FROM datasets d " +
+            String datasets = "SELECT d.ezidMade," +
+                    "   d.ezidRequest," +
+                    "   d.prefix," +
+                    "   d.ts," +
+                    //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
+                    "   u.username " +
+                    " FROM datasets d, users u " +
                     " WHERE " +
-                    " d.datasets_id = " + datasets_id;
+                    " d.datasets_id = " + datasets_id + " && " +
+                    " d.users_id = u.user_id";
 
             ResultSet rs = stmt.executeQuery(datasets);
             rs.next();
@@ -151,6 +169,7 @@ public class bcid {
             who = rs.getString(count++);
             ark = datasetsPrefix;
             what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
+            when = datasetsTs;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -241,12 +260,12 @@ public class bcid {
                 return sb.toString();
             }
         }
-
         appender a = new appender();
         a.append("ark", ark);
-        a.append("sourceID", sourceID);
+        a.append("who", who);
         a.append("what", what);
         a.append("when", when);
+        a.append("sourceID", sourceID);
         a.append("datasetsEzidMade", datasetsEzidMade);
         a.append("datasetsEzidRequest", datasetsEzidRequest);
         a.append("datasetsPrefix", datasetsPrefix);

@@ -2,6 +2,7 @@ package bcid;
 
 import com.ibm.icu.math.BigDecimal;
 
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 
 /**
@@ -21,6 +22,7 @@ public class datasetEncoder implements encoder {
 
     /**
      * Tell if DEBUG mode is on or off
+     *
      * @return
      */
     public boolean isDebug() {
@@ -29,6 +31,7 @@ public class datasetEncoder implements encoder {
 
     /**
      * Set DEBUG mode on or off, default is off
+     *
      * @param debug
      */
     public void setDebug(boolean debug) {
@@ -36,11 +39,17 @@ public class datasetEncoder implements encoder {
     }
 
     /**
-     * Encode a datasaet value
+     * Encode a dataset value
+     *
      * @param i pass in a BigInteger
      * @return returns the encoded String
      */
     public String encode(BigInteger i) {
+
+        // First spot is test dataset!
+        if (i.intValue() == 1) {
+            return "fk4";
+        }
 
         String results = "";
         int largeNumber = i.intValue();
@@ -92,13 +101,35 @@ public class datasetEncoder implements encoder {
      * @return BigInteger representation of this code
      */
     public BigInteger decode(String entireString) {
+        String shoulder = null;
+        String naan = null;
+        String scheme = null;
 
         // Check to see if this is an entire ARK.  If so, we only want the second section, the shoulder itself
         if (entireString.contains("/")) {
-            entireString =  entireString.split("/")[2];
+            String[] strArray = entireString.split("/");
+            if (strArray.length > 2) {
+                scheme = strArray[0];
+                naan = strArray[1];
+                shoulder = strArray[2];
+
+                // Look and see if this is the test dataset
+                try {
+                    if (naan.equals("99999") && shoulder.equals("fk4")) {
+                        return new BigInteger("1");
+                    }
+                } catch (NullPointerException e) {
+                    // do nothing we're OK
+                }
+            } else  {
+               return null;
+            }
+        } else {
+            shoulder = entireString;
         }
 
-        int numCharactersPositionstoDecode = entireString.length() - 1;
+        // Continue on...
+        int numCharactersPositionstoDecode = shoulder.length() - 1;
         Integer decodedInt = 0;
         int j = numCharactersPositionstoDecode;
         // Loop each position and sum the character position * possibilities at each increment
@@ -106,7 +137,7 @@ public class datasetEncoder implements encoder {
             // Calculate the number of possibilities in this position
             Double possibilitiesPerIncrement = new Double(optionsAtPosition(j) / this.chars.length);
             // Add to the decodedInt value:  numeric position of character * the number of possibilities at this increment
-            decodedInt += this.codes[entireString.charAt(i)] * possibilitiesPerIncrement.intValue();
+            decodedInt += this.codes[shoulder.charAt(i)] * possibilitiesPerIncrement.intValue();
 
             j--;
         }
@@ -256,11 +287,11 @@ public class datasetEncoder implements encoder {
         System.out.println("  Decoding " + result + " = " + shoulderEncoder.decode(result));
 
         String ark = "ark:/87286/zzqF2/foodad";
-        System.out.println("Decode ARK = "+ ark);
+        System.out.println("Decode ARK = " + ark);
         System.out.println("  Result = " + shoulderEncoder.decode(ark));
 
-         ark = "ark:/87286/zzqF2";
-        System.out.println("Decode ARK = "+ ark);
+        ark = "ark:/87286/zzqF2";
+        System.out.println("Decode ARK = " + ark);
         System.out.println("  Result = " + shoulderEncoder.decode(ark));
 
 

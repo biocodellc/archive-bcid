@@ -18,7 +18,7 @@
             href="http://code.google.com/p/biscicol/wiki/Identifiers">help</a> for more information.
         <p>
 
-        <form method="post" action="/bcid/rest/datasetService">
+        <form method="post" action="/bcid/api/datasetService">
             <table>
                 <tr>
                     <td align=right><select name="concept" id="concept" class=""></select></td>

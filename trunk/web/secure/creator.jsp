@@ -20,7 +20,7 @@
 
         <br>
 
-        <form id="localIDMinterForm" action="/bcid/rest/bcidService" method="POST">
+        <form id="localIDMinterForm" action="/bcid/api/bcidService" method="POST">
             <table>
                 <tr>
                     <td>Concept:</td>

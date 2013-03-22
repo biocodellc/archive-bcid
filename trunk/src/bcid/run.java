@@ -78,7 +78,7 @@ public class run {
         // Create a bunch of bcids
         int num = 10;
         System.out.println("\nCreate " + num + " bcids (a reserved slot in our database) ...");
-        datasetIdentifier = minter.createBCIDs(num, new URI("http://purl.org/dc/dcmitype/PhysicalObject"), 1);
+        datasetIdentifier = minter.createBCIDs(num, new URI("http://purl.org/dc/dcmitype/PhysicalObject"));
         System.out.println("  datasetIdentifier = " + datasetIdentifier);
         Iterator guidsIt = minter.getIdentifiers(datasetIdentifier).iterator();
         while (guidsIt.hasNext()) {
@@ -146,12 +146,12 @@ public class run {
         creator.updateDatasetsEZID(ezidAccount, minter.datasets_id);
 
         // Create a Dataset
-        System.out.println("\nCreate a new dataset object:");
+       /* System.out.println("\nCreate a new dataset object:");
         dataset dataset = new dataset(false);
         dataset.mint(naan,  who, new ResourceTypes().RESOURCE, null, "http://www.google.com/", "this is a test");
         System.out.println("  Created " + dataset.prefix);
         dataset.close();
-
+        */
 
         // Close connection
         minter.close();

@@ -6,11 +6,11 @@
     <div class="sectioncontent">
         Resolves Biocode Commons Identifiers and EZIDs (e.g. ark:/87286/C2)
         <p></p>
+        <input type=textbox name="identifier" id="identifier" style="width:100px;">&nbsp;Identifier
+        <br><input type="button" onclick="resolverResults('resolverResults');" name="submit" value="submit" />
+    </div>
 
-        <form action="/bcid/rest/resolverService" method="post">
-            <input type=textbox name="identifier" id=identifier>&nbsp;Identifier
-            <br><input type="submit"/>
-        </form>
+    <div id="resolverResults" style="overflow:auto;">
     </div>
 </div>
 
