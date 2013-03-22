@@ -304,7 +304,7 @@ public class bcidMinter extends dataset {
      * @throws SQLException
      * @throws URISyntaxException
      */
-    public String createBCIDs(int numIdentifiers, URI what, int datasets_id) throws SQLException, URISyntaxException {
+    public String createBCIDs(int numIdentifiers, URI what) throws SQLException, URISyntaxException {
         String datasetIdentifier = this.generateUUIDString();
 
         // Turn off autocommits just for this method
@@ -389,7 +389,6 @@ public class bcidMinter extends dataset {
         // Create the shoulder
         dataset minterDataset = null;
         try {
-            minterDataset = new dataset(2);
 
            /*
            minterDataset = new dataset();
@@ -401,10 +400,10 @@ public class bcidMinter extends dataset {
                     null,
                     null);
                     */
-            minterDataset = new dataset(2);
+            minterDataset = new dataset();
             System.out.println("Using dataset  = " + minterDataset.prefix);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+        //} catch (URISyntaxException e) {
+        //    e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -414,12 +413,12 @@ public class bcidMinter extends dataset {
         System.out.println(minterDataset.getDatasetId(minterDataset.prefix));
 
         // Encode an BigInteger
-        String value = "2004";
+        String value = "105";
         System.out.println("Encode BigInteger = " + value);
 
         String myIdentifier = new bcidEncoder(minterDataset.prefix).encode(new BigInteger(value));
         System.out.println("  " + myIdentifier);
-
+               //myIdentifier = "ark:/99999/fk4/aQH";
         // Decode an Identifier
         System.out.println("Decode Identifier = " + myIdentifier);
         try {

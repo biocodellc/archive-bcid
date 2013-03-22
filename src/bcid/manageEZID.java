@@ -57,7 +57,7 @@ public class manageEZID extends bcidMinter {
 
             // Build the hashmap to pass to ezid
             HashMap<String, String> map = ercMap(
-                    "http://biscicol.org/rest/id/" + rs.getString("prefix"),
+                    "http://biscicol.org/bcid/api/resolver/" + rs.getString("prefix"),
                     new ResourceTypes().get(ResourceTypes.DATASET).uri,
                     rs.getString("who"),
                     rs.getString("ts"));

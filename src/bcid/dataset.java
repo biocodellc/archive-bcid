@@ -20,8 +20,12 @@ public class dataset extends datasetEncoder {
     protected Integer datasets_id = null;
     private boolean ezidRequest;
 
-    protected dataset() {
-
+    /**
+     * Default to ezidRequest = false using default Constructor
+     * @throws Exception
+     */
+    protected dataset() throws Exception {
+       this(false);
     }
 
     /**

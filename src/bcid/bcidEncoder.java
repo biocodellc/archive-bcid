@@ -75,7 +75,7 @@ public class bcidEncoder implements encoder {
         String bits[] = entireString.split("/");
         // just want the first 3 chunks between the "/"'s
         sbEntireString.append(bits[0] + "/" + bits[1] + "/" + bits[2]);
-        if (bits.length > 2) {
+        if (bits.length > 3) {
             sbEntireString.append("/" + bits[3]);
         }
         String encodedString = sbEntireString.toString();

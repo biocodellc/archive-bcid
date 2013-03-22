@@ -18,7 +18,7 @@ import java.lang.String;
  * One can parse the JSON result for "Error" for non-responses, bad identifiers.
  * This service should be open to ALL and not require user authentication.
  */
-@Path("resolverService")
+@Path("resolver")
 public class resolverService {
     static SettingsManager sm;
     @Context
@@ -37,30 +37,66 @@ public class resolverService {
         }
     }
 
-    @POST
+    /**
+     * Users just passes in the dataset
+     * @param scheme
+     * @param naan
+     * @param shoulder
+     * @return
+     */
+    @GET
+    @Path("/{scheme}/{naan}/{shoulder}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String run(@FormParam("identifier") String identifier) {
+    public String run(@PathParam("scheme") String scheme,
+                      @PathParam("naan") String naan,
+                      @PathParam("shoulder") String shoulder
+                      ) {
+        return run(scheme, naan, shoulder, "");
+    }
+
+    /**
+     * User passes in the dataset + identifier
+     * @param scheme
+     * @param naan
+     * @param shoulder
+     * @param identifier
+     * @return
+     */
+    @GET
+    @Path("/{scheme}/{naan}/{shoulder}/{identifier}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String run(@PathParam("scheme") String scheme,
+                      @PathParam("naan") String naan,
+                      @PathParam("shoulder") String shoulder,
+                      @PathParam("identifier") String identifier) {
+
+        // decode this identifier
+        String bcid = scheme + "/" + naan + "/" + shoulder + "/" + identifier;
+
         // Initialize variables
         SettingsManager sm = SettingsManager.getInstance();
         EZIDService ezidAccount = new EZIDService();
         // Setup ezid account/login information
+
         try {
             sm.loadProperties();
             ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            return resolverResults(ezidAccount, identifier);
+            return resolverResults(ezidAccount, bcid);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return "{\"Error\":\"" + e.getMessage() + "\"}";
+            return "[{\"Error\":\"Unable to load properties file on server: " + e.getMessage() + "\"}]";
         } catch (EZIDException e) {
             e.printStackTrace();
-            return "{\"Error\":\"" + e.getMessage() + "\"}";
+            return  "[{\"Error\":\"Exception accessing EZID Service\"}]";
         } catch (Exception e) {
             e.printStackTrace();
-            return "{\"Error\":\"" + e.getMessage() + "\"}";
+            return "[{\"Error\":\"Identifier " + bcid + ", may be badly formed\"}]";
         }
     }
 
     private String resolverResults(EZIDService ezidService, String identifier) throws Exception {
-        return new resolver(identifier).resolveAll(ezidService);
+        resolver r = new resolver(identifier);
+        return r.resolveAll(ezidService);
+        //return new bcid.resolver(identifier).resolveAll(ezidService);
     }
 }

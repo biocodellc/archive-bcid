@@ -4,7 +4,9 @@ import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import net.sf.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.net.URLDecoder;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -23,6 +25,7 @@ public class resolver extends database {
 
     /**
      * Pass an ARK identifier to the resolver
+     *
      * @param ark
      * @throws Exception
      */
@@ -39,6 +42,7 @@ public class resolver extends database {
             // Now decipher the shoulder and blade in the next bit
             setShoulderAndBlade(bits[2]);
         } catch (Exception e) {
+            System.out.println("The ark = " + ark);
             throw new Exception("Invalid ARK");
         }
     }
@@ -79,10 +83,11 @@ public class resolver extends database {
     public String resolveARK() {
         bcid bcidDataset;
 
+        // First  option is check if dataset, then look at other options after this is determined
         if (isDataset()) {
             bcidDataset = new bcid(datasets_id);
             // Check if this is a BCID
-            if (isBCID()) {
+            if (isBCID(datasets_id)) {
                 return new bcid(identifiers_id, ark).json();
                 // If not a BCID then check to see if this has a resolvable suffix
             } else if (isResolvableSuffix(datasets_id)) {
@@ -90,9 +95,34 @@ public class resolver extends database {
             }
             // Return bcidDataset if nothing else has returned by now
             return bcidDataset.json();
-            // If this not listed as a Dataset just return null
-        } else {
+        }
+        // Return a BCID for a matching LocalID
+        // NOTE: this is slightly complicated here since the return type is not a BCID but a suggestion
+        // for possible IDs
+        //else if (isLocalID()) {
+        //    return new bcid(identifiers_id, ark).json();
+        //}
+        // If this not listed as a Dataset just return null
+        else {
             return "{\"BCID\":\"Not resolvable via BCID service\"}";
+        }
+    }
+
+    private boolean isLocalID() {
+
+        // Now we need to figure out if this datasets_id exists or not in the database
+        String select = "SELECT identifiers_id FROM identifiers " +
+                "where i.localid = " + ark;
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(select);
+            rs.next();
+            // TODO: enable returning multiple possible identifiers here
+            identifiers_id = new BigInteger(rs.getString("identifiers_id"));
+            return true;
+        } catch (SQLException e) {
+            return false;
         }
     }
 
@@ -100,7 +130,7 @@ public class resolver extends database {
      * Resolve an EZID version of this ARK
      *
      * @param ezidService
-     * @return  JSON string to send to interface
+     * @return JSON string to send to interface
      */
     public String resolveEZID(EZIDService ezidService) {
         try {
@@ -119,7 +149,7 @@ public class resolver extends database {
      * Resolve identifiers through BCID AND EZID
      *
      * @param ezidService
-     * @return  JSON string with information about BCID/EZID results
+     * @return JSON string with information about BCID/EZID results
      */
     public String resolveAll(EZIDService ezidService) {
         StringBuilder sb = new StringBuilder();
@@ -137,8 +167,15 @@ public class resolver extends database {
      * @return
      */
     private boolean isDataset() {
-        // This decodes the ID for this dataset
+        // Test Dataset is #1
+        if (shoulder.equals("fk4") && naan.equals("99999")) {
+            datasets_id = 1;
+            return true;
+        }
+
+        // Decode a typical dataset
         datasets_id = new datasetEncoder().decode(shoulder).intValue();
+
         if (datasets_id == null) {
             return false;
         } else {
@@ -194,17 +231,24 @@ public class resolver extends database {
      *
      * @return
      */
-    private boolean isBCID() {
+    private boolean isBCID(int datasets_id) {
         try {
             String bow = scheme + "/" + naan + "/";
             String prefix = bow + shoulder;
+            // if prefix and ark the same then just return false!
+            if (prefix.equals(ark)) {
+                return false;
+            }
+
             BigInteger bigInt = new bcidEncoder(prefix).decode(ark);
             identifiers_id = bigInt;
             // First test is to see if this is a valid number
             if (bigInt.signum() == 1) {
                 // Now test to see if this actually exists in the database.
                 try {
-                    String select = "SELECT count(*) as count FROM identifiers where identifiers_id = " + bigInt;
+                    String select = "SELECT count(*) as count FROM identifiers where identifiers_id = " + bigInt +
+                            " && datasets_id = " + datasets_id;
+                    System.out.println(select);
                     Statement stmt = conn.createStatement();
                     ResultSet rs = stmt.executeQuery(select);
                     rs.next();
@@ -220,6 +264,7 @@ public class resolver extends database {
                 return false;
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -232,7 +277,7 @@ public class resolver extends database {
      */
     public static void main(String args[]) {
         resolver r = null;
-       /* try {
+        /* try {
             r = new resolver("ark:/87286/C2/AOkI");
             System.out.println("  " + r.resolveARK());
 
@@ -248,15 +293,21 @@ public class resolver extends database {
         }
 
         try {
-            r = new resolver("ark:/87286/C2/Foo");
+            r = new resolver("ark:/99999/fk4/aQH");
             EZIDService service = new EZIDService();
             System.out.println("  " + r.resolveARK());
         } catch (Exception e) {
             e.printStackTrace();
         }
         */
-         try {
-            r = new resolver("ark:/87286/Q2");
+        String result = null;
+        try {
+            result = URLDecoder.decode("ark%3A%2F87286%2FC2", "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        try {
+            r = new resolver(result);
             EZIDService service = new EZIDService();
             System.out.println("  " + r.resolveAll(service));
         } catch (Exception e) {
