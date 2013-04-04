@@ -15,7 +15,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * Class to work with EZID creation, from the bcid database
+ * Class to work with EZID creation from the bcid database.  requests to this class are controlled by
+ * switches in the database indicating whether the intention is to create EZIDS for particular identifiers.
  */
 public class manageEZID extends bcidMinter {
     public manageEZID() throws Exception {

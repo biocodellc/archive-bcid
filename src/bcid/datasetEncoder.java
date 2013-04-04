@@ -6,7 +6,7 @@ import java.lang.reflect.Array;
 import java.math.BigInteger;
 
 /**
- * The purpsose of this is to encode very short identifiers for EZID shoulders to represent
+ * The purpsose of the datasetEncoder is to encode very short identifiers for EZID shoulders to represent
  * unique datasets.  These encoded numbers correspond to integers in the database and
  * conform to the EZID shoulder specification, namely letters up to and including the first
  * digit. E.g. aB1 or abcdefg1

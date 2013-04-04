@@ -11,7 +11,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- * The bcid class represents data contained by each bcid.
+ * The bcid class encapsulates all of the information we know about a particular identifier, including the
+ * status of EZID creation, associated dataset calls, and any metadata.
  * There are several ways to construct this class.  Some of the constructors create
  * a bcid representation out of the box and are meant to then use to pass onto the database
  * so it can be created.  Other constructors create a bcid by looking up in the database and
@@ -21,12 +22,12 @@ import java.sql.Statement;
 public class bcid {
 
 
-    protected URI webAddress = null;       // URI for the webAddress, EZID calls this _target (e.g. http://biocode.berkeley.edu/specimens/MBIO56)
-    protected String sourceID = null;      // Source or local identifier (e.g. MBIO056)
-    protected ResourceType resourceType;   // The ResourceType (e.g. PhysicalObject)
-    protected String what = null;
-    protected String when = null;
-    protected String who = null;
+    protected URI webAddress = null;        // URI for the webAddress, EZID calls this _target (e.g. http://biocode.berkeley.edu/specimens/MBIO56)
+    protected String sourceID = null;       // Source or local identifier (e.g. MBIO056)
+    protected ResourceType resourceType;    // The ResourceType, using the BCID system definitions
+    protected String what = null;           // erc.what
+    protected String when = null;           // erc.when
+    protected String who = null;            // erc.who
     protected boolean datasetsEzidMade;
     protected boolean datasetsEzidRequest;
     protected String datasetsPrefix;
@@ -87,7 +88,7 @@ public class bcid {
     /**
      * Create a bcid by passing in an BigInteger for the specific slot in the database and a string representation of this
      * ARK.
-     * This class is ONLY meant to be instantiated by the resolver class, after it figures out what BigInteger
+     * This class should probably only be instantiated by the resolver class, after it figures out what BigInteger
      * a particular ARK belongs to.
      *
      * @param identifiers_id indicating the integer of this identifier in the BCID system
