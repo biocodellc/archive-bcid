@@ -6,7 +6,7 @@ import java.math.BigInteger;
 import java.sql.*;
 
 /**
- * Create the connection for the backend bcid database.
+ * Creates the connection for the backend bcid database.
  * Settings come from the util.SettingsManager/Property file defining the user/password/url/class
  * for the mysql database where the data lives.
  */

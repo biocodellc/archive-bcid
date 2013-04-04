@@ -1,5 +1,6 @@
 package rest;
 
+import bcid.dataset;
 import util.SettingsManager;
 import bcid.ResourceTypes;
 import edu.ucsb.nceas.ezid.EZIDException;
@@ -106,6 +107,14 @@ public class bcidService {
         if (select.equalsIgnoreCase("resourceTypes")) {
             ResourceTypes rts = new ResourceTypes();
             return rts.getAllAsJSON();
+        } else if (select.equalsIgnoreCase("datasetList")) {
+            dataset d = null;
+            try {
+                d = new dataset(true);
+            } catch (Exception e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            return d.datasetList("biocode");
         } else {
             return "[{}]";
         }

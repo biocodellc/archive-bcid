@@ -5,11 +5,11 @@ import org.apache.commons.codec.binary.Base64;
 import java.math.BigInteger;
 
 /**
- * The BCID identifiers operate by equating encoded Strings directly to BigIntegers in the database.
+ * bcid identifiers operate by equating encoded Strings directly to BigIntegers in the database.
  * The BigIntegers in the database are used for joining and linking on the back-end.
  * This class implements the encoders interface, taking a BigInteger and turning
- * it into an encoded BCID String, and conversely
- * will attempt to take a String and decode it into an BigInteger.
+ * it into an encoded bcid String.   Conversely, it can
+ *  attempt taking a String and decoding it into an BigInteger.
  */
 public class bcidEncoder implements encoder {
     // Make all base64 encoding URL safe -- this constructor will remove equals ("=") as padding

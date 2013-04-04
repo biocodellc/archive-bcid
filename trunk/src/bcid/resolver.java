@@ -13,6 +13,8 @@ import java.sql.Statement;
 
 /**
  * Resolves any incoming identifier to the BCID and/or EZID systems.
+ *  Resolver first checks if this is a dataset.  If so, it then checks if there is a bcid.  If it is not a BCID it
+ *  then checks if there is a suffix to handle it is a resolvable suffix.
  */
 public class resolver extends database {
     String ark = null;

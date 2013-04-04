@@ -1,5 +1,6 @@
 package bcid;
 
+import javax.ws.rs.core.Response;
 import java.math.BigInteger;
 import java.sql.*;
 import java.util.UUID;
@@ -22,10 +23,11 @@ public class dataset extends datasetEncoder {
 
     /**
      * Default to ezidRequest = false using default Constructor
+     *
      * @throws Exception
      */
     protected dataset() throws Exception {
-       this(false);
+        this(false);
     }
 
     /**
@@ -214,8 +216,39 @@ public class dataset extends datasetEncoder {
         } catch (SQLException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-
-
     }
 
+    public String datasetList(String username) {
+        Statement stmt = null;
+        Integer datasetId = null;
+        StringBuilder sb = new StringBuilder();
+        sb.append("[{");
+        sb.append("\"0\":\"Create New Dataset\"");
+        try {
+            stmt = conn.createStatement();
+            String sql = "select d.datasets_id as datasets_id,concat_ws(' ',d.prefix,resourceType) as prefix from datasets d, users u where u.username = '" + username + "' && " +
+                    "d.users_id=u.user_id";
+            ResultSet rs = stmt.executeQuery(sql);
+            int count = 0;
+            while (rs.next()) {
+                sb.append(",\"" + rs.getInt("datasets_id") + "\":\"" + rs.getString("prefix") + "\"");
+                count++;
+            }
+            sb.append("}]");
+
+        } catch (SQLException e) {
+            return null;
+        }
+        return sb.toString();
+    }
+
+    public static void main(String args[]) {
+        try {
+            dataset d  = new dataset();
+            System.out.println(d.datasetList("biocode"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }

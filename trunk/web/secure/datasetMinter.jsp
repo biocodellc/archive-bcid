@@ -21,7 +21,7 @@
         <form method="post" action="/bcid/api/datasetService">
             <table>
                 <tr>
-                    <td align=right><select name="concept" id="concept" class=""></select></td>
+                    <td align=right><select name=resourceTypes id=resourceTypes class=""></select></td>
                     <td>*Concept</td>
                 </tr>
                 <tr>
@@ -44,7 +44,7 @@
 </div>
 
 <script>
-    window.onload = populateSelect("concept");
+    window.onload = populateSelect("resourceTypes");
 </script>
 
 <%@ include file="../footer.jsp" %>

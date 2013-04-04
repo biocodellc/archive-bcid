@@ -14,9 +14,6 @@ import java.util.Iterator;
 import java.util.UUID;
 
 
-//import org.apache.log4j.Level;
-
-
 /**
  * This is a class used for running/testing Identifier creation methods.
  */

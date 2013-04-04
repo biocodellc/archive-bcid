@@ -19,9 +19,10 @@ import java.util.Iterator;
 import java.util.UUID;
 
 /**
- * Mint bcids, interacting with mysql backend database.  "Mint" means that the identifier is
+ * the bcidMinter class is the mechanism by which bcids interact with the mysql backend database.
+ * "Mint" means that the identifier is
  * created by the application and "create" means that the identifier is created outside the application.  Thus,
- * bcid is "minting" and EZID "creates" the identifiers.  minterBCID extends minterDataset and thus relies
+ * bcid is "minting" and EZID "creates" the identifiers.  bcidMinter extends dataset and thus relies
  * on the notion of a dataset to be in existence before creating ANY identifier.
  * <p/>
  * Options when working with this class include:

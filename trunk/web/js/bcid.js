@@ -1,7 +1,7 @@
 // Initialize the form
 function populateSelect(a) {
     // Populate the SELECT box with resourceTypes from the server
-    var url = "/bcid/api/bcidService/select/resourceTypes";
+    var url = "/bcid/api/bcidService/select/" + a;
     var jqxhr = $.getJSON(url, function() {})
         .done(function(data) {
             var options = '';
