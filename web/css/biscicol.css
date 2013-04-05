@@ -33,6 +33,7 @@ h2 {
 
 table {
 	border-spacing: 0;
+	min-width: 200px;
 }
 
 /**
