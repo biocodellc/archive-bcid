@@ -3,36 +3,44 @@
 
 <div id="uuidIDs" class="section">
 
-    <h2>Turn Local ID's or UUIDs into Identifiers</h2>
+    <h2>Creator</h2>
 
     <div class="sectioncontent">
-        Paste in your Local Identifiers or UUIDs to create BCIDs.
-         <a href="http://code.google.com/p/biscicol/wiki/Identifiers">more information</a>
 
-        <br>
+        Paste in your Local Identifiers or UUIDs to create BCIDs.
+        If you have loaded groups or datasets with this account previously, you can choose an existing group or dataset
+        to update a set of existing identifiers.  The default action is to create a new group for this set of identifiers.
+        If you elect to NOT maintain local IDs, a short identifier string will be created for you, which you
+        can then join back into your database. For more information on what is happening here, visit the
+        <a href="http://code.google.com/p/bcid">bcid codesite</a>.
 
         <form id="localIDMinterForm" action="/bcid/api/bcidService" method="POST">
             <table>
+               <tr><td>
+                <table style='border-width: 0px 0px 0px 0px !important;'>
+                    <tr>
+                        <td align=right>Group</td>
+                        <td><select name=datasetList id=datasetList class=""></td>
+                    </tr>
+                    <tr>
+                        <td align=right>Concept</td>
+                        <td><select name=resourceTypesMinusDataset id=resourceTypesMinusDataset class=""></select></td>
+                    </tr>
+                    <tr>
+                        <td align=right>Maintain local IDs</td>
+                        <td align=left><input type=checkbox name=suffixPassThrough checked=yes> </td>
+                    </tr>
+                </table>
+                </td></tr>
+
                 <tr>
-                    <td align=right>
-                        <select name=datasetList id=datasetList class="">
+                    <td>
+                        <textarea name="data" cols="80" rows="10">LocalIdentifier&lt;tab&gt;TargetURL</textarea>
                     </td>
-                    <td>Dataset</td>
-
-                    <td>Apply these identifiers to an existing dataset (optional. E.g. ark:/87286/A2)</td>
                 </tr>
                 <tr>
-                    <td colspan=2><input type=checkbox name=suffixPassThrough> Maintain local IDs in the identifier suffix</td>
-                </tr>
-                <tr>
-                    <td colspan=2><textarea name="data" cols="80"
-                                            rows="10">LocalIdentifier&lt;tab&gt;TargetURL</textarea></td>
-                </tr>
-
-                <tr>
-                    <td colspan=2>
-                        <input type="button" value="validate" onclick="validate()"/>&nbsp;&nbsp;
-                        <input type="submit"/>
+                    <td>
+                        <input type="Submit" name="Submit" value="Submit"/>
                     </td>
                 </tr>
             </table>
@@ -43,6 +51,7 @@
 
 <script>
     window.onload = populateSelect("datasetList");
+    window.onload = populateSelect("resourceTypesMinusDataset");
 </script>
 
 <%@ include file="../footer.jsp" %>

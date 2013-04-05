@@ -107,6 +107,9 @@ public class bcidService {
         if (select.equalsIgnoreCase("resourceTypes")) {
             ResourceTypes rts = new ResourceTypes();
             return rts.getAllAsJSON();
+        } else if (select.equalsIgnoreCase("resourceTypesMinusDataset")) {
+             ResourceTypes rts = new ResourceTypes();
+            return rts.getAllButDatasetAsJSON();
         } else if (select.equalsIgnoreCase("datasetList")) {
             dataset d = null;
             try {
@@ -118,5 +121,17 @@ public class bcidService {
         } else {
             return "[{}]";
         }
+    }
+
+    /**
+     * Get resoource Types as a TABLE
+     * @return
+     */
+     @GET
+    @Path("/resourceTypes")
+    @Produces(MediaType.TEXT_HTML)
+    public String htmlResourceTypes() {
+            ResourceTypes rts = new ResourceTypes();
+            return rts.getResourceTypesAsTable();
     }
 }

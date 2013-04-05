@@ -36,6 +36,7 @@
         <div style="overflow: auto;width: 100%;">
             <div class="link"><a href='/bcid/index.jsp'>Resolver</a></div>
             <div class="separator">|</div>
+
             <sec:authorize access="hasRole('user')">
                 <div class="link"><a href='/bcid/secure/creator.jsp'>Creator</a></div>
                 <div class="separator">|</div>
@@ -43,6 +44,7 @@
                 <div class="separator">|</div>
                 <div class="link"><a href='/bcid/secure/datasetMinter.jsp'>Dataset IDs</a></div>
             </sec:authorize>
+
             <sec:authorize ifNotGranted="user">
                 <div class="disabledlink">Creator</div>
                 <div class="separator">|</div>
@@ -50,5 +52,8 @@
                 <div class="separator">|</div>
                 <div class="disabledlink">Dataset IDs</div>
             </sec:authorize>
+
+            <div class="separator">|</div>
+            <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>
         </div>
     </div>

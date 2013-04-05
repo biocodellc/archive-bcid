@@ -1,3 +1,15 @@
+// Populate a table of data showing resourceTypes
+function populateResourceTypes(a) {
+    var url = "/bcid/api/bcidService/resourceTypes";
+    var jqxhr = $.ajax(url, function() {})
+        .done(function(data) {
+           $("#" + a).html(data);
+        })
+        .fail(function() {
+            $("#" + a).html("Unable to load resourceTypes!");
+        });
+}
+
 // Initialize the form
 function populateSelect(a) {
     // Populate the SELECT box with resourceTypes from the server
@@ -5,7 +17,6 @@ function populateSelect(a) {
     var jqxhr = $.getJSON(url, function() {})
         .done(function(data) {
             var options = '';
-
             $.each(data[0], function(key, val) {
                 options+='<option value="' + key + '">' +val + '</option>';
             });
