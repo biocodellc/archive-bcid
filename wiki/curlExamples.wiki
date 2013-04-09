@@ -1,4 +1,4 @@
-#This page explains how to call BCID service using curl
+#This page explains how to call BCID services using curl
 
 = Public Content =
 
