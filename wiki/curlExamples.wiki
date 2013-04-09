@@ -4,7 +4,7 @@
 
 Attempt a simple call to resolve an ARK:
 
-  * curl http://johns-macbook-air-3.local:8080/bcid/rest/resolverService/ark:/87286/C2
+  * curl http://biscicol.org/bcid/rest/resolverService/ark:/87286/C2
 
 = Secure Content =
 
