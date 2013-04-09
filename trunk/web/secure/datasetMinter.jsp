@@ -15,7 +15,7 @@
         </ul>
 
 
-        <form method="post" action="/bcid/api/datasetService">
+        <form method="post" action="/bcid/rest/datasetService">
             <input type=hidden name=resourceTypes id=resourceTypes value="Dataset">
             <table>
                  <tr>

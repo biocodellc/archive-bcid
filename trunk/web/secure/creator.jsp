@@ -14,7 +14,7 @@
         can then join back into your database. For more information on what is happening here, visit the
         <a href="http://code.google.com/p/bcid">bcid codesite</a>.
 
-        <form id="localIDMinterForm" action="/bcid/api/bcidService" method="POST">
+        <form id="localIDMinterForm" action="/bcid/rest/bcidService" method="POST">
             <table>
                <tr><td>
                 <table style='border-width: 0px 0px 0px 0px !important;'>

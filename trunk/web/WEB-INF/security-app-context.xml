@@ -13,14 +13,14 @@
         <intercept-url pattern="/secure/**" access="isAuthenticated()"/>
         <intercept-url pattern="/css/**" access="permitAll"/>
         <intercept-url pattern="/js/**" access="permitAll"/>
-        <intercept-url pattern="/api/resolver**" access="permitAll"/>
-        <intercept-url pattern="/api/resolver/**" access="permitAll"/>
-        <intercept-url pattern="/api/datasetService/metadata**" access="permitAll"/>
-        <intercept-url pattern="/api/bcidService/select/resourceTypes**" access="permitAll"/>
-        <intercept-url pattern="/api/bcidService/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/rest/resolver**" access="permitAll"/>
+        <intercept-url pattern="/rest/resolver/**" access="permitAll"/>
+        <intercept-url pattern="/rest/datasetService/metadata**" access="permitAll"/>
+        <intercept-url pattern="/rest/bcidService/select/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/rest/bcidService/resourceTypes**" access="permitAll"/>
         <intercept-url pattern="/javadoc/**" access="permitAll"/>
         <intercept-url pattern="/login.jsp" access="permitAll"/>
-        <intercept-url pattern="/api/bcid.wadl" access="permitAll"/>
+        <intercept-url pattern="/rest/bcid.wadl" access="permitAll"/>
         <intercept-url pattern="/wadl.xsl" access="permitAll"/>
 
 

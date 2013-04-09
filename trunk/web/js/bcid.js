@@ -6,7 +6,7 @@ function datasetListSelector() {
     // Set values when the user chooses a particular dataset
     if ($("#datasetList").val() != 0) {
         // Construct the URL
-        var url = "/bcid/api/datasetService/metadata/" + $("#datasetList").val();
+        var url = "/bcid/rest/datasetService/metadata/" + $("#datasetList").val();
         // Initialize cells
         $("#resourceTypesMinusDatasetDiv").html("");
         $("#suffixPassthroughDiv").html("");
@@ -52,7 +52,7 @@ function creatorDefaults() {
 
 // Populate a table of data showing resourceTypes
 function populateResourceTypes(a) {
-    var url = "/bcid/api/bcidService/resourceTypes";
+    var url = "/bcid/rest/bcidService/resourceTypes";
     var jqxhr = $.ajax(url, function() {})
         .done(function(data) {
            $("#" + a).html(data);
@@ -66,10 +66,10 @@ function populateResourceTypes(a) {
 function populateSelect(a) {
     // Dataset Service Call
     if (a == "datasetList") {
-        var url = "/bcid/api/datasetService/list";
+        var url = "/bcid/rest/datasetService/list";
     // bcid Service Call
     } else {
-        var url = "/bcid/api/bcidService/select/" + a;
+        var url = "/bcid/rest/bcidService/select/" + a;
     }
 
     // get JSON from server and loop results
@@ -89,7 +89,7 @@ function resolverResults(target_id) {
     $("#" + target_id).html("<div>Processing request ... </div>");
     var div = "";
 
-    var jqxhr = $.getJSON("/bcid/api/resolverService/" + $("#identifier").val() , function(data) {
+    var jqxhr = $.getJSON("/bcid/rest/resolverService/" + $("#identifier").val() , function(data) {
         var count=0;
         $.each(data, function() {
             var tbl_body = "<div style='float:left;margin:20px;'>";
