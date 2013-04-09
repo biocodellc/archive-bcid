@@ -1,3 +1,55 @@
+// Control functionality when a datasetList is activated in the creator page
+// if it is not option 0, then need to look up values from server to fill
+// in title and concept.
+function datasetListSelector() {
+
+    // Set values when the user chooses a particular dataset
+    if ($("#datasetList").val() != 0) {
+        // Construct the URL
+        var url = "/bcid/api/datasetService/metadata/" + $("#datasetList").val();
+        // Initialize cells
+        $("#resourceTypesMinusDatasetDiv").html("");
+        $("#suffixPassthroughDiv").html("");
+        $("#titleDiv").html("");
+        // Get JSON response
+        var jqxhr = $.getJSON(url, function() {})
+            .done(function(data) {
+                var options = '';
+                $.each(data[0], function(key, val) {
+                    // Assign values from server to JS field names
+                    if (key == "what")
+                        $("#resourceTypesMinusDatasetDiv").html(val);
+                    if (key == "identifiersSuffixPassthrough")
+                        $("#suffixPassthroughDiv").html(val);
+                    if (key == "title")
+                        $("#titleDiv").html(val);
+                });
+            });
+        // Set styles
+        var color = "#463E3F";
+        $("#titleDiv").css("color",color);
+        $("#resourceTypesMinusDatasetDiv").css("color",color);
+        $("#suffixPassthroughDiv").css("color",color);
+
+    // Set the Creator Defaults
+    } else {
+        creatorDefaults();
+    }
+}
+
+// Set default settings for the Creator Form settings
+function creatorDefaults() {
+    $("#titleDiv").html("<input id=title type=textbox size=40>");
+    $("#resourceTypesMinusDatasetDiv").html("<select name=resourceTypesMinusDataset id=resourceTypesMinusDataset class=''>");
+    $("#suffixPassthroughDiv").html("<input type=checkbox id=suffixPassthrough name=suffixPassThrough checked=yes>");
+
+    $("#titleDiv").css("color","black");
+    $("#resourceTypesMinusDatasetDiv").css("color","black");
+    $("#suffixPassthroughDiv").css("color","black");
+
+    populateSelect("resourceTypesMinusDataset");
+}
+
 // Populate a table of data showing resourceTypes
 function populateResourceTypes(a) {
     var url = "/bcid/api/bcidService/resourceTypes";
@@ -10,10 +62,17 @@ function populateResourceTypes(a) {
         });
 }
 
-// Initialize the form
+// Populate the SELECT box with resourceTypes from the server
 function populateSelect(a) {
-    // Populate the SELECT box with resourceTypes from the server
-    var url = "/bcid/api/bcidService/select/" + a;
+    // Dataset Service Call
+    if (a == "datasetList") {
+        var url = "/bcid/api/datasetService/list";
+    // bcid Service Call
+    } else {
+        var url = "/bcid/api/bcidService/select/" + a;
+    }
+
+    // get JSON from server and loop results
     var jqxhr = $.getJSON(url, function() {})
         .done(function(data) {
             var options = '';
@@ -30,7 +89,7 @@ function resolverResults(target_id) {
     $("#" + target_id).html("<div>Processing request ... </div>");
     var div = "";
 
-    var jqxhr = $.getJSON("/bcid/api/resolver/" + $("#identifier").val() , function(data) {
+    var jqxhr = $.getJSON("/bcid/api/resolverService/" + $("#identifier").val() , function(data) {
         var count=0;
         $.each(data, function() {
             var tbl_body = "<div style='float:left;margin:20px;'>";

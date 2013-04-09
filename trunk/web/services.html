@@ -1,0 +1,101 @@
+<h2>BCID Services</h2>
+<p>
+<table border=1>
+    <tr style='background-color:#6D7B8D'>
+        <th>Service Call</th>
+        <th>Type</th>
+        <th>Response</th>
+        <th>Access</th>
+        <th>Description</th>
+    </tr>
+
+    <tr><td colspan=5 style='background-color:#6D7B8D;text-align:center;'>Resolver Services</td></tr>
+
+    <tr>
+        <td>/bcid/api/resolverService/{scheme}/{naan}/{shoulder}</td>
+        <td>GET</td>
+        <td>JSON</td>
+        <td>public</td>
+        <td>An example of this looks like ark:/99999/C2 and corresponds to a BCID dataset.</td>
+    </tr>
+
+    <tr>
+        <td>/bcid/api/resolverService/{scheme}/{naan}/{shoulder}/{identifier}</td>
+        <td>GET</td>
+        <td>JSON</td>
+        <td>public</td>
+        <td>An example of this looks like ark:/99999/C2/1234-1343-1234-1234 and corresponds to a BCID element.</td>
+    </tr>
+
+    <tr><td colspan=5 style='background-color:#6D7B8D;text-align:center;'>BCID Services</td></tr>
+
+    <tr>
+        <td>/bcid/api/bcidService (YET TO IMPLEMENT)
+        <ul>
+            <li>inputFile (TextFile)</li>
+            <li>suffixPassthrough (Boolean)</li>
+            <li>resourceType (Integer)</li>
+            <li>anything else?</li>
+
+        </ul>
+        </td>
+        <td>POST</td>
+        <td>JSON</td>
+        <td>public</td>
+        <td>Take an input file and generate a series of BCIDs</td>
+    </tr>
+
+    <tr>
+        <td>/bcid/api/bcidService/select/{resourceTypes|resourceTypesMinusDataset}</td>
+        <td>GET</td>
+        <td>JSON</td>
+        <td>public</td>
+        <td>key/value pairs with ids and resourceTypes.  Generally useful for populating SELECT Boxes</td>
+    </tr>
+
+    <tr>
+        <td>/bcid/api/bcidService/resourceTypes</td>
+        <td>GET</td>
+        <td>TEXT/HTML</td>
+        <td>public</td>
+        <td>An HTML table that displays resourceType information</td>
+    </tr>
+
+    <tr><td colspan=5 style='background-color:#6D7B8D;text-align:center;'>Dataset Services</td></tr>
+
+     <tr>
+        <td>/bcid/api/datasetService<br>
+            <ul>
+                <li>String doi</li>
+                <li>String webaddress</li>
+                <li>String title</li>
+                <li>Integer resourceType</li>
+           </ul>
+        </td>
+        <td>POST</td>
+        <td>JSON [NEED TO CHANGE TO THIS FROM HTML]</td>
+        <td>authenticated</td>
+        <td>Returns an ARK.  The resourceType integer can be determined from a call to /bcid/api/bcidService/select/resourceTypes</td>
+    </tr>
+
+    <tr>
+        <td>/bcid/api/datasetService/metadata/{dataset_id}</td>
+        <td>GET</td>
+        <td>JSON</td>
+        <td>public</td>
+        <td>Return metadata for a dataset associated with a dataset_id.  The dataset_id corresponds to those returned by the datasetService/list service</td>
+    </tr>
+
+    <tr>
+        <td>/bcid/api/datasetService/list</td>
+        <td>GET</td>
+        <td>JSON</td>
+        <td>authenticated</td>
+        <td>key/value pairs with ids and arks of datasets registered to an authenticated user</td>
+    </tr>
+
+
+
+
+
+</table>

@@ -8,8 +8,8 @@
     <div class="sectioncontent">
 
         Paste in your Local Identifiers or UUIDs to create BCIDs.
-        If you have loaded groups or datasets with this account previously, you can choose an existing group or dataset
-        to update a set of existing identifiers.  The default action is to create a new group for this set of identifiers.
+        If you have loaded datasets with this account previously, you can choose an existing dataset
+        to update a set of existing identifiers.  The default action is to create a new dataset for this set of identifiers.
         If you elect to NOT maintain local IDs, a short identifier string will be created for you, which you
         can then join back into your database. For more information on what is happening here, visit the
         <a href="http://code.google.com/p/bcid">bcid codesite</a>.
@@ -19,16 +19,20 @@
                <tr><td>
                 <table style='border-width: 0px 0px 0px 0px !important;'>
                     <tr>
-                        <td align=right>Group</td>
-                        <td><select name=datasetList id=datasetList class=""></td>
+                        <td align=right>Dataset</td>
+                        <td><select name=datasetList id=datasetList class="" onchange='datasetListSelector()'></td>
+                    </tr>
+                     <tr>
+                        <td align=right>Title</td>
+                        <td><div id=titleDiv><input id=title type=textbox size="40"></div></td>
                     </tr>
                     <tr>
-                        <td align=right>Concept</td>
-                        <td><select name=resourceTypesMinusDataset id=resourceTypesMinusDataset class=""></select></td>
+                        <td align=right><a href='/bcid/concepts.jsp'>Concept</a></td>
+                        <td><div id=resourceTypesMinusDatasetDiv><select name=resourceTypesMinusDataset id=resourceTypesMinusDataset class=""></div></select></td>
                     </tr>
                     <tr>
                         <td align=right>Maintain local IDs</td>
-                        <td align=left><input type=checkbox name=suffixPassThrough checked=yes> </td>
+                        <td align=left><div id=suffixPassthroughDiv><input type=checkbox id=suffixPassthrough name=suffixPassThrough checked=yes></div></td>
                     </tr>
                 </table>
                 </td></tr>
@@ -40,7 +44,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <input type="Submit" name="Submit" value="Submit"/>
+                        <input type="Submit"/>
                     </td>
                 </tr>
             </table>
@@ -51,7 +55,7 @@
 
 <script>
     window.onload = populateSelect("datasetList");
-    window.onload = populateSelect("resourceTypesMinusDataset");
+    window.onload = creatorDefaults();
 </script>
 
 <%@ include file="../footer.jsp" %>

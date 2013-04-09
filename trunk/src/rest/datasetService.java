@@ -2,6 +2,9 @@ package rest;
 
 import bcid.database;
 import bcid.dataset;
+import bcid.resolver;
+import bcid.bcid;
+
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
@@ -49,20 +52,29 @@ public class datasetService {
         }
     }
 
+    /**
+     * Mint a dataset
+     * @param doi
+     * @param webaddress
+     * @param title
+     * @param resourceType
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public String mint(@FormParam("doi") String doi,
-                              @FormParam("webaddress") String webaddress,
-                              @FormParam("title") String title,
-                              @FormParam("concept") Integer resourceType,
-                              @FormParam("username") String username,
-                              @Context HttpServletRequest request) throws Exception {
+                       @FormParam("webaddress") String webaddress,
+                       @FormParam("title") String title,
+                       @FormParam("concept") Integer resourceType,
+                       @Context HttpServletRequest request) throws Exception {
 
         // TODO: go through and validate these values before submitting-- need to catch all input from UI
         // Create a Dataset
         database db = new database();
-        Integer user_id = db.getUserId("username");
+        Integer user_id = db.getUserId(request.getRemoteUser());
         dataset minterDataset = new dataset(false);
         minterDataset.mint(
                 new Integer(sm.retrieveValue("bcidNAAN")),
@@ -74,5 +86,39 @@ public class datasetService {
         minterDataset.close();
 
         return minterDataset.getPrefix();
+    }
+
+    /**
+     * Return a JSON representation of dataset metadata
+     *
+     * @param dataset_id
+     * @return
+     */
+    @GET
+    @Path("/metadata/{dataset_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String run(@PathParam("dataset_id") Integer dataset_id) {
+        return new bcid(dataset_id).json();
+
+    }
+
+    /**
+     * Return JSON response showing datasets available to this user
+     *
+     * @return String with JSON response
+     */
+    @GET
+    @Path("/list")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String datasetList(@Context HttpServletRequest request) {
+        dataset d = null;
+        try {
+            d = new dataset(true);
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        System.out.println("authenticated as " + request.getRemoteUser());
+        return d.datasetList(request.getRemoteUser());
     }
 }

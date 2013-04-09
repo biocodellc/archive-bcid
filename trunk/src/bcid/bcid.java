@@ -28,6 +28,7 @@ public class bcid {
     protected String what = null;           // erc.what
     protected String when = null;           // erc.when
     protected String who = null;            // erc.who
+    protected String title = null;            // erc.who\
     protected boolean datasetsEzidMade;
     protected boolean datasetsEzidRequest;
     protected String datasetsPrefix;
@@ -153,6 +154,7 @@ public class bcid {
                     "   d.ezidRequest," +
                     "   d.prefix," +
                     "   d.ts," +
+                    "   d.title," +
                     //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
                     "   u.username " +
                     " FROM datasets d, users u " +
@@ -167,10 +169,12 @@ public class bcid {
             datasetsEzidRequest = rs.getBoolean(count++);
             datasetsPrefix = rs.getString(count++);
             datasetsTs = rs.getString(count++);
+            title = rs.getString(count++);
             who = rs.getString(count++);
             ark = datasetsPrefix;
             what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
             when = datasetsTs;
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -229,7 +233,7 @@ public class bcid {
 
             appender()  {
                 sb = new StringBuilder();
-                sb.append("{");
+                sb.append("[{");
             }
 
             void append(String key, String value) {
@@ -254,7 +258,7 @@ public class bcid {
                 // Strip the last comma
 
                 // Close this
-                sb.append("}");
+                sb.append("}]");
             }
 
             public String toString() {
@@ -266,6 +270,7 @@ public class bcid {
         a.append("who", who);
         a.append("what", what);
         a.append("when", when);
+        a.append("title", title);
         a.append("sourceID", sourceID);
         a.append("datasetsEzidMade", datasetsEzidMade);
         a.append("datasetsEzidRequest", datasetsEzidRequest);

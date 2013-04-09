@@ -9,7 +9,7 @@ public class ResourceType {
     public  String string;
     public  String uri;
     public  String description;
-    public int resourceType;
+    public Integer resourceType;
 
     /**
      *
@@ -22,5 +22,15 @@ public class ResourceType {
         this.string = string;
         this.uri = uri;
         this.description = description;
+    }
+
+    /**
+     * Empty resourceType
+     */
+    public ResourceType(int resourceType) {
+            this.resourceType = resourceType;
+        this.string = "spacer";
+        this.uri = null;
+        this.description = null;
     }
 }
