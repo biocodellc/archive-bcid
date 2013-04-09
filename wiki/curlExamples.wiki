@@ -4,7 +4,7 @@ This page explains how to call BCID services using curl  --  For a list of BCID 
 
 Attempt a simple call to resolve an ARK:
 
-  * "curl http://biscicol.org/bcid/rest/resolverService/ark:/87286/C2"
+  * curl http://biscicol.org/bcid/rest/resolverService/ark:/87286/C2
 
 = Secure Content =
 
