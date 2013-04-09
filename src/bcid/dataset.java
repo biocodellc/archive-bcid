@@ -223,16 +223,14 @@ public class dataset extends datasetEncoder {
         Integer datasetId = null;
         StringBuilder sb = new StringBuilder();
         sb.append("[{");
-        sb.append("\"0\":\"Add new group\"");
+        sb.append("\"0\":\"Create new group\"");
         try {
             stmt = conn.createStatement();
             String sql = "select d.datasets_id as datasets_id,d.prefix as prefix from datasets d, users u where u.username = '" + username + "' && " +
                     "d.users_id=u.user_id";
             ResultSet rs = stmt.executeQuery(sql);
-            int count = 0;
             while (rs.next()) {
                 sb.append(",\"" + rs.getInt("datasets_id") + "\":\"" + rs.getString("prefix") + "\"");
-                count++;
             }
             sb.append("}]");
 

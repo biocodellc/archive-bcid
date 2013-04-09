@@ -166,7 +166,8 @@
     <target name="compile.module.bcid.production" description="Compile module Biscicol; production classes">
         <mkdir dir="${bcid.output.dir}"/>
         <javac destdir="${bcid.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}"
-               srcdir="src" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.bcid}/javac">
+               srcdir="src" memorymaximumsize="${compiler.max.memory}" fork="true"
+               executable="${module.jdk.bin.bcid}/javac">
             <compilerarg line="${compiler.args.bcid}"/>
             <bootclasspath refid="bcid.module.bootclasspath"/>
             <classpath refid="bcid.module.production.classpath"/>
@@ -232,5 +233,33 @@
     </target>
 
     <target name="all" depends="build.modules" description="build all"/>
+
+    <!-- Enunciate sections added by JBD -->
+    <!--
+    <property name="enunciate.home" value="${module.bcid.basedir}/lib/enunciate/lib"/>
+
+    <path id="enunciate.classpath">
+        <fileset dir="${enunciate.home}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${enunciate.home}/lib/modules/spring">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${java.home}">
+            <include name="lib/tools.jar"/>
+        </fileset>
+    </path>
+
+    <taskdef name="enunciate" classname="org.codehaus.enunciate.main.EnunciateTask">
+        <classpath refid="enunciate.classpath"/>
+    </taskdef>
+
+    <enunciate basedir="src/main/java">
+        <include name="**/*.java"/>
+        <classpath refid="enunciate.classpath"/>
+        <export artifactId="war.file" destination="${tomcat.home}/webapps/myapp.war"/>
+        <javacArgument argument="-g"/>
+    </enunciate>
+        -->
 
 </project> 

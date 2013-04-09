@@ -50,6 +50,21 @@ public class resolver extends database {
     }
 
     /**
+     * Return an identifier representing a data set
+     * @return
+     */
+    public Integer getDatasetID() {
+         return datasets_id;
+    }
+
+    /**
+     * Return an identifier representing a data element
+     * @return
+     */
+    public BigInteger getIdentifiersID() {
+        return identifiers_id;
+    }
+    /**
      * Set the shoulder and blade variables for this ARK
      *
      * @param a
@@ -109,6 +124,7 @@ public class resolver extends database {
             return "{\"BCID\":\"Not resolvable via BCID service\"}";
         }
     }
+
 
     private boolean isLocalID() {
 
@@ -310,11 +326,15 @@ public class resolver extends database {
         }
         try {
             r = new resolver(result);
-            EZIDService service = new EZIDService();
-            System.out.println("  " + r.resolveAll(service));
+            r.resolveARK();
+            System.out.println(r.ark + " : " + r.datasets_id);
+        //    EZIDService service = new EZIDService();
+        //    System.out.println("  " + r.resolveAll(service));
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
     }
 
 

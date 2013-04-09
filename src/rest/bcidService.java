@@ -59,44 +59,12 @@ public class bcidService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-    }
-
-    /**
-     * Create a list of Ids from the input data file
-     *
-     * @param data
-     * @param concept
-     * @param ezidAsUUID
-     * @return String indicating results
-     * @throws Exception
-     */
-    @POST
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.TEXT_HTML)
-    public String createEZIDs(@FormParam("data") String data,
-                              @FormParam("concept") int concept,
-                              @FormParam("ezidAsUUID") boolean ezidAsUUID,
-                              @Context HttpServletRequest request) throws Exception {
-
-        // Create an ArrayList of bcids from the input data
-        ArrayList localIds = new bcid.inputFileParser(data, concept).bcidArrayList;
-        // Create the minter class
-        //TODO: lookup the "who" here
-
-       // minterBCID minter = new minterBCID(new Integer(sm.retrieveValue("bcidNAAN")), ezidAsUUID);
-        // Mint the list
-        // TODO: get the actual datasets_id here
-        //return minter.mintList(localIds, ezidAsUUID, false);
-        //return minter.getUniqueDataSetID();
-        return "NEED TODO FILL THIS OUT";
-
     }
 
     /**
      * Populate select boxes for BCID service options
      *
-     * @param select
+     * @param 'resourceTypes|resourceTypesMinusDataset'
      * @return String with JSON response
      */
     @GET
@@ -110,14 +78,6 @@ public class bcidService {
         } else if (select.equalsIgnoreCase("resourceTypesMinusDataset")) {
              ResourceTypes rts = new ResourceTypes();
             return rts.getAllButDatasetAsJSON();
-        } else if (select.equalsIgnoreCase("datasetList")) {
-            dataset d = null;
-            try {
-                d = new dataset(true);
-            } catch (Exception e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            }
-            return d.datasetList("biocode");
         } else {
             return "[{}]";
         }

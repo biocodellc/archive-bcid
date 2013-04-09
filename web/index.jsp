@@ -4,7 +4,8 @@
     <h2>Resolver</h2>
 
     <div class="sectioncontent">
-        Resolves Biocode Commons Identifiers and EZIDs (e.g. ark:/87286/C2)
+        Resolves Biocode Commons Identifiers and EZIDs (e.g. ark:/87286/C2).  The BCID resolver recognizes suffixes attached
+        to known datasets, resolving back to the dataset itself.  EZID is slated to implement this service as well soon.
 
         <form>
         <table border=0>

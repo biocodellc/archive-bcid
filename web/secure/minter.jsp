@@ -4,7 +4,8 @@
     <h2>Minter</h2>
 
     <div class="sectioncontent">
-        <b>This feature is not yet active!!</b> Create globally unique identifiers to apply to your data elements. You must choose a common concept that these
+        <b>This feature is not yet active</b>
+        <p>Create globally unique identifiers to apply to your data elements. You must choose a common concept that these
         identifiers share.  There is a limit of 1000 identifiers per request through the web-interface.  If you require
         more please ask.  View <a href="http://code.google.com/p/biscicol/wiki/Identifiers">help</a> for more
         information.

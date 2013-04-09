@@ -25,30 +25,56 @@ public class ResourceTypes {
     public static int SOUND = 7;
     public static int TEXT = 8;
 
+    private static int SPACER1 = 9;
+
     // Dublin Core Classes
-    public static int LOCATION = 9;
-    public static int AGENT = 10;
+    public static int LOCATION = 10;
+    public static int AGENT = 11;
+
+    private static int SPACER2 = 12;
 
     // IAO
-    public static int INFORMATIONCONTENTENTITY = 11;
+    public static int INFORMATIONCONTENTENTITY = 13;
 
-    // DARWIN CORE
-    public static int OCCURRENCE = 12;
-    public static int IDENTIFICATION = 13;
-    public static int TAXON = 14;
-    public static int RESOURCERELATIONSHIP = 15;
-    public static int MEASUREMENTORFACT = 16;
-    public static int GEOLOGICALCONTEXT = 17;
+    private static int SPACER3 = 14;
+
+    // OBI
+    public static int MATERIALSAMPLE = 15;
+
+    private static int SPACER4 = 16;
+
+    // DARWIN CORE TYPES
+    public static int PRESERVEDSPECIMEN = 17;
+    public static int FOSSILSPECIMEN = 18;
+    public static int LIVINGSPECIMEN = 19;
+    public static int HUMANOBSERVATION = 20;
+    public static int MACHINEOBSERVATION = 21;
+
+    private static int SPACER5 = 22;
+
+    // DARWIN CORE TERMS
+    public static int OCCURRENCE = 23;
+    public static int IDENTIFICATION = 24;
+    public static int TAXON = 25;
+    public static int RESOURCERELATIONSHIP = 26;
+    public static int MEASUREMENTORFACT = 27;
+    public static int GEOLOGICALCONTEXT = 28;
+
+    private static int SPACER6 = 29;
 
     // ENVO
-    public static int BIOME = 18;
-    public static int FEATURE = 19;
-    public static int MATERIAL = 20;
+    public static int BIOME = 30;
+    public static int FEATURE = 31;
+    public static int MATERIAL = 32;
+
+    private static int SPACER7 = 33;
 
     // Catch All
-    public static int RESOURCE = 21;
+    public static int RESOURCE = 34;
+
 
     public ResourceTypes() {
+        list.clear();
         ResourceType type = null;
         // DCMI Resource Types
         list.add(new ResourceType(this.DATASET, "dctype:Dataset", "http://purl.org/dc/dcmitype/Dataset", "Data encoded in a defined structure."));
@@ -64,7 +90,15 @@ public class ResourceTypes {
         list.add(new ResourceType(this.AGENT, "dcterms:Agent", "http://purl.org/dc/terms/Agent", "A resource that acts or has the power to act."));
         // IAO
         list.add(new ResourceType(this.INFORMATIONCONTENTENTITY, "iao:InformationContentEntity", "http://purl.obolibrary.org/obo/IAO_0000030", "Examples of information content entites include journal articles, data, graphical layouts, and graphs."));
-        // DARWIN CORE
+        // OBI
+        list.add(new ResourceType(this.MATERIALSAMPLE, "obi:MaterialSample", "http://purl.obolibrary.org/obo/OBI_0000747", "A material entity that has the material sample role"));
+        // DARWIN CORE TYPES
+        list.add(new ResourceType(this.PRESERVEDSPECIMEN, "dwcterms:PreservedSpecimen", "http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen", "A resource describing a preserved specimen."));
+        list.add(new ResourceType(this.FOSSILSPECIMEN, "dwcterms:FossilSpecimen", "http://rs.tdwg.org/dwc/dwctype/FossilSpecimen", "A resource describing a fossilized specimen."));
+        list.add(new ResourceType(this.LIVINGSPECIMEN, "dwcterms:LivingSpecimen", "http://rs.tdwg.org/dwc/dwctype/LivingSpecimen", "A resource describing a living specimen."));
+        list.add(new ResourceType(this.HUMANOBSERVATION, "dwcterms:HumanObservation", "http://rs.tdwg.org/dwc/dwctype/HumanObservation", "A resource describing an observation made by one or more people."));
+        list.add(new ResourceType(this.MACHINEOBSERVATION, "dwcterms:MachineObservation", "http://rs.tdwg.org/dwc/dwctype/MachineObservation", "A resource describing an observation made by a machine."));
+        // DARWIN CORE TERMS
         list.add(new ResourceType(this.OCCURRENCE, "dwc:Occurrence", "http://rs.tdwg.org/dwc/terms/Occurrence", "The category of information pertaining to evidence of an occurrence in nature, in a collection, or in a dataset (specimen, observation, etc.)"));
         list.add(new ResourceType(this.IDENTIFICATION, "dwc:Identification", "http://rs.tdwg.org/dwc/terms/Identification", "The category of information pertaining to taxonomic determinations (the assignment of a scientific name)."));
         list.add(new ResourceType(this.TAXON, "dwc:Taxon", "http://rs.tdwg.org/dwc/terms/Taxon", "The category of information pertaining to taxonomic names, taxon name usages, or taxon concepts."));
@@ -77,6 +111,13 @@ public class ResourceTypes {
         list.add(new ResourceType(this.MATERIAL, "envo:Material", "http://purl.obolibrary.org/obo/ENVO_00010483", "Material in or on which organisms may live."));
         // Catch All
         list.add(new ResourceType(this.RESOURCE, "rdfs:Resource", "http://www.w3.org/2000/01/rdf-schema#Resource", "Resource is the class of everything"));
+        list.add(new ResourceType(this.SPACER1));
+        list.add(new ResourceType(this.SPACER2));
+        list.add(new ResourceType(this.SPACER3));
+        list.add(new ResourceType(this.SPACER4));
+        list.add(new ResourceType(this.SPACER5));
+        list.add(new ResourceType(this.SPACER6));
+        list.add(new ResourceType(this.SPACER7));
     }
 
     /**
@@ -91,31 +132,37 @@ public class ResourceTypes {
 
     /**
      * Return all the resources as JSON
+     *
      * @return
      */
     public String getAllAsJSON() {
-        String json = "[{";
+        StringBuilder json = new StringBuilder();
+        json.append("[{");
         Iterator it = list.iterator();
         int count = 0;
         while (it.hasNext()) {
             ResourceType rt = (ResourceType) it.next();
+            if (count == 0) {
+                json.append("\"0\":\"Select a Concept\"");
+            }
+            json.append(",");
 
-            if (count != 0) json += ",";
-            // DON'T RETURN dataset as an option here.  JSON is used to select ResourceTypes for Datasets themselves,
-            // so we don't want to allow users to choose this option in any interface.
-            //if (!rt.string.equalsIgnoreCase("Dataset")) {
-            json += "\"" + rt.resourceType + "\":\"" + rt.string + "\"";
+            if (rt.string.equals("spacer")) {
+                json.append("\"" + rt.resourceType + "\":\"---\"");
+            } else {
+                json.append("\"" + rt.resourceType + "\":\"" + rt.string + "\"");
+            }
             count++;
-            //}
         }
-        json += "}]";
-        return json;
+        json.append("}]");
+        return json.toString();
     }
 
     /**
      * Its often beneficial to return all options EXCEPT dataset, since providing Dataset as
      * an option technically means a "dataset of datasets" but this is most likely never desirable
      * for the purposes of this application.
+     *
      * @return
      */
     public String getAllButDatasetAsJSON() {
@@ -126,9 +173,18 @@ public class ResourceTypes {
         while (it.hasNext()) {
             ResourceType rt = (ResourceType) it.next();
 
-            if (count != 0) json.append(",");
+            if (count == 0) {
+                json.append("\"0\":\"Select a Concept\"");
+            }
+            json.append(",");
+
             if (rt.resourceType != this.DATASET) {
-                json.append("\"" + rt.resourceType + "\":\"" + rt.string + "\"");
+                // TODO: validate that nobody selects this option in the interface!
+                if (rt.string.equals("spacer")) {
+                    json.append("\"" + rt.resourceType + "\":\"---\"");
+                } else {
+                    json.append("\"" + rt.resourceType + "\":\"" + rt.string + "\"");
+                }
                 count++;
             }
         }
@@ -143,6 +199,7 @@ public class ResourceTypes {
 
     /**
      * Create an HTML table respresentation of resourceTypes
+     *
      * @return
      */
     public String getResourceTypesAsTable() {
@@ -158,11 +215,13 @@ public class ResourceTypes {
 
         while (it.hasNext()) {
             ResourceType rt = (ResourceType) it.next();
-            output.append("<tr>");
-            output.append("<td>" + rt.string + "</td>");
-            output.append("<td>" + rt.uri + "</td>");
-            output.append("<td>" + rt.description + "</td>");
-            output.append("</tr>");
+            if (!rt.string.equals("spacer")) {
+                output.append("<tr>");
+                output.append("<td>" + rt.string + "</td>");
+                output.append("<td>" + rt.uri + "</td>");
+                output.append("<td>" + rt.description + "</td>");
+                output.append("</tr>");
+            }
         }
 
         output.append("</table>");

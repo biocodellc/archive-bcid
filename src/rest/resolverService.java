@@ -18,7 +18,7 @@ import java.lang.String;
  * One can parse the JSON result for "Error" for non-responses, bad identifiers.
  * This service should be open to ALL and not require user authentication.
  */
-@Path("resolver")
+@Path("resolverService")
 public class resolverService {
     static SettingsManager sm;
     @Context
