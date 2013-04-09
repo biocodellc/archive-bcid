@@ -1,0 +1,17 @@
+#This page explains how to call BCID service using curl
+
+= Public Content =
+
+Attempt a simple call to resolve an ARK:
+
+  * curl http://johns-macbook-air-3.local:8080/bcid/rest/resolverService/ark:/87286/C2
+
+= Secure Content =
+
+First thing is to authenticate and set cookies.  Make sure to do this in a directory where you have write access:
+
+  * curl --data "j_username=USER&j_password=PSWD" http://biscicol.org/bcid/j_spring_security_check --location --cookie-jar cookies.txt
+
+Then, call the service in question, for example, to list datasets associated with the account you authenticated as:
+ 
+  * curl http://biscicol.org/bcid/rest/datasetService/list --cookie cookies.txt
