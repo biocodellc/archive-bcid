@@ -15,3 +15,7 @@ First thing is to authenticate and set cookies.  Make sure to do this in a direc
 Then, call the service in question, for example, to list datasets associated with the account you authenticated as:
  
   * curl http://biscicol.org/bcid/rest/datasetService/list --cookie cookies.txt
+
+If this is a new account without any datasets associated with it, if this request is successful, you will see the result:
+
+{"0":"Create new group"}]
