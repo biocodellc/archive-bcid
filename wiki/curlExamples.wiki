@@ -24,4 +24,4 @@ If this is a new account without any datasets associated with it, if this reques
 
 The following is an example of how to create a new data group and register local IDs with BCID.  For now, we specify resourceType = 3 (following will be an example of how to choose a resource type).  datasetList = 0 means that we want the system to create a new dataset for us (if we supply a number here, we attach these identifiers to a particular dataset that we own).  This assumes also that we have local identifiers, on separate lines in a textfile in the local directory called (testfile.txt).
 
-curl -d  "title=This is a test&resourceTypesMinusDataset=3&suffixPassthrough=true&datasetList=0" --data-urlencode "data@testfile.txt" http://biscicol.org/bcid/rest/bcidService/creator --cookie cookies.txt
+  * curl -d  "title=This is a test&resourceTypesMinusDataset=3&suffixPassthrough=true&datasetList=0" --data-urlencode "data@testfile.txt" http://biscicol.org/bcid/rest/bcidService/creator --cookie cookies.txt
