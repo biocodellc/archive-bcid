@@ -19,6 +19,8 @@ import java.util.Iterator;
  * switches in the database indicating whether the intention is to create EZIDS for particular identifiers.
  */
 public class manageEZID extends elementMinter {
+    // TODO: put resolverURLPrefix in SettingsManager
+    public String resolverURLPrefix = "http://biscicol.org/bcid/rest/resolverService/";
     public manageEZID() throws Exception {
         super();
     }
@@ -63,7 +65,7 @@ public class manageEZID extends elementMinter {
 
             // Build the hashmap to pass to ezid
             HashMap<String, String> map = ercMap(
-                    "http://biscicol.org/bcid/rest/resolverService/" + rs.getString("prefix"),
+                    resolverURLPrefix + rs.getString("prefix"),
                     //new ResourceTypes().get(ResourceTypes.DATASET).uri,
                     rs.getString("what"),
                     rs.getString("who"),
@@ -104,7 +106,11 @@ public class manageEZID extends elementMinter {
         try {
             stmt = conn.createStatement();
             rs = stmt.executeQuery("" +
-                    "SELECT d.datasets_id as datasets_id,d.prefix as prefix,d.ts as ts,concat_ws('',u.fullname,' <',u.email,'>') as who " +
+                    "SELECT d.datasets_id as datasets_id," +
+                    "d.prefix as prefix," +
+                    "d.ts as ts," +
+                    "d.resourceType as what," +
+                    "concat_ws('',u.fullname,' <',u.email,'>') as who " +
                     "FROM datasets d,users u " +
                     "WHERE !ezidMade && ezidRequest && d.users_id=u.USER_ID " +
                     "LIMIT 1000");
@@ -115,8 +121,8 @@ public class manageEZID extends elementMinter {
 
                 // Create the hashmap to send to ezid functions
                 HashMap<String, String> map = ercMap(
-                        "http://biscicol.org/resolver/" + rs.getString("prefix"),
-                        new ResourceTypes().get(ResourceTypes.DATASET).uri,
+                        resolverURLPrefix + rs.getString("prefix"),
+                        rs.getString("what"),
                         rs.getString("who"),
                         rs.getString("ts"));
                 map.put("_profile", "erc");
