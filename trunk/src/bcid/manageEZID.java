@@ -48,7 +48,12 @@ public class manageEZID extends elementMinter {
             stmt = conn.createStatement();
 
             rs = stmt.executeQuery("" +
-                    "SELECT d.datasets_id as datasets_id,d.prefix as prefix,d.ts as ts,concat_ws('',u.fullname,' <',u.email,'>') as who " +
+                    "SELECT " +
+                    "d.datasets_id as datasets_id," +
+                    "d.prefix as prefix," +
+                    "d.ts as ts," +
+                    "d.resourceType as what," +
+                    "concat_ws('',u.fullname,' <',u.email,'>') as who " +
                     "FROM datasets d,users u " +
                     "WHERE ezidMade && d.users_id=u.USER_ID " +
                     "AND d.datasets_id =" + datasets_id + " " +
@@ -58,8 +63,9 @@ public class manageEZID extends elementMinter {
 
             // Build the hashmap to pass to ezid
             HashMap<String, String> map = ercMap(
-                    "http://biscicol.org/bcid/api/resolver/" + rs.getString("prefix"),
-                    new ResourceTypes().get(ResourceTypes.DATASET).uri,
+                    "http://biscicol.org/bcid/rest/resolverService/" + rs.getString("prefix"),
+                    //new ResourceTypes().get(ResourceTypes.DATASET).uri,
+                    rs.getString("what"),
                     rs.getString("who"),
                     rs.getString("ts"));
 

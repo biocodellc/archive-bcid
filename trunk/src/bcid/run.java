@@ -200,7 +200,7 @@ public class run {
      * @param suffixPassthrough
      * @throws Exception
      */
-    private void runBCIDCreatorService(SettingsManager sm, int user_id, Boolean suffixPassthrough) throws Exception {
+    private void runBCIDCreatorService(EZIDService ezidAccount, SettingsManager sm, int user_id, Boolean suffixPassthrough) throws Exception {
         new Integer(sm.retrieveValue("bcidNAAN"));
 
         // Create a minter object
@@ -212,6 +212,12 @@ public class run {
 
         // Return the list of identifiers that were made here
         System.out.println(JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString());
+
+
+                    // Force an update on an individual bcid
+       // System.out.println("\nUpdate a single ezid metadata record for id = " + 3 + "  ...");
+      //  manageEZID me = new manageEZID();
+      //  me.updateDatasetsEZID(ezidAccount, 3);
 
         // What does a client want in return?
         /*
@@ -241,7 +247,9 @@ public class run {
                 //r.runBiSciColIdentifierTools(ezidAccount, new Integer(sm.retrieveValue("bcidNAAN")), 1);
 
                 // create BCIDs with suffixPassthrough for user_id =1
-                r.runBCIDCreatorService(sm, 1, false);
+                r.runBCIDCreatorService(ezidAccount,sm, 1, false);
+
+
 
                 //resolver(ezidAccount);
 
