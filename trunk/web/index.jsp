@@ -11,16 +11,30 @@
         <table border=0>
             <tr>
                 <td align=right>Identifier</td>
-                <td align=left><input type=text name="identifier" id="identifier" size="40"></td>
+                <td align=left>
+                    <input
+                        type=text
+                        name="identifier"
+                        id="identifier"
+                        size="40"
+                        onkeypress="if(event.keyCode==13) {resolverResults(); return false;}" />
+                </td>
             </tr>
             <tr>
-                <td colspan=2><input type="button" onclick="resolverResults('resolverResults');" name="Submit" value="Submit" /></td>
+                <td colspan=2>
+                    <input
+                        type="button"
+                        onclick="resolverResults();"
+                        name="Submit"
+                        value="Submit" />
+                </td>
             </tr>
          </table>
          </form>
+             <div id="resolverResults" style="overflow:auto;">
+
     </div>
 
-    <div id="resolverResults" style="overflow:auto;">
     </div>
 </div>
 

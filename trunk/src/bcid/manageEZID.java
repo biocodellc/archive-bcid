@@ -18,9 +18,9 @@ import java.util.Iterator;
  * Class to work with EZID creation from the bcid database.  requests to this class are controlled by
  * switches in the database indicating whether the intention is to create EZIDS for particular identifiers.
  */
-public class manageEZID extends bcidMinter {
+public class manageEZID extends elementMinter {
     public manageEZID() throws Exception {
-        super(false);
+        super();
     }
 
     public HashMap<String, String> ercMap(String target, String what, String who, String when) {
@@ -198,7 +198,7 @@ public class manageEZID extends bcidMinter {
                     }
                     // If this is not tagged as a uuid
                 } else {
-                    myIdentifier = new bcidEncoder(prefix).encode(new BigInteger(idString));
+                    myIdentifier = new elementEncoder(prefix).encode(new BigInteger(idString));
                 }
                 System.out.println("here is the ID being created ... " + myIdentifier);
                 identifier = new URI(ezid.createIdentifier(myIdentifier, map));

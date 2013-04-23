@@ -2,7 +2,6 @@ package bcid;
 
 import com.ibm.icu.math.BigDecimal;
 
-import java.lang.reflect.Array;
 import java.math.BigInteger;
 
 /**
@@ -16,7 +15,7 @@ import java.math.BigInteger;
  * If we have 3 letters in the shoulder including 1 digit this gives 1,217,727 possible permutations.
  * 4 letters and 1 digit will give 74,549,800 possible permutations.
  */
-public class datasetEncoder implements encoder {
+public class dataGroupEncoder implements encoder {
     private boolean debug = false;
     int[] endDigits = {1};
 
@@ -128,7 +127,7 @@ public class datasetEncoder implements encoder {
             shoulder = entireString;
         }
 
-        // Continue on...
+        // Convert the shoulder/text representation to a BigInteger
         int numCharactersPositionstoDecode = shoulder.length() - 1;
         Integer decodedInt = 0;
         int j = numCharactersPositionstoDecode;
@@ -207,15 +206,13 @@ public class datasetEncoder implements encoder {
         return bd.setScale(0, BigDecimal.ROUND_CEILING).intValue() - 1;
     }
 
-
-    // shoulder Encoding Characters.  No digits used and eliminate uppercase O, not to confuse with Zero (0)
-    // This scheme used to construct shoulders as used by EZID system
-    static protected char[] chars =
+    /** No digits used and eliminate uppercase O, not to confuse with Zero (0), this scheme used to construct shoulders for the EZID system, characters used for encoding are ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz **/
+    static public char[] chars =
             "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                    //"abc"
                     .toCharArray();
-    // Lookup table for converting shoulder characters to values
-    static protected byte[] codes = new byte[256];
+
+    /** Lookup table for converting shoulder characters to values **/
+    static public byte[] codes = new byte[256];
 
     static {
         int i = 1;
@@ -278,7 +275,7 @@ public class datasetEncoder implements encoder {
      * @param args
      */
     public static void main(String args[]) {
-        datasetEncoder shoulderEncoder = new datasetEncoder();
+        dataGroupEncoder shoulderEncoder = new dataGroupEncoder();
 
         BigInteger i = new BigInteger("6900000");
         String result = shoulderEncoder.encode(i);

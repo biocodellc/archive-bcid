@@ -14,9 +14,12 @@ import java.lang.Exception;
 import java.lang.String;
 
 /**
- * Resolver Service Call, returning JSON representation of results containing identifier metadata.
- * One can parse the JSON result for "Error" for non-responses, bad identifiers.
- * This service should be open to ALL and not require user authentication.
+ * Resolver Service returns JSON representation of results containing identifier metadata.
+ * One can parse the JSON result for "Error" for non-responses or bad identifiers.
+ * This service should is open to ALL and does not require authentication.
+ * 
+ * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a 
+ * Data Element with a suffix.
  */
 @Path("resolverService")
 public class resolverService {
@@ -38,65 +41,52 @@ public class resolverService {
     }
 
     /**
-     * Users just passes in the dataset
-     * @param scheme
-     * @param naan
-     * @param shoulder
-     * @return
-     */
-    @GET
-    @Path("/{scheme}/{naan}/{shoulder}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String run(@PathParam("scheme") String scheme,
-                      @PathParam("naan") String naan,
-                      @PathParam("shoulder") String shoulder
-                      ) {
-        return run(scheme, naan, shoulder, "");
-    }
-
-    /**
      * User passes in the dataset + identifier
      * @param scheme
      * @param naan
-     * @param shoulder
-     * @param identifier
+     * @param shoulderPlusIdentifier
      * @return
      */
     @GET
-    @Path("/{scheme}/{naan}/{shoulder}/{identifier}")
+    @Path("/{scheme}/{naan}/{shoulderPlusIdentifier}")
     @Produces(MediaType.APPLICATION_JSON)
     public String run(@PathParam("scheme") String scheme,
                       @PathParam("naan") String naan,
-                      @PathParam("shoulder") String shoulder,
-                      @PathParam("identifier") String identifier) {
+                      @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier) {
 
-        // decode this identifier
-        String bcid = scheme + "/" + naan + "/" + shoulder + "/" + identifier;
+         scheme = scheme.trim();
+        shoulderPlusIdentifier = shoulderPlusIdentifier.trim();
+        // Put the identifier components back together, they were separated by incoming REST service
+        String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
         // Initialize variables
         SettingsManager sm = SettingsManager.getInstance();
-        EZIDService ezidAccount = new EZIDService();
+        EZIDService ezidService = new EZIDService();
+        
         // Setup ezid account/login information
+        try {
+            ezidService.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+        } catch (EZIDException e) {
+            e.printStackTrace();
+        }
 
         try {
             sm.loadProperties();
-            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            return resolverResults(ezidAccount, bcid);
+            return resolverResults(ezidService, element);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return "[{\"Error\":\"Unable to load properties file on server: " + e.getMessage() + "\"}]";
+            return "[{\"Error\":{\"Message\":\"Unable to load properties file on server: " + e.getMessage() + "\"}}]";
         } catch (EZIDException e) {
             e.printStackTrace();
-            return  "[{\"Error\":\"Exception accessing EZID Service\"}]";
+            return  "[{\"Error\":{\"Message\":\"" + e.getMessage() +"\"}}]";
         } catch (Exception e) {
             e.printStackTrace();
-            return "[{\"Error\":\"Identifier " + bcid + ", may be badly formed\"}]";
+            return "[{\"Error\":{\"Message\":\"" + e.getMessage()+ "\"}}]";
         }
     }
 
     private String resolverResults(EZIDService ezidService, String identifier) throws Exception {
         resolver r = new resolver(identifier);
         return r.resolveAll(ezidService);
-        //return new bcid.resolver(identifier).resolveAll(ezidService);
     }
 }

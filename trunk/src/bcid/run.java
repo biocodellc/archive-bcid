@@ -2,13 +2,16 @@ package bcid;
 
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
+import net.sf.json.JSONArray;
 import util.SettingsManager;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.Exception;
 import java.lang.String;
 import java.lang.System;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.UUID;
@@ -18,16 +21,12 @@ import java.util.UUID;
  * This is a class used for running/testing Identifier creation methods.
  */
 public class run {
+    // a testData file to use for various tests in this class
+    ArrayList testDatafile;
 
-
-    /**
-     * This method runs through all the permutations for working with identifiers, and
-     * provides examples for their common use.
-     *
-     * @param ezidAccount
-     * @throws Exception
-     */
-    private static void runBiSciColIdentifierTools(EZIDService ezidAccount, Integer naan, Integer who) throws Exception {
+    public run() {
+        // Set this to the TEST dataset
+        Integer dataset_id = 1;
 
         // Create test data
         System.out.println("\nConstructing Test ArrayList of LocalId's ...");
@@ -36,8 +35,26 @@ public class run {
                 "56\n" +
                 "urn:uuid:1234-abcd-5678-efgh-9012-ijkl\n" +
                 "38543e40-665f-11e2-89f3-001f29e2923c";
-        ArrayList localIds = new inputFileParser(sampleInputStringFromTextBox, ResourceTypes.EVENT).bcidArrayList;
+
+        try {
+            testDatafile = new inputFileParser(sampleInputStringFromTextBox,dataset_id).elementArrayList;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         System.out.println("  Successfully created test dataset");
+    }
+
+    /**
+     * This method runs through all the permutations for working with identifiers, and
+     * provides examples for their common use.
+     *
+     * @param ezidAccount
+     * @throws Exception
+     */
+    private void runBiSciColIdentifierTools(EZIDService ezidAccount, Integer naan, Integer who) throws Exception {
+
 
         // Create a minter object to use for all these samples
         System.out.println("\nCreating a minter object by passing in an existing Dataset Prefix ...");
@@ -46,13 +63,13 @@ public class run {
         // Creation method Example #2, provide a NAAN & a user, which automatically creates a new shoulder
         // minterBCID minter = new minterBCID("87286",1);
         // Creation method Example #3, pass in an existing prefix and use that
-        bcidMinter minter = new bcidMinter(87286, "C2",false);
+        elementMinter minter = new elementMinter(87286, "C2", false, true);
         System.out.println("  prefix=" + minter.prefix);
-        System.out.println("  datasets_id=" + minter.datasets_id);
+        System.out.println("  datasets_id=" + minter.getDatasets_id());
 
         // Create a bcid for localId without Suffix passthrough
         System.out.println("\nCreate bcids WITHOUT suffix passthrough from test dataset ...");
-        String datasetIdentifier = minter.mintList(localIds, false, false);
+        String datasetIdentifier = minter.mintList(testDatafile);
         System.out.println("  datasetIdentifier = " + datasetIdentifier);
         Iterator ezids1It = minter.getIdentifiers(datasetIdentifier).iterator();
         while (ezids1It.hasNext()) {
@@ -64,7 +81,7 @@ public class run {
         // Create a bcid for each localId's  with Suffix passthrough
         System.out.println("\nCreate bcids WITH suffix passthrough from test dataset ...");
         System.out.println("  datasetIdentifier = " + datasetIdentifier);
-        datasetIdentifier = minter.mintList(localIds, true, false);
+        datasetIdentifier = minter.mintList(testDatafile);
         Iterator ezids2It = minter.getIdentifiers(datasetIdentifier).iterator();
         while (ezids2It.hasNext()) {
             System.out.println("  " + ezids2It.next());
@@ -90,12 +107,12 @@ public class run {
                 UUID.randomUUID() + "\thttp://biocode.berkeley.edu/specimens/MBIO57\n" +
                 UUID.randomUUID() + "\n" +
                 UUID.randomUUID();
-        ArrayList localUUIDs = new inputFileParser(uuidInputStringFromTextBox, ResourceTypes.EVENT).bcidArrayList;
+        ArrayList localUUIDs = new inputFileParser(uuidInputStringFromTextBox, 1).elementArrayList;
         System.out.println("  Successfully created test uuid dataset");
 
         // Create a bcid for each localId's
         System.out.println("\nCreating bcids with uuid suffix passthrough from test uuid dataset (FSU case) ...");
-        datasetIdentifier = minter.mintList(localUUIDs, true, true);
+        datasetIdentifier = minter.mintList(localUUIDs);
         System.out.println("  datasetIdentifier = " + datasetIdentifier);
         Iterator uuidsIt = minter.getIdentifiers(datasetIdentifier).iterator();
         while (uuidsIt.hasNext()) {
@@ -114,12 +131,12 @@ public class run {
                 UUID.randomUUID() + "\thttp://biocode.berkeley.edu/specimens/MBIO57\n" +
                 UUID.randomUUID() + "\n" +
                 UUID.randomUUID();
-        ArrayList localUUIDs2 = new inputFileParser(uuidInputStringFromTextBox2, ResourceTypes.EVENT).bcidArrayList;
+        ArrayList localUUIDs2 = new inputFileParser(uuidInputStringFromTextBox2, 1).elementArrayList;
         System.out.println("  Successfully created test uuid dataset #2");
 
         // Create a bcid for each localId's
         System.out.println("\nCreating bcidS WITHOUT uuid suffix passthrough from test uuid dataset #2 ...");
-        datasetIdentifier = minter.mintList(localUUIDs2, false, true);
+        datasetIdentifier = minter.mintList(localUUIDs2);
         Iterator uuidsIt2 = minter.getIdentifiers(datasetIdentifier).iterator();
         while (uuidsIt2.hasNext()) {
             System.out.println("  " + uuidsIt2.next());
@@ -139,11 +156,11 @@ public class run {
         System.out.println(" Scanned datasets table and created any dataset ezids");
 
         // Force an update on an individual bcid
-        System.out.println("\nUpdate a single ezid metadata record for id = " + minter.datasets_id + "  ...");
-        creator.updateDatasetsEZID(ezidAccount, minter.datasets_id);
+        System.out.println("\nUpdate a single ezid metadata record for id = " + minter.getDatasets_id() + "  ...");
+        creator.updateDatasetsEZID(ezidAccount, minter.getDatasets_id());
 
         // Create a Dataset
-       /* System.out.println("\nCreate a new dataset object:");
+        /* System.out.println("\nCreate a new dataset object:");
         dataset dataset = new dataset(false);
         dataset.mint(naan,  who, new ResourceTypes().RESOURCE, null, "http://www.google.com/", "this is a test");
         System.out.println("  Created " + dataset.prefix);
@@ -176,32 +193,65 @@ public class run {
         resolverResults(ezidService, "ark:/87286/Cddfdf2");
     }
 
+    /**
+     * Test creating a bunch of BCIDs as if it were being called from a REST service
+     * @param sm
+     * @param user_id
+     * @param suffixPassthrough
+     * @throws Exception
+     */
+    private void runBCIDCreatorService(SettingsManager sm, int user_id, Boolean suffixPassthrough) throws Exception {
+        new Integer(sm.retrieveValue("bcidNAAN"));
+
+        // Create a minter object
+        elementMinter minter = new elementMinter(true,suffixPassthrough);
+        minter.mint(new Integer(sm.retrieveValue("bcidNAAN")), user_id, ResourceTypes.SOUND, null, null, "Test Title");
+
+        // Mint a list of identifiers
+        String datasetUUID = minter.mintList(testDatafile);
+
+        // Return the list of identifiers that were made here
+        System.out.println(JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString());
+
+        // What does a client want in return?
+        /*
+        Dataset level data:
+        ArkID, Type, title
+        The created identifiers
+
+         */
+    }
 
     public static void main(String[] args) {
 
+            run r = new run();
+            // Initialize variables
+            SettingsManager sm = SettingsManager.getInstance();
+            EZIDService ezidAccount = new EZIDService();
 
-        // Initialize variables
-        SettingsManager sm = SettingsManager.getInstance();
-        EZIDService ezidAccount = new EZIDService();
+            try {
+                // Setup ezid account/login information
+                sm.loadProperties();
+                ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+                // Go through the processes of DOI assignment, bcid creation, ezid creation
+                //runAllServices(ds, ezidAccount);
 
-        try {
-            // Setup ezid account/login information
-            sm.loadProperties();
-            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            // Go through the processes of DOI assignment, bcid creation, ezid creation
-            //runAllServices(ds, ezidAccount);
+                // GetMyGUID, service #1
+                // Pass in a long list of local identifiers, and mint bcids
+                //r.runBiSciColIdentifierTools(ezidAccount, new Integer(sm.retrieveValue("bcidNAAN")), 1);
 
-            // GetMyGUID, service #1
-            // Pass in a long list of local identifiers, and mint bcids
-            runBiSciColIdentifierTools(ezidAccount, new Integer(sm.retrieveValue("bcidNAAN")),1);
-            //resolver(ezidAccount);
+                // create BCIDs with suffixPassthrough for user_id =1
+                r.runBCIDCreatorService(sm, 1, false);
 
-        } catch (EZIDException e) {
-            e.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+                //resolver(ezidAccount);
+
+            } catch (EZIDException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-    }
+
 }

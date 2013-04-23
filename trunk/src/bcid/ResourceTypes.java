@@ -25,23 +25,23 @@ public class ResourceTypes {
     public static int SOUND = 7;
     public static int TEXT = 8;
 
-    private static int SPACER1 = 9;
+    public static int SPACER1 = 9;
 
     // Dublin Core Classes
     public static int LOCATION = 10;
     public static int AGENT = 11;
 
-    private static int SPACER2 = 12;
+    public static int SPACER2 = 12;
 
     // IAO
     public static int INFORMATIONCONTENTENTITY = 13;
 
-    private static int SPACER3 = 14;
+    public static int SPACER3 = 14;
 
     // OBI
     public static int MATERIALSAMPLE = 15;
 
-    private static int SPACER4 = 16;
+    public static int SPACER4 = 16;
 
     // DARWIN CORE TYPES
     public static int PRESERVEDSPECIMEN = 17;
@@ -50,7 +50,7 @@ public class ResourceTypes {
     public static int HUMANOBSERVATION = 20;
     public static int MACHINEOBSERVATION = 21;
 
-    private static int SPACER5 = 22;
+    public static int SPACER5 = 22;
 
     // DARWIN CORE TERMS
     public static int OCCURRENCE = 23;
@@ -60,14 +60,14 @@ public class ResourceTypes {
     public static int MEASUREMENTORFACT = 27;
     public static int GEOLOGICALCONTEXT = 28;
 
-    private static int SPACER6 = 29;
+    public static int SPACER6 = 29;
 
     // ENVO
     public static int BIOME = 30;
     public static int FEATURE = 31;
     public static int MATERIAL = 32;
 
-    private static int SPACER7 = 33;
+    public static int SPACER7 = 33;
 
     // Catch All
     public static int RESOURCE = 34;
@@ -76,6 +76,7 @@ public class ResourceTypes {
     public ResourceTypes() {
         list.clear();
         ResourceType type = null;
+
         // DCMI Resource Types
         list.add(new ResourceType(this.DATASET, "dctype:Dataset", "http://purl.org/dc/dcmitype/Dataset", "Data encoded in a defined structure."));
         list.add(new ResourceType(this.EVENT, "dctype:Event", "http://purl.org/dc/dcmitype/Event", "A non-persistent, time-based occurrence."));
@@ -85,19 +86,30 @@ public class ResourceTypes {
         list.add(new ResourceType(this.SERVICE, "dctype:Service", "http://purl.org/dc/dcmitype/Service", "A system that provides one or more functions."));
         list.add(new ResourceType(this.SOUND, "dctype:Sound", "http://purl.org/dc/dcmitype/Sound", "A resource primarily intended to be heard."));
         list.add(new ResourceType(this.TEXT, "dctype:Text", "http://purl.org/dc/dcmitype/Text", "A resource consisting primarily of words for reading."));
+        list.add(new ResourceType(this.SPACER1));
+
         // Dublin Core Classes
         list.add(new ResourceType(this.LOCATION, "dcterms:Location", "http://purl.org/dc/terms/Location", "A spatial region or named place."));
         list.add(new ResourceType(this.AGENT, "dcterms:Agent", "http://purl.org/dc/terms/Agent", "A resource that acts or has the power to act."));
+        list.add(new ResourceType(this.SPACER2));
+
         // IAO
         list.add(new ResourceType(this.INFORMATIONCONTENTENTITY, "iao:InformationContentEntity", "http://purl.obolibrary.org/obo/IAO_0000030", "Examples of information content entites include journal articles, data, graphical layouts, and graphs."));
+        list.add(new ResourceType(this.SPACER3));
+
         // OBI
         list.add(new ResourceType(this.MATERIALSAMPLE, "obi:MaterialSample", "http://purl.obolibrary.org/obo/OBI_0000747", "A material entity that has the material sample role"));
+        list.add(new ResourceType(this.SPACER4));
+
+
         // DARWIN CORE TYPES
         list.add(new ResourceType(this.PRESERVEDSPECIMEN, "dwcterms:PreservedSpecimen", "http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen", "A resource describing a preserved specimen."));
         list.add(new ResourceType(this.FOSSILSPECIMEN, "dwcterms:FossilSpecimen", "http://rs.tdwg.org/dwc/dwctype/FossilSpecimen", "A resource describing a fossilized specimen."));
         list.add(new ResourceType(this.LIVINGSPECIMEN, "dwcterms:LivingSpecimen", "http://rs.tdwg.org/dwc/dwctype/LivingSpecimen", "A resource describing a living specimen."));
         list.add(new ResourceType(this.HUMANOBSERVATION, "dwcterms:HumanObservation", "http://rs.tdwg.org/dwc/dwctype/HumanObservation", "A resource describing an observation made by one or more people."));
         list.add(new ResourceType(this.MACHINEOBSERVATION, "dwcterms:MachineObservation", "http://rs.tdwg.org/dwc/dwctype/MachineObservation", "A resource describing an observation made by a machine."));
+        list.add(new ResourceType(this.SPACER5));
+
         // DARWIN CORE TERMS
         list.add(new ResourceType(this.OCCURRENCE, "dwc:Occurrence", "http://rs.tdwg.org/dwc/terms/Occurrence", "The category of information pertaining to evidence of an occurrence in nature, in a collection, or in a dataset (specimen, observation, etc.)"));
         list.add(new ResourceType(this.IDENTIFICATION, "dwc:Identification", "http://rs.tdwg.org/dwc/terms/Identification", "The category of information pertaining to taxonomic determinations (the assignment of a scientific name)."));
@@ -105,19 +117,17 @@ public class ResourceTypes {
         list.add(new ResourceType(this.RESOURCERELATIONSHIP, "dwc:ResourceRelationship", "http://rs.tdwg.org/dwc/terms/ResourceRelationship", "The category of information pertaining to relationships between resources (instances of data records, such as Occurrences, Taxa, Locations, Events)."));
         list.add(new ResourceType(this.MEASUREMENTORFACT, "dwc:MeasurementOrFact", "http://rs.tdwg.org/dwc/terms/MeasurementOrFact", "The category of information pertaining to measurements, facts, characteristics, or assertions about a resource (instance of data record, such as Occurrence, Taxon, Location, Event)."));
         list.add(new ResourceType(this.GEOLOGICALCONTEXT, "dwc:GeologicalContext", "http://rs.tdwg.org/dwc/terms/GeologicalContext", "The category of information pertaining to a location within a geological context, such as stratigraphy."));
+        list.add(new ResourceType(this.SPACER6));
+
         // ENVO
         list.add(new ResourceType(this.BIOME, "envo:Biome", "http://purl.obolibrary.org/obo/ENVO_00000428", "A major class of ecologically similar communities of plants, animals, and other organisms."));
         list.add(new ResourceType(this.FEATURE, "envo:Feature", "http://purl.obolibrary.org/obo/ENVO_00002297", "An environmental feature is a prominent or distinctive aspect, quality, or characteristic of a given biome."));
         list.add(new ResourceType(this.MATERIAL, "envo:Material", "http://purl.obolibrary.org/obo/ENVO_00010483", "Material in or on which organisms may live."));
+        list.add(new ResourceType(this.SPACER7));
+
         // Catch All
         list.add(new ResourceType(this.RESOURCE, "rdfs:Resource", "http://www.w3.org/2000/01/rdf-schema#Resource", "Resource is the class of everything"));
-        list.add(new ResourceType(this.SPACER1));
-        list.add(new ResourceType(this.SPACER2));
-        list.add(new ResourceType(this.SPACER3));
-        list.add(new ResourceType(this.SPACER4));
-        list.add(new ResourceType(this.SPACER5));
-        list.add(new ResourceType(this.SPACER6));
-        list.add(new ResourceType(this.SPACER7));
+
     }
 
     /**

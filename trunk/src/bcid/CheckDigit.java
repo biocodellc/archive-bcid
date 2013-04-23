@@ -83,8 +83,10 @@ public class CheckDigit {
      * @return true/false if this verifies
      */
     public boolean verify(String input) throws Exception {
-        if (input.length() > 30)
-            throw new Exception("Unable to decode string due to length, possibly this is a UUID?  Unable to validate");
+        if (input.length() > 30)  {
+            return false;
+            //throw new Exception("Unable to decode string due to length, possibly this is a UUID?  Unable to validate");
+        }
 
         int factor = 1;
         int sum = 0;

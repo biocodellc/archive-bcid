@@ -1,16 +1,15 @@
 package bcid;
 
-import javax.ws.rs.core.Response;
 import java.math.BigInteger;
 import java.sql.*;
 import java.util.UUID;
 
 /**
- * This class mints shoulders for use in the BCID and EZID systems, defining datasets.
- * Minting dataset shoulders is important in establishing the ownership of particular data
+ * This class mints shoulders for use in the  EZID systems known as data groups.
+ * Minting data groups are important in establishing the ownership of particular data
  * elements.
  */
-public class dataset extends datasetEncoder {
+public class dataGroup extends dataGroupEncoder {
 
     // Mysql Connection
     protected Connection conn;
@@ -18,7 +17,8 @@ public class dataset extends datasetEncoder {
     protected String bow = "";
     protected String scheme = "ark:";
     protected String shoulder = "";
-    protected Integer datasets_id = null;
+    private Boolean suffixPassThrough = false;
+    private Integer datasets_id = null;
     private boolean ezidRequest;
 
     /**
@@ -26,17 +26,25 @@ public class dataset extends datasetEncoder {
      *
      * @throws Exception
      */
-    protected dataset() throws Exception {
-        this(false);
+    public dataGroup() throws Exception {
+        this(false,false);
+    }
+
+    public Integer getDatasets_id() {
+        return datasets_id;
+    }
+
+    public Boolean getSuffixPassThrough() {
+        return suffixPassThrough;
     }
 
     /**
-     * Default constructor for dataset uses the temporary ARK ark:/99999/fk4.  Values can be overridden in
+     * Default constructor for data group uses the temporary ARK ark:/99999/fk4.  Values can be overridden in
      * the mint method.
      *
      * @throws Exception
      */
-    public dataset(boolean ezidRequest) throws Exception {
+    public dataGroup(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
         database db = new database();
         conn = db.getConn();
         // Generate defaults in constructor, these will be overridden later
@@ -45,29 +53,32 @@ public class dataset extends datasetEncoder {
         prefix = bow + shoulder;
         datasets_id = this.getDatasetId(prefix);
         this.ezidRequest = ezidRequest;
+        this.suffixPassThrough = suffixPassThrough;
     }
 
     /**
-     * Constructor for a dataset value that already exists in database, used to setup BCID minting
+     * Constructor for a dataset value that already exists in database, used to setup element minting
      *
      * @param NAAN
      * @param shoulder
      * @param ezidRequest
      * @throws Exception
      */
-    public dataset(Integer NAAN, String shoulder, boolean ezidRequest) throws Exception {
+    public dataGroup(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
         database db = new database();
         conn = db.getConn();
         setBow(NAAN);
         prefix = bow + shoulder;
         this.shoulder = shoulder;
         this.ezidRequest = ezidRequest;
+        this.suffixPassThrough = suffixPassThrough;
         try {
             datasets_id = this.getDatasetId(prefix);
         } catch (Exception e) {
             throw new Exception("problem getting shoulder " + e.getMessage());
         }
     }
+
 
     /**
      * create a minterDataset object by passing in a datasets_id.  An integer database value that we get immediately
@@ -76,17 +87,19 @@ public class dataset extends datasetEncoder {
      * @param datasets_id
      * @throws Exception
      */
-    public dataset(Integer datasets_id) throws Exception {
+    public dataGroup(Integer datasets_id) throws Exception {
         database db = new database();
         conn = db.getConn();
         Statement stmt = conn.createStatement();
-        String sql = "select prefix,ezidRequest from datasets where datasets_id = '" + datasets_id.toString() + "'";
+        String sql = "select prefix,ezidRequest,suffixPassthrough from datasets where datasets_id = '" + datasets_id.toString() + "'";
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         prefix = rs.getString("prefix");
         ezidRequest = rs.getBoolean("ezidRequest");
         shoulder = encode(new BigInteger(datasets_id.toString()));
         Integer naan = new Integer(prefix.split("/")[1]);
+        this.datasets_id = datasets_id;
+        this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
         setBow(naan);
     }
 
@@ -128,8 +141,8 @@ public class dataset extends datasetEncoder {
         // Insert the values into the database
         try {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
-            String insertString = "INSERT INTO datasets (users_id, resourceType, doi, webaddress, title, internalID, ezidRequest) " +
-                    "values (?,?,?,?,?,?,?)";
+            String insertString = "INSERT INTO datasets (users_id, resourceType, doi, webaddress, title, internalID, ezidRequest, suffixPassThrough) " +
+                    "values (?,?,?,?,?,?,?,?)";
 
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
@@ -140,6 +153,8 @@ public class dataset extends datasetEncoder {
             insertStatement.setString(5, title);
             insertStatement.setString(6, internalID.toString());
             insertStatement.setBoolean(7, ezidRequest);
+            insertStatement.setBoolean(8, suffixPassThrough);
+
 
             insertStatement.execute();
 
@@ -171,7 +186,7 @@ public class dataset extends datasetEncoder {
      * @return
      * @throws SQLException
      */
-    private int getDatasetIdentifier(UUID datasetUUID) throws SQLException {
+    private Integer getDatasetIdentifier(UUID datasetUUID) throws SQLException {
         Statement stmt = conn.createStatement();
         String sql = "select datasets_id from datasets where internalID = '" + datasetUUID.toString() + "'";
         ResultSet rs = stmt.executeQuery(sql);
@@ -218,6 +233,25 @@ public class dataset extends datasetEncoder {
         }
     }
 
+    /**
+     * Get the resourcetype defined for a particular dataset
+     * @return
+     */
+    public String getResourceType() {
+        Statement stmt;
+        try {
+            stmt = conn.createStatement();
+
+            String sql = "select d.resourceType as resourceType from datasets d where d.datasets_id = " + datasets_id;
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            return rs.getString("resourceType");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public String datasetList(String username) {
         Statement stmt = null;
         Integer datasetId = null;
@@ -226,7 +260,7 @@ public class dataset extends datasetEncoder {
         sb.append("\"0\":\"Create new group\"");
         try {
             stmt = conn.createStatement();
-            String sql = "select d.datasets_id as datasets_id,d.prefix as prefix from datasets d, users u where u.username = '" + username + "' && " +
+            String sql = "select d.datasets_id as datasets_id,concat_ws(' ',prefix,title) as prefix from datasets d, users u where u.username = '" + username + "' && " +
                     "d.users_id=u.user_id";
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
@@ -242,7 +276,7 @@ public class dataset extends datasetEncoder {
 
     public static void main(String args[]) {
         try {
-            dataset d  = new dataset();
+            dataGroup d = new dataGroup();
             System.out.println(d.datasetList("biocode"));
         } catch (Exception e) {
             e.printStackTrace();

@@ -2,25 +2,26 @@
 type = http://www.w3.org/1999/02/22-rdf-syntax-ns#type
 geo = http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing
 datelastmodified = http://purl.org/dc/terms/modified
+relativeOf = http://biscicol.org/biscicol.rdf#relativeOf
 hasSource = http://www.w3.org/ns/ma-ont#hasSource
 isSourceOf = http://www.w3.org/ns/ma-ont#isSourceOf
-relativeOf = http://biscicol.org/biscicol.rdf#relativeOf
-sameas = http://www.w3.org/2002/07/owl#sameAs
-agent = http://biscicol.org/biscicol.rdf#Agent
 isRelatedTo = http://www.w3.org/ns/ma-ont#isRelatedTo
 
-# BCID; EZID creation default account
-eziduser = apitest
-ezidpass = PutSomePasswordHere
+#EZID credentials under bcid sub-account to UCB Library
+eziduser = user
+ezidpass = pass
+bcidNAAN = 1234
+doiShoulder = doi:10.1234/FK2
+bcidTemporaryNAAN = ark:/99999/fk4
 
-# Mysql username/password
+# BCID settings
 bcidUser = user
-bcidPassword = password
-bcidUrl = jdbc:mysql://darwin.berkeley.edu:3306/biscicoltest
+bcidPassword = pass
+bcidUrl = jdbc:mysql://host:3306/mydb
 bcidClass = com.mysql.jdbc.Driver
-bcidShoulder = ark:/99999/fk4
-doiShoulder = doi:10.5072/FK2
-bcidStartingNumber = 900
+bcidStartingNumber = 100
+creatorLimit = 50000
+
 
 
 
