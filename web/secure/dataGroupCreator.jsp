@@ -1,7 +1,7 @@
 <%@ include file="../header.jsp" %>
 
 <div id="doiMinter" class="section">
-    <h2>Dataset Minter</h2>
+    <h2>Data Group Creator</h2>
 
     <div class="sectioncontent">
 
@@ -15,12 +15,12 @@
         </ul>
 
 
-        <form method="post" action="/bcid/rest/datasetService">
+        <form method="POST" id="dataGroupForm">
             <input type=hidden name=resourceTypes id=resourceTypes value="Dataset">
             <table>
                  <tr>
                     <td align=right>Title*</td>
-                    <td><input id=title type=textbox size="40"></td>
+                    <td><input id=title name=title type=textbox size="40"></td>
                 </tr>
                  <tr>
                         <td align=right><a href='/bcid/concepts.jsp'>Concept*</a></td>
@@ -33,16 +33,23 @@
 
                 <tr>
                     <td align=right>DOI</td>
-                    <td><input id=doi type=textbox size="40"></td>
+                    <td><input id=doi name=doi type=textbox size="40"></td>
+                </tr>
+                <tr>
+                    <td align=right>Maintain local IDs</td>
+                    <td><input type=checkbox id=suffixPassThrough name=suffixPassThrough checked=yes></td>
                 </tr>
                 <tr>
                     <td colspan=2>
                     <input type="hidden" name="username" value="<%= request.getRemoteUser() %>" >
-                    <input type="submit"/>
+                    <input type="button" value="Submit" onclick="dataGroupCreatorSubmit();"/>
                     </td>
                  </tr>
             </table>
         </form>
+
+        <div id="dataGroupCreatorResults" style="overflow:auto;"></div>
+
     </div>
 </div>
 

@@ -10,19 +10,20 @@
     <http use-expressions="true">
         <intercept-url pattern="/index.jsp" access="permitAll"/>
         <intercept-url pattern="/concepts.jsp" access="permitAll"/>
+        <intercept-url pattern="/requestEZID.jsp" access="permitAll"/>
         <intercept-url pattern="/secure/**" access="isAuthenticated()"/>
         <intercept-url pattern="/css/**" access="permitAll"/>
         <intercept-url pattern="/js/**" access="permitAll"/>
-        <intercept-url pattern="/rest/resolver**" access="permitAll"/>
-        <intercept-url pattern="/rest/resolver/**" access="permitAll"/>
-        <intercept-url pattern="/rest/datasetService/metadata**" access="permitAll"/>
-        <intercept-url pattern="/rest/bcidService/select/resourceTypes**" access="permitAll"/>
-        <intercept-url pattern="/rest/bcidService/resourceTypes**" access="permitAll"/>
-        <intercept-url pattern="/javadoc/**" access="permitAll"/>
+        <intercept-url pattern="/rest/resolverService**" access="permitAll"/>
+        <intercept-url pattern="/rest/resolverService/**" access="permitAll"/>
+        <intercept-url pattern="/rest/groupService/metadata**" access="permitAll"/>
+        <intercept-url pattern="/rest/elementService/select/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/rest/elementService/resourceTypes**" access="permitAll"/>
         <intercept-url pattern="/login.jsp" access="permitAll"/>
+
+        <intercept-url pattern="/javadoc/**" access="permitAll"/>
         <intercept-url pattern="/rest/bcid.wadl" access="permitAll"/>
         <intercept-url pattern="/wadl.xsl" access="permitAll"/>
-
 
         <intercept-url pattern="/**" access="isAuthenticated()"/>
         <form-login default-target-url="/index.jsp" always-use-default-target="true"/>

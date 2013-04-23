@@ -19,18 +19,11 @@ import java.util.Iterator;
 import java.util.UUID;
 
 /**
- * the bcidMinter class is the mechanism by which bcids interact with the mysql backend database.
- * "Mint" means that the identifier is
- * created by the application and "create" means that the identifier is created outside the application.  Thus,
- * bcid is "minting" and EZID "creates" the identifiers.  bcidMinter extends dataset and thus relies
+ * The elementMinter class brokers interactions between elements and groups and a mysql backend database.
+ * The  elementMinter extends dataset and thus relies
  * on the notion of a dataset to be in existence before creating ANY identifier.
- * <p/>
- * Options when working with this class include:
- * 1) uuid/EZID:  creating uuids EZIDs, which is essentially an ARK representation of the uuid (suffixPassthrough=true;ezidRequest=true)
- * 2) bcid: a bcid with no EZID request for pre-generating identifiers (suffixPassthrough=false; ezidRequest=false)
- * 3) EZID: a bcid with a request for creating an EZID. (suffixPassthrough=false;ezidRequest=true)
  */
-public class bcidMinter extends dataset {
+public class elementMinter extends dataGroup {
 
 
     // some number to start with
@@ -44,8 +37,13 @@ public class bcidMinter extends dataset {
     /**
      * TEST Case, uses test case dataset.
      */
-    public bcidMinter(boolean ezidRequest) throws Exception {
-        super(ezidRequest);
+    public elementMinter(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+        super(ezidRequest, suffixPassThrough);
+        init();
+    }
+
+    public elementMinter() throws Exception {
+        super();
         init();
     }
 
@@ -58,16 +56,17 @@ public class bcidMinter extends dataset {
      * @param ezidRequest
      * @throws Exception
      */
-    public bcidMinter(Integer NAAN, String shoulder, boolean ezidRequest) throws Exception {
-        super(NAAN, shoulder, ezidRequest);
+    public elementMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+        super(NAAN, shoulder, ezidRequest, suffixPassThrough);
         init();
     }
 
     /**
      * This constructor is used to prepare for minting BCID data elements when the dataset is known by its dataset_id
+     *
      * @throws Exception
      */
-    public bcidMinter(Integer dataset_id) throws Exception {
+    public elementMinter(Integer dataset_id) throws Exception {
         super(dataset_id);
         init();
     }
@@ -116,21 +115,6 @@ public class bcidMinter extends dataset {
     }
 
     /**
-     * Mint a Single bcid
-     * Takes a bcid object and inserts these objects into bcid database.
-     * Inserts bcid class members: DOI, webAddress, sourceID, resourceType
-     *
-     * @param b
-     * @throws Exception
-     */
-    public void mint(bcid b, boolean suffixPassthrough, boolean isUUID) throws Exception {
-        ArrayList<bcid> arrayList = new ArrayList<bcid>();
-        arrayList.add(b);
-
-        mintList(arrayList, suffixPassthrough, isUUID);
-    }
-
-    /**
      * Delete identifiers in table for a particular loadedSetuuid
      *
      * @param uuid
@@ -149,23 +133,39 @@ public class bcidMinter extends dataset {
     }
 
     /**
-     * Mint a group of bcids (see single bcid for further explanation)
+     * Mint a Single element
+     * Takes an element object and inserts these objects into database.
+     * Inserts element class members: DOI, webAddress, sourceID, resourceType
      *
-     * @param bcidList
-     * @param suffixPassthrough
-     * @param isUUID
+     * @param b
+     * @throws Exception
+     */
+    public void mint(element b) throws Exception {
+        ArrayList<element> arrayList = new ArrayList<element>();
+        arrayList.add(b);
+
+        mintList(arrayList);
+    }
+
+    /**
+     * Mint a group of elements (see single element for further explanation)
+     *
+     * @param elementList
      * @return returns a DatasetIdentifier String
      * @throws Exception
      */
-    public String mintList(ArrayList bcidList, boolean suffixPassthrough, boolean isUUID) throws Exception {
+    public String mintList(ArrayList elementList) throws Exception {
+
         // First validate the list before doing anything if this is uuids
-        if (suffixPassthrough && isUUID) {
-            Iterator validateIds = bcidList.iterator();
+        // TODO: check for slashes and bad characters in the suffix-- these are not allowed
+        if (this.getSuffixPassThrough()) {
+            Iterator validateIds = elementList.iterator();
             while (validateIds.hasNext()) {
-                bcid id = (bcid) validateIds.next();
-                if (!validateUUID(id.sourceID)) {
-                    throw new Exception("One or more invalid Identifiers, violating either checksum, uuid construction, or Uniqueness of uuid rules: " + id.sourceID);
-                }
+                element id = (element) validateIds.next();
+                // TODO: add back in validation of UUIDs, for now, this issue presents problems in determing what is a UUID or not!
+                //if (!validateUUID(id.sourceID)) {
+                //    throw new Exception("One or more invalid Identifiers, violating either checksum, uuid construction, or Uniqueness of uuid rules: " + id.sourceID);
+                //}
             }
         }
 
@@ -179,27 +179,25 @@ public class bcidMinter extends dataset {
         try {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             // Also, use auto date assignment feature for when this was applied.
-            StringBuffer sql = new StringBuffer("INSERT INTO identifiers ( webaddress, localid, what, loadedSetUUID, suffixPassthrough, datasets_id) " +
-                    "values (?,?,?,?,?,?)");
-            for (int i = 1; i < bcidList.size(); i++) {
-                sql.append(",(?,?,?,?,?,?)");
+            StringBuffer sql = new StringBuffer("INSERT INTO identifiers ( webaddress, localid, loadedSetUUID, datasets_id) " +
+                    "values (?,?,?,?)");
+            for (int i = 1; i < elementList.size(); i++) {
+                sql.append(",(?,?,?,?)");
             }
             insertStatement = conn.prepareStatement(sql.toString());
 
-            Iterator ids = bcidList.iterator();
+            Iterator ids = elementList.iterator();
             int count = 1;
             while (ids.hasNext()) {
-                bcid id = (bcid) ids.next();
-
+                element id = (element) ids.next();
                 if (id.webAddress != null)
                     insertStatement.setString(count++, id.webAddress.toString());
                 else
                     insertStatement.setString(count++, null);
                 insertStatement.setString(count++, id.sourceID);
-                insertStatement.setString(count++, id.resourceType.uri);
+                //insertStatement.setString(count++, this.getResourceType());
                 insertStatement.setString(count++, loadedSetUUID.toString());
-                insertStatement.setBoolean(count++, suffixPassthrough);
-                insertStatement.setInt(count++, datasets_id);
+                insertStatement.setInt(count++, this.getDatasets_id());
 
                 // Execute a commit at every 10000 rows
                 /*if (count + 1 % 10000 == 0) {
@@ -224,31 +222,30 @@ public class bcidMinter extends dataset {
      * Returns an arrayList of encoded identifiers given a dataset identifier
      * The dataset identifier indicates a batch of identifers added all at the same time
      *
-     * @param dataset
+     * @param datasetUUID
      * @return An ArrayList of identifiers
      */
 
-    public ArrayList getIdentifiers(String dataset) {
+    public ArrayList getIdentifiers(String datasetUUID) {
         ArrayList results = new ArrayList();
         try {
             Statement stmt = conn.createStatement();
             String sql = "SELECT " +
                     "i.identifiers_id as id," +
-                    "i.suffixPassthrough as suffixPassthrough," +
                     "d.prefix as prefix," +
                     "i.localid as localid" +
                     " FROM identifiers as i, datasets as d " +
-                    " WHERE i.loadedSetUUID = '" + dataset + "'" +
+                    " WHERE i.loadedSetUUID = '" + datasetUUID + "'" +
                     " AND i.datasets_id=d.datasets_id";
             ResultSet rs = stmt.executeQuery(sql);
 
             while (rs.next()) {
                 // If this is suffixPassthrough then use prefix + localid
-                if (rs.getBoolean("suffixPassthrough")) {
-                    results.add(rs.getString("prefix") + "/" + rs.getString("localid"));
+                if (this.getSuffixPassThrough()) {
+                    results.add(rs.getString("prefix") + "_" + rs.getString("localid"));
                     // else use the current encode function
                 } else {
-                    results.add(new bcidEncoder(prefix).encode(new BigInteger(rs.getString("id"))));
+                    results.add(new elementEncoder(prefix).encode(new BigInteger(rs.getString("id"))));
                 }
             }
 
@@ -315,16 +312,16 @@ public class bcidMinter extends dataset {
         try {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             // Also, use auto date assignment feature for when this was applied.
-            String insertString = "INSERT INTO identifiers(ezidRequest,what,loadedSetUUID, datasets_id) " +
-                    "values (?,?,?,?)";
+            String insertString = "INSERT INTO identifiers(ezidRequest,loadedSetUUID, datasets_id) " +
+                    "values (?,?,?)";
             insertStatement = conn.prepareStatement(insertString);
 
             int count = 0;
             while (count < numIdentifiers) {
                 insertStatement.setInt(1, FALSE);
-                insertStatement.setString(2, what.toString());
-                insertStatement.setString(3, datasetIdentifier.toString());
-                insertStatement.setInt(4, datasets_id);
+                // insertStatement.setString(2, what.toString());
+                insertStatement.setString(2, datasetIdentifier.toString());
+                insertStatement.setInt(3, this.getDatasets_id());
                 insertStatement.addBatch();
                 // Execute a commit at every 1000 rows
                 if (count + 1 % 1000 == 0) {
@@ -370,7 +367,7 @@ public class bcidMinter extends dataset {
         if (!validateUUID(uuidAsString)) {
             throw new Exception("Invalid uuid: " + uuidAsString);
         }
-        return prefix + "/" + UUID.fromString(uuidAsString).toString();
+        return prefix + "_" + UUID.fromString(uuidAsString).toString();
     }
 
     /**
@@ -388,23 +385,23 @@ public class bcidMinter extends dataset {
         Integer naan = new Integer(sm.retrieveValue("bcidNAAN"));
 
         // Create the shoulder
-        dataset minterDataset = null;
+        dataGroup minterDataset = null;
         try {
 
-           /*
-           minterDataset = new dataset();
-           minterDataset.mint(
-                    naan,
-                    1,
-                    new ResourceTypes().RESOURCE,
-                    null,
-                    null,
-                    null);
-                    */
-            minterDataset = new dataset();
+            /*
+   minterDataset = new dataset();
+   minterDataset.mint(
+            naan,
+            1,
+            new ResourceTypes().RESOURCE,
+            null,
+            null,
+            null);
+            */
+            minterDataset = new dataGroup();
             System.out.println("Using dataset  = " + minterDataset.prefix);
-        //} catch (URISyntaxException e) {
-        //    e.printStackTrace();
+            //} catch (URISyntaxException e) {
+            //    e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -417,43 +414,32 @@ public class bcidMinter extends dataset {
         String value = "105";
         System.out.println("Encode BigInteger = " + value);
 
-        String myIdentifier = new bcidEncoder(minterDataset.prefix).encode(new BigInteger(value));
+        String myIdentifier = new elementEncoder(minterDataset.prefix).encode(new BigInteger(value));
         System.out.println("  " + myIdentifier);
-               //myIdentifier = "ark:/99999/fk4/aQH";
+        //myIdentifier = "ark:/99999/fk4/aQH";
         // Decode an Identifier
         System.out.println("Decode Identifier = " + myIdentifier);
         try {
-            BigInteger bigInt = new bcidEncoder(minterDataset.prefix).decode(myIdentifier);
+            BigInteger bigInt = new elementEncoder(minterDataset.prefix).decode(myIdentifier);
             System.out.println("  Decoded BCID Value = " + bigInt);
-            System.out.println("  Decoded dataset Value = "+ new datasetEncoder().decode(myIdentifier));
+            System.out.println("  Decoded dataset Value = " + new dataGroupEncoder().decode(myIdentifier));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // Decode an Identifier with LocalID
-        System.out.println("Decode bcid = " + myIdentifier);
+        System.out.println("Decode element = " + myIdentifier);
         try {
-            BigInteger bigInt = new bcidEncoder(minterDataset.prefix).decode(myIdentifier);
+            BigInteger bigInt = new elementEncoder(minterDataset.prefix).decode(myIdentifier);
             System.out.println("  Decoded Value = " + bigInt);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-
-        // Attempt to Decode a uuid (we don't want to do this, just check behaviour)
-        //myIdentifier = "ark:/99999/fk409d5a2c3-e166-4bc0-a3ab-69ed0e3e9616";
-        // System.out.println("Attempt to Decode uuid = " + myIdentifier);
-        //try {
-        //    BigInteger bigInt = minter.decode(myIdentifier);
-        //    System.out.println("  Decoded Value = " + bigInt);
-        //} catch (Exception e) {
-        //    e.printStackTrace();
-        //}
-
-        bcidMinter minter = null;
+        elementMinter minter = null;
         // Create EZID w/ uuid on end
         try {
-            minter = new bcidMinter(naan, minterDataset.shoulder, false);
+            minter = new elementMinter(naan, minterDataset.shoulder, false, true);
             String uuid = "09d5a2c3-e166-4bc0-a3ab-69ed0e3e9616";
             System.out.println("Creating an ARK w/ uuid: " + uuid);
             String uuidArk = minter.createUUIDARK(uuid);

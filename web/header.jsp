@@ -19,7 +19,7 @@
 
     <div id="header">
 
-        <div style='float:left'><h1>Biocode Commons Identifiers</h1></div>
+        <div style='float:left'><h1>DRAFT - Biocode Commons Identifiers</h1></div>
 
         <div style='float:right' id="loginLink">
             <sec:authorize ifNotGranted="user">
@@ -40,20 +40,19 @@
             <sec:authorize access="hasRole('user')">
                 <div class="link"><a href='/bcid/secure/creator.jsp'>Creator</a></div>
                 <div class="separator">|</div>
-                <div class="link"><a href='/bcid/secure/minter.jsp'>Minter</a></div>
-                <div class="separator">|</div>
-                <div class="link"><a href='/bcid/secure/datasetMinter.jsp'>Dataset IDs</a></div>
+                <div class="link"><a href='/bcid/secure/dataGroupCreator.jsp'>Data Group Creator</a></div>
             </sec:authorize>
 
             <sec:authorize ifNotGranted="user">
                 <div class="disabledlink">Creator</div>
                 <div class="separator">|</div>
-                <div class="disabledlink">Minter</div>
-                <div class="separator">|</div>
-                <div class="disabledlink">Dataset IDs</div>
+                <div class="disabledlink">Data Group Creator</div>
             </sec:authorize>
 
             <div class="separator">|</div>
             <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>
+
+            <div class="separator">|</div>
+            <div class="link"><a href='/bcid/requestEZID.jsp'>Request EZID</a></div>
         </div>
     </div>

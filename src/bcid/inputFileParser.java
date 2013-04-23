@@ -9,23 +9,26 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * Parse an input File and construct a bcid Iterator which can be fetched
+ * Parse an input File and construct an element Iterator which can be fetched
  */
 public class inputFileParser {
 
-    public ArrayList<bcid> bcidArrayList = new ArrayList();
+    public ArrayList<element> elementArrayList = new ArrayList();
 
     /**
      * Main method to demonstrate how this is used
      * @param args
      */
     public static void main(String args[]) {
+
+        /*
         String sampleInputStringFromTextBox = "" +
+
                 "MBIO056\thttp://biocode.berkeley.edu/specimens/MBIO56\n" +
                 "56\n";
         inputFileParser parse = null;
         try {
-            parse = new inputFileParser(sampleInputStringFromTextBox, ResourceTypes.EVENT);
+            parse = new inputFileParser(sampleInputStringFromTextBox, DATASET_ID);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -34,19 +37,20 @@ public class inputFileParser {
 
         Iterator pi = parse.iterator();
         while (pi.hasNext()) {
-            bcid b = (bcid)pi.next();
-             System.out.println("sourceid = " + b.sourceID + ";webaddres = " + b.webAddress + ";resourcetype = " + b.resourceType.string);
+            element b = (element)pi.next();
+             System.out.println("sourceid = " + b.sourceID + ";webaddres = " + b.webAddress );
         }
+        */
 
     }
 
     /**
-     * Parse an input file and turn it into an Iterator containing bcids
+     * Parse an input file and turn it into an Iterator containing elements
      * @param inputString
      * @throws IOException
      * @throws URISyntaxException
      */
-    public inputFileParser(String inputString, int resourceTypeIdentifier) throws IOException, URISyntaxException {
+    public inputFileParser(String inputString, Integer dataset_id) throws IOException, URISyntaxException {
         BufferedReader readbuffer = new BufferedReader(new StringReader(inputString));
         String strRead;
         while ((strRead = readbuffer.readLine()) != null) {
@@ -55,19 +59,19 @@ public class inputFileParser {
             sourceID = splitarray[0];
             try {
                 webAddress = splitarray[1];
-                bcidArrayList.add(new bcid(sourceID, new URI(webAddress),resourceTypeIdentifier));
+                elementArrayList.add(new element(sourceID, new URI(webAddress),dataset_id));
             } catch (ArrayIndexOutOfBoundsException e) {
                 // ArrayIndexOutOfBounds here we just assume sourceID
-                bcidArrayList.add(new bcid(sourceID,resourceTypeIdentifier));
+                elementArrayList.add(new element(sourceID,dataset_id));
             }
         }
     }
 
     /**
-     * Return an iterator of bcid objects
+     * Return an iterator of element objects
      * @return Iterator of BCIDs
      */
     public Iterator iterator() {
-        return bcidArrayList.iterator();
+        return elementArrayList.iterator();
     }
 }

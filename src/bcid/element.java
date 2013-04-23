@@ -11,91 +11,78 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- * The bcid class encapsulates all of the information we know about a particular identifier, including the
+ * The element class encapsulates all of the information we know about a particular identifier.
+ * This includes data such as the
  * status of EZID creation, associated dataset calls, and any metadata.
- * There are several ways to construct this class.  Some of the constructors create
- * a bcid representation out of the box and are meant to then use to pass onto the database
- * so it can be created.  Other constructors create a bcid by looking up in the database and
- * populating the bcid class variables that way.
- *
+ * There are several ways to construct an element, including creating it from scratch, or instantiating by looking
+ * up an existing identifier from the database.
  */
-public class bcid {
+public class element {
 
 
     protected URI webAddress = null;        // URI for the webAddress, EZID calls this _target (e.g. http://biocode.berkeley.edu/specimens/MBIO56)
     protected String sourceID = null;       // Source or local identifier (e.g. MBIO056)
-    protected ResourceType resourceType;    // The ResourceType, using the BCID system definitions
+    //protected ResourceType resourceType;    // The ResourceType, using the BCID system definitions
     protected String what = null;           // erc.what
     protected String when = null;           // erc.when
     protected String who = null;            // erc.who
     protected String title = null;            // erc.who\
-    protected boolean datasetsEzidMade;
-    protected boolean datasetsEzidRequest;
+    protected Boolean datasetsEzidMade;
+    protected Boolean datasetsEzidRequest;
     protected String datasetsPrefix;
     protected String datasetsTs;
-    protected boolean identifiersEzidRequest;
-    protected boolean identifiersEzidMade;
-    protected boolean identifiersSuffixPassthrough;
+    protected Boolean identifiersEzidRequest;
+    protected Boolean identifiersEzidMade;
+    protected Boolean datasetsSuffixPassthrough;
     protected String identifiersTs;
     protected String ark;
+    protected dataGroup dataset;
+    protected String doi;
+    protected String level = "data element";     // Default is element, can also be data group.
 
     // HEADER to use with row() method
     protected static final String HEADER = "URI\tresourceTypeIdentifier\tsourceID\twebAddress";
 
     /**
-     * Create a bcid given a source identifier, and a resource type identifier
+     * Create an element given a source identifier, and a resource type identifier
+     *
      * @param sourceID
-     * @param resourceTypeIdentifier
+     * @param dataset_id
      */
-    public bcid(String sourceID, int resourceTypeIdentifier) {
-        this(sourceID, null, resourceTypeIdentifier);
+    public element(String sourceID, Integer dataset_id) {
+        this(sourceID, null, dataset_id);
     }
 
     /**
-     * Create a bcid given a source identifier, web address for resolution, and a resource type identifier
+     * Create an element given a source identifier, web address for resolution, and a resource type identifier
+     *
      * @param sourceID
      * @param webAddress
-     * @param resourceTypeIdentifier
+     * @param dataset_id
      */
-    public bcid(String sourceID, URI webAddress, int resourceTypeIdentifier) {
+    public element(String sourceID, URI webAddress, Integer dataset_id) {
+
+        try {
+             dataset = new dataGroup(dataset_id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         when = new dates().now();
         this.webAddress = webAddress;
         this.sourceID = sourceID;
-        ResourceTypes types = new ResourceTypes();
-        resourceType = types.get(resourceTypeIdentifier);
-        what = resourceType.uri;
-        what = this.resourceType.string;
+        what = dataset.getResourceType();
     }
 
     /**
-     * Create a bcid given a source identifier and a web address for resolution.  The resource type
-     * identifier becomes simply "Resource"
-     * @param sourceID
-     * @param webAddress
-     */
-    public bcid(String sourceID, URI webAddress) {
-        this(sourceID, webAddress, ResourceTypes.RESOURCE);
-    }
-
-    /**
-     * Create a bcid given only a source identifier.  No web address redirection and the resource type will be
-     * simply "Resource"
-      * @param sourceID
-     */
-    public bcid(String sourceID) {
-        this(sourceID, null, ResourceTypes.RESOURCE);
-    }
-
-    /**
-     * Create a bcid by passing in an BigInteger for the specific slot in the database and a string representation of this
+     * Create an element by passing in an BigInteger for the specific slot in the database and a string representation of this
      * ARK.
      * This class should probably only be instantiated by the resolver class, after it figures out what BigInteger
      * a particular ARK belongs to.
      *
      * @param identifiers_id indicating the integer of this identifier in the BCID system
-     * @param ark is the Full identifier
+     * @param ark            is the Full identifier
      */
-    public bcid(BigInteger identifiers_id, String ark) {
+    public element(BigInteger identifiers_id, String ark) {
         try {
             database db = new database();
             Statement stmt = db.conn.createStatement();
@@ -105,13 +92,13 @@ public class bcid {
                     "   d.prefix,d.ts," +
                     "   i.ezidMade," +
                     "   i.ezidRequest," +
-                    "   i.suffixPassthrough," +
+                    "   d.suffixPassthrough," +
                     "   i.localid," +
                     "   i.webaddress," +
-                    "   i.what," +
+                    "   d.resourceType," +
                     "   i.ts," +
                     //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
-                    "   u.username " +
+                    "   u.fullname " +
                     " FROM datasets d, identifiers i, users u " +
                     " WHERE d.datasets_id = i.datasets_id && " +
                     " d.users_id = u.user_id && " +
@@ -125,7 +112,7 @@ public class bcid {
             datasetsTs = rs.getString(count++);
             identifiersEzidMade = rs.getBoolean(count++);
             identifiersEzidRequest = rs.getBoolean(count++);
-            identifiersSuffixPassthrough = rs.getBoolean(count++);
+            datasetsSuffixPassthrough = rs.getBoolean(count++);
             sourceID = rs.getString(count++);
             String webaddress = rs.getString(count++);
             if (webaddress != null) {
@@ -142,11 +129,11 @@ public class bcid {
     }
 
     /**
-     * Create a bcid by passing in a single integer.  In this case, we assume this is simply a dataset.
+     * Create an element, dataset reference
      *
      * @param datasets_id
      */
-    public bcid(Integer datasets_id) {
+    public element(Integer datasets_id) {
         try {
             database db = new database();
             Statement stmt = db.conn.createStatement();
@@ -155,8 +142,11 @@ public class bcid {
                     "   d.prefix," +
                     "   d.ts," +
                     "   d.title," +
+                    "   d.resourceType," +
+                    "   d.suffixPassthrough," +
+                    "   d.doi," +
                     //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
-                    "   u.username " +
+                    "   u.fullname " +
                     " FROM datasets d, users u " +
                     " WHERE " +
                     " d.datasets_id = " + datasets_id + " && " +
@@ -170,10 +160,14 @@ public class bcid {
             datasetsPrefix = rs.getString(count++);
             datasetsTs = rs.getString(count++);
             title = rs.getString(count++);
+            what = rs.getString(count++);
+            datasetsSuffixPassthrough = rs.getBoolean(count++);
+            doi = rs.getString(count++);
             who = rs.getString(count++);
             ark = datasetsPrefix;
-            what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
+            //what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
             when = datasetsTs;
+            level = "data group";
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -217,9 +211,9 @@ public class bcid {
 
 
     /**
-     * Return JSON representation of this bcid
+     * Return JSON representation of this element
      *
-     * @return JSON representation of this BCID
+     * @return JSON representation of this element
      */
     public String json() {
         if (this == null) {
@@ -231,9 +225,9 @@ public class bcid {
         class appender {
             StringBuilder sb;
 
-            appender()  {
+            appender() {
                 sb = new StringBuilder();
-                sb.append("[{");
+                sb.append("{");
             }
 
             void append(String key, String value) {
@@ -245,20 +239,24 @@ public class bcid {
 
             }
 
-            void append(String key, boolean value) {
-                if (sb.length() > 2)
-                    sb.append(",");
-                if (value)
-                    sb.append("\"" + key + "\":\"true\"");
-                else
-                    sb.append("\"" + key + "\":\"false\"");
+            void append(String key, Boolean value) {
+                if (value != null) {
+                    if (sb.length() > 2)
+                        sb.append(",");
+
+                    if (value) {
+                        sb.append("\"" + key + "\":\"true\"");
+                    } else {
+                        sb.append("\"" + key + "\":\"false\"");
+                    }
+                }
             }
 
             void close() {
                 // Strip the last comma
 
                 // Close this
-                sb.append("}]");
+                sb.append("}");
             }
 
             public String toString() {
@@ -268,17 +266,19 @@ public class bcid {
         appender a = new appender();
         a.append("ark", ark);
         a.append("who", who);
-        a.append("what", what);
         a.append("when", when);
+        a.append("what", what);
+        a.append("level", level);
         a.append("title", title);
         a.append("sourceID", sourceID);
+        a.append("doi", doi);
         a.append("datasetsEzidMade", datasetsEzidMade);
-        a.append("datasetsEzidRequest", datasetsEzidRequest);
+        //a.append("datasetsEzidRequest", datasetsEzidRequest);
+        a.append("datasetsSuffixPassThrough", datasetsSuffixPassthrough);
         a.append("datasetsPrefix", datasetsPrefix);
         a.append("datasetsTs", datasetsTs);
-        a.append("identifiersEzidRequest", identifiersEzidRequest);
+        //a.append("identifiersEzidRequest", identifiersEzidRequest);
         a.append("identifiersEzidMade", identifiersEzidMade);
-        a.append("identifiersSuffixPassthrough", identifiersSuffixPassthrough);
         a.append("identifiersTs", identifiersTs);
         a.close();
 

@@ -1,3 +1,36 @@
+/** Process submit button for Data Group Creator **/
+function dataGroupCreatorSubmit() {
+    $( "#dataGroupCreatorResults" ).html( "Processing ..." );
+    /* Send the data using post */
+    var posting = $.post( "/bcid/rest/groupService", $("#dataGroupForm").serialize() );
+    results(posting,"#dataGroupCreatorResults");
+}
+
+/** Process submit button for Creator **/
+function creatorSubmit() {
+    $( "#creatorResults" ).html( "Processing ..." );
+    /* Send the data using post */
+    var posting = $.post( "/bcid/rest/elementService/creator", $("#localIDMinterForm").serialize() );
+    results(posting, "#creatorResults");
+}
+
+/** Generic way to display results from creator functions, relies on standardized JSON **/
+function results(posting, a) {
+    // Put the results in a div
+    posting.done(function( data ) {
+        var content = "<table>";
+        content += "<tr><th>Results</th></tr>"
+        $.each(data, function(k,v) {
+            content += "<tr><td>"+v+"</td></tr>";
+        })
+        content += "</table>";
+        $( a ).html( content );
+    });
+   posting.fail(function() {
+        $( a ).html( "<table><tr><th>System error, unable to perform function!!</th></tr></table>" );
+   });
+}
+
 // Control functionality when a datasetList is activated in the creator page
 // if it is not option 0, then need to look up values from server to fill
 // in title and concept.
@@ -6,11 +39,13 @@ function datasetListSelector() {
     // Set values when the user chooses a particular dataset
     if ($("#datasetList").val() != 0) {
         // Construct the URL
-        var url = "/bcid/rest/datasetService/metadata/" + $("#datasetList").val();
+        var url = "/bcid/rest/groupService/metadata/" + $("#datasetList").val();
         // Initialize cells
         $("#resourceTypesMinusDatasetDiv").html("");
-        $("#suffixPassthroughDiv").html("");
+        $("#suffixPassThroughDiv").html("");
         $("#titleDiv").html("");
+        $("#doiDiv").html("");
+
         // Get JSON response
         var jqxhr = $.getJSON(url, function() {})
             .done(function(data) {
@@ -19,17 +54,20 @@ function datasetListSelector() {
                     // Assign values from server to JS field names
                     if (key == "what")
                         $("#resourceTypesMinusDatasetDiv").html(val);
-                    if (key == "identifiersSuffixPassthrough")
-                        $("#suffixPassthroughDiv").html(val);
+                    if (key == "datasetsSuffixPassThrough")
+                        $("#suffixPassThroughDiv").html(val);
                     if (key == "title")
                         $("#titleDiv").html(val);
+                    if (key == "doi")
+                        $("#doiDiv").html(val);
                 });
             });
         // Set styles
         var color = "#463E3F";
         $("#titleDiv").css("color",color);
         $("#resourceTypesMinusDatasetDiv").css("color",color);
-        $("#suffixPassthroughDiv").css("color",color);
+        $("#suffixPassThroughDiv").css("color",color);
+        $("#doiDiv").css("color",color);
 
     // Set the Creator Defaults
     } else {
@@ -39,20 +77,22 @@ function datasetListSelector() {
 
 // Set default settings for the Creator Form settings
 function creatorDefaults() {
-    $("#titleDiv").html("<input id=title type=textbox size=40>");
+    $("#titleDiv").html("<input id=title name=title type=textbox size=40>");
     $("#resourceTypesMinusDatasetDiv").html("<select name=resourceTypesMinusDataset id=resourceTypesMinusDataset class=''>");
-    $("#suffixPassthroughDiv").html("<input type=checkbox id=suffixPassthrough name=suffixPassThrough checked=yes>");
+    $("#suffixPassThroughDiv").html("<input type=checkbox id=suffixPassThrough name=suffixPassThrough checked=yes>");
+    $("#doiDiv").html("<input type=textbox id=doi name=doi checked=yes>");
 
     $("#titleDiv").css("color","black");
     $("#resourceTypesMinusDatasetDiv").css("color","black");
-    $("#suffixPassthroughDiv").css("color","black");
+    $("#suffixPassThroughDiv").css("color","black");
+    $("#doiDiv").css("color","black");
 
     populateSelect("resourceTypesMinusDataset");
 }
 
 // Populate a table of data showing resourceTypes
 function populateResourceTypes(a) {
-    var url = "/bcid/rest/bcidService/resourceTypes";
+    var url = "/bcid/rest/elementService/resourceTypes";
     var jqxhr = $.ajax(url, function() {})
         .done(function(data) {
            $("#" + a).html(data);
@@ -66,10 +106,10 @@ function populateResourceTypes(a) {
 function populateSelect(a) {
     // Dataset Service Call
     if (a == "datasetList") {
-        var url = "/bcid/rest/datasetService/list";
+        var url = "/bcid/rest/groupService/list";
     // bcid Service Call
     } else {
-        var url = "/bcid/rest/bcidService/select/" + a;
+        var url = "/bcid/rest/elementService/select/" + a;
     }
 
     // get JSON from server and loop results
@@ -84,29 +124,28 @@ function populateSelect(a) {
 }
 
 // Take the resolver results and populate a table
-function resolverResults(target_id) {
+function resolverResults() {
 
-    $("#" + target_id).html("<div>Processing request ... </div>");
+    $("#resolverResults").html("<div>Processing request ... </div>");
     var div = "";
 
     var jqxhr = $.getJSON("/bcid/rest/resolverService/" + $("#identifier").val() , function(data) {
-        var count=0;
+        //var count=0;
         $.each(data, function() {
-            var tbl_body = "<div style='float:left;margin:20px;'>";
-            if (count ==0)
-                tbl_body += "BCID Resolution:";
-            else
-                tbl_body += "EZID Resolution:";
-            tbl_body += "<table border=1>";
-            $.each(this, function(k , v) {
-                tbl_body += "<tr><td>"+k+"</td>" + "<td>"+v+"</td></tr>";
+            $.each(this, function(service) {
+                var tbl_body = "<div style='float:left;margin:20px;'>";
+                tbl_body += "service:" + service;
+                tbl_body += "<table border=1>";
+                // Loop individual ID result values
+                $.each(this,function(k,v) {
+                    tbl_body += "<tr><td>"+k+"</td>" + "<td>"+v+"</td></tr>";
+                })
+                tbl_body += "</table></div>";
+                div += tbl_body;
             })
-            tbl_body += "</table></div>";
-            div += tbl_body;
-            count++;
+            //count++;
         })
     })
-    .done(function() { $("#" + target_id).html(div); })
-    .fail(function() { $("#" + target_id).html("<div>Unable to resolve " + $("#identifier").val() + "</div>"); });
-    //.always(function() { console.log( "complete" ); });
+    .done(function() { $("#resolverResults").html(div); })
+    .fail(function() { $("#resolverResults").html("<div>Unable to resolve " + $("#identifier").val() + "</div>"); });
 }
