@@ -9,7 +9,7 @@ import java.util.UUID;
  * Minting data groups are important in establishing the ownership of particular data
  * elements.
  */
-public class dataGroup extends dataGroupEncoder {
+public class dataGroupMinter extends dataGroupEncoder {
 
     // Mysql Connection
     protected Connection conn;
@@ -26,7 +26,7 @@ public class dataGroup extends dataGroupEncoder {
      *
      * @throws Exception
      */
-    public dataGroup() throws Exception {
+    public dataGroupMinter() throws Exception {
         this(false,false);
     }
 
@@ -44,7 +44,7 @@ public class dataGroup extends dataGroupEncoder {
      *
      * @throws Exception
      */
-    public dataGroup(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+    public dataGroupMinter(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
         database db = new database();
         conn = db.getConn();
         // Generate defaults in constructor, these will be overridden later
@@ -64,7 +64,7 @@ public class dataGroup extends dataGroupEncoder {
      * @param ezidRequest
      * @throws Exception
      */
-    public dataGroup(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+    public dataGroupMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
         database db = new database();
         conn = db.getConn();
         setBow(NAAN);
@@ -87,7 +87,7 @@ public class dataGroup extends dataGroupEncoder {
      * @param datasets_id
      * @throws Exception
      */
-    public dataGroup(Integer datasets_id) throws Exception {
+    public dataGroupMinter(Integer datasets_id) throws Exception {
         database db = new database();
         conn = db.getConn();
         Statement stmt = conn.createStatement();
@@ -252,6 +252,12 @@ public class dataGroup extends dataGroupEncoder {
         return null;
     }
 
+    /**
+     * Return a JSON representation of a datasetList
+     * TODO: find a more appropriate spot for this
+     * @param username
+     * @return
+     */
     public String datasetList(String username) {
         Statement stmt = null;
         Integer datasetId = null;
@@ -276,7 +282,7 @@ public class dataGroup extends dataGroupEncoder {
 
     public static void main(String args[]) {
         try {
-            dataGroup d = new dataGroup();
+            dataGroupMinter d = new dataGroupMinter();
             System.out.println(d.datasetList("biocode"));
         } catch (Exception e) {
             e.printStackTrace();

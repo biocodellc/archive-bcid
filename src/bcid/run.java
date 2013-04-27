@@ -175,7 +175,7 @@ public class run {
         try {
             resolver r = new resolver(identifier);
             System.out.println("Attempting to resolve " + identifier);
-            System.out.println(r.resolveAll(ezidService));
+            System.out.println(r.resolveAllAsJSON(ezidService));
         } catch (Exception e) {
             e.printStackTrace();
         }

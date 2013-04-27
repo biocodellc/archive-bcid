@@ -1,16 +1,15 @@
 package bcid;
 
+import bcid.Renderer.JSONRenderer;
+import bcid.Renderer.Renderer;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
-import net.sf.json.JSONObject;
 import util.SettingsManager;
-import util.dates;
 
 import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
 
 /**
  * Resolves any incoming identifier to the BCID and/or EZID systems.
@@ -101,27 +100,22 @@ public class resolver extends database {
      *
      * @return JSON String with content for the interface
      */
-    public String resolveARK() {
-        element e;
+    public String resolveARK(Renderer renderer) {
+        GenericIdentifier bcid = null;
 
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
-            e = new element(datagroup_id);
+            bcid = new bcid(datagroup_id);
             // Check if this is an element that we can resolve
             if (isElement(datagroup_id)) {
-                return new element(element_id, ark).json();
+                bcid = new bcid(element_id, ark);
                 // If not an element then check to see if this has a resolvable suffix
             } else if (isResolvableSuffix(datagroup_id)) {
-                return new element(element_id, ark).json();
+                bcid = new bcid(element_id, ark);
             }
-            // Return element if nothing else has returned by now
-            return e.json();
         }
 
-        // If this not listed as a Dataset just return null
-        else {
-            return "{\"BCID\":\"Not resolvable via BCID service\"}";
-        }
+        return renderer.renderIdentifier(bcid);
     }
 
 
@@ -149,55 +143,32 @@ public class resolver extends database {
      * @param ezidService
      * @return JSON string to send to interface
      */
-    public String resolveEZID(EZIDService ezidService)  {
+    public String resolveEZID(EZIDService ezidService, Renderer renderer) {
         // First fetch from EZID, and populate a map
-        HashMap<String, String> map = null;
+        GenericIdentifier ezid = null;
 
         try {
-            map = ezidService.getMetadata(ark);
-            } catch (EZIDException e) {
+            ezid = new ezid(ezidService.getMetadata(ark));
+        } catch (EZIDException e) {
             e.printStackTrace();
-            return "{\"EZID\":\"Unable to map this identifier to EZID service, message = " + e.getMessage() + "\"}";
-         }
-
-        // Format results for our application, looping through map
-        Iterator it = map.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pairs = (Map.Entry) it.next();
-            // Map unixTime formats to UTC time
-            if (pairs.getKey().equals("_updated") ||
-                    pairs.getKey().equals("_created")) {
-                long timeStamp = new Long(pairs.getValue().toString());
-                map.put(pairs.getKey().toString(),new dates().unixToUTC(timeStamp).toString());
-            }
-            //it.remove(); // avoids a ConcurrentModificationException
         }
-
-        // Sort the EZID results -- sorting in reverse order as a treemap puts the common values at the top
-        TreeMap<String, String> treeMap = new TreeMap<String, String>(map);
-
-        // return JSON results
-        JSONObject o = JSONObject.fromObject(treeMap.descendingMap());
-        if (o.containsKey("error")) {
-            return "{\"EZID\":\"Not resolvable via EZID service\"}";
-        } else {
-            return o.toString();
-        }
+        return renderer.renderIdentifier(ezid);
     }
 
 
     /**
-     * Resolve identifiers through BCID AND EZID
+     * Resolve identifiers through BCID AND EZID -- This method assumes JSONRenderer
      *
      * @param ezidService
      * @return JSON string with information about BCID/EZID results
      */
-    public String resolveAll(EZIDService ezidService) {
+    public String resolveAllAsJSON(EZIDService ezidService) {
+        Renderer renderer = new JSONRenderer();
         StringBuilder sb = new StringBuilder();
         sb.append("[\n");
-        sb.append("  {\"BCID\":" + this.resolveARK() + "}");
+        sb.append("  " +this.resolveARK(renderer));
         sb.append("\n  ,\n");
-        sb.append("  {\"EZID\":" + this.resolveEZID(ezidService) + "}");
+        sb.append("  " + this.resolveEZID(ezidService, renderer));
         sb.append("\n]");
         return sb.toString();
     }
@@ -354,12 +325,12 @@ public class resolver extends database {
             r = new resolver("ark:/87286/C2");
             EZIDService service = new EZIDService();
             service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            System.out.println(r.resolveAll(service));
+            System.out.println(r.resolveAllAsJSON(service));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-       /* String result = null;
+        /* String result = null;
         try {
             result = URLDecoder.decode("ark%3A%2F87286%2FC2", "UTF-8");
         } catch (UnsupportedEncodingException e) {

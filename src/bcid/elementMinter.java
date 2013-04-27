@@ -23,7 +23,7 @@ import java.util.UUID;
  * The  elementMinter extends dataset and thus relies
  * on the notion of a dataset to be in existence before creating ANY identifier.
  */
-public class elementMinter extends dataGroup {
+public class elementMinter extends dataGroupMinter {
 
 
     // some number to start with
@@ -140,8 +140,8 @@ public class elementMinter extends dataGroup {
      * @param b
      * @throws Exception
      */
-    public void mint(element b) throws Exception {
-        ArrayList<element> arrayList = new ArrayList<element>();
+    public void mint(bcid b) throws Exception {
+        ArrayList<bcid> arrayList = new ArrayList<bcid>();
         arrayList.add(b);
 
         mintList(arrayList);
@@ -161,7 +161,7 @@ public class elementMinter extends dataGroup {
         if (this.getSuffixPassThrough()) {
             Iterator validateIds = elementList.iterator();
             while (validateIds.hasNext()) {
-                element id = (element) validateIds.next();
+                bcid id = (bcid) validateIds.next();
                 // TODO: add back in validation of UUIDs, for now, this issue presents problems in determing what is a UUID or not!
                 //if (!validateUUID(id.sourceID)) {
                 //    throw new Exception("One or more invalid Identifiers, violating either checksum, uuid construction, or Uniqueness of uuid rules: " + id.sourceID);
@@ -189,7 +189,7 @@ public class elementMinter extends dataGroup {
             Iterator ids = elementList.iterator();
             int count = 1;
             while (ids.hasNext()) {
-                element id = (element) ids.next();
+                bcid id = (bcid) ids.next();
                 if (id.webAddress != null)
                     insertStatement.setString(count++, id.webAddress.toString());
                 else
@@ -385,7 +385,7 @@ public class elementMinter extends dataGroup {
         Integer naan = new Integer(sm.retrieveValue("bcidNAAN"));
 
         // Create the shoulder
-        dataGroup minterDataset = null;
+        dataGroupMinter minterDataset = null;
         try {
 
             /*
@@ -398,7 +398,7 @@ public class elementMinter extends dataGroup {
             null,
             null);
             */
-            minterDataset = new dataGroup();
+            minterDataset = new dataGroupMinter();
             System.out.println("Using dataset  = " + minterDataset.prefix);
             //} catch (URISyntaxException e) {
             //    e.printStackTrace();

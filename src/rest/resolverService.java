@@ -14,11 +14,12 @@ import java.lang.Exception;
 import java.lang.String;
 
 /**
- * Resolver Service returns JSON representation of results containing identifier metadata.
+ * The resolver service searches for identifiers in the BCID system and in EZID and returns a JSON
+ * representation of results containing identifier metadata.
  * One can parse the JSON result for "Error" for non-responses or bad identifiers.
- * This service should is open to ALL and does not require authentication.
- * 
- * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a 
+ * This service is open to ALL and does not require authentication.
+ * <p/>
+ * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a
  * Data Element with a suffix.
  */
 @Path("resolverService")
@@ -41,7 +42,8 @@ public class resolverService {
     }
 
     /**
-     * User passes in the dataset + identifier
+     * User passes in an identifier of the form scheme:/naan/shoulder_identifier
+     *
      * @param scheme
      * @param naan
      * @param shoulderPlusIdentifier
@@ -54,39 +56,37 @@ public class resolverService {
                       @PathParam("naan") String naan,
                       @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier) {
 
-         scheme = scheme.trim();
+        // Clean up input
+        scheme = scheme.trim();        
         shoulderPlusIdentifier = shoulderPlusIdentifier.trim();
-        // Put the identifier components back together, they were separated by incoming REST service
+        
+        // Structure the identifier element from path parameters
         String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
-        // Initialize variables
+        // SettingsManager
         SettingsManager sm = SettingsManager.getInstance();
-        EZIDService ezidService = new EZIDService();
-        
+        try {
+            sm.loadProperties();
+        } catch (FileNotFoundException e) {
+            return new serviceErrorReporter(e, "Unable to load properties file on server").json();
+        }
+
         // Setup ezid account/login information
+        EZIDService ezidService = new EZIDService();
         try {
             ezidService.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
         } catch (EZIDException e) {
+            // For now, just print stack trace here and proceed.
             e.printStackTrace();
         }
-
+        
+        // Run Resolver
         try {
-            sm.loadProperties();
-            return resolverResults(ezidService, element);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return "[{\"Error\":{\"Message\":\"Unable to load properties file on server: " + e.getMessage() + "\"}}]";
+            return new resolver(element).resolveAllAsJSON(ezidService);                               
         } catch (EZIDException e) {
-            e.printStackTrace();
-            return  "[{\"Error\":{\"Message\":\"" + e.getMessage() +"\"}}]";
+            return new serviceErrorReporter(e).json();
         } catch (Exception e) {
-            e.printStackTrace();
-            return "[{\"Error\":{\"Message\":\"" + e.getMessage()+ "\"}}]";
+            return new serviceErrorReporter(e).json();
         }
-    }
-
-    private String resolverResults(EZIDService ezidService, String identifier) throws Exception {
-        resolver r = new resolver(identifier);
-        return r.resolveAll(ezidService);
-    }
+    }    
 }
