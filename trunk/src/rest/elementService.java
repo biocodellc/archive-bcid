@@ -117,7 +117,7 @@ public class elementService {
                           @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                           @Context HttpServletRequest request) {
 
-        dataGroup dataset = null;
+        dataGroupMinter dataset = null;
         database db = null;
         Boolean suffixPassthrough = false;
 
@@ -163,7 +163,7 @@ public class elementService {
 
             // Create a new dataset
             try {
-                dataset = new dataGroup(true, suffixPassthrough);
+                dataset = new dataGroupMinter(true, suffixPassthrough);
                 // we don't know DOI or webaddress from this call, so we set them to NULL
                 dataset.mint(new Integer(sm.retrieveValue("bcidNAAN")), user_id, resourceType, doi, webaddress, title);
             } catch (Exception e) {
@@ -173,7 +173,7 @@ public class elementService {
             // Load an existing dataset we've made already
         } else {
             try {
-                dataset = new dataGroup(dataset_id);
+                dataset = new dataGroupMinter(dataset_id);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new WebApplicationException(Response.Status.BAD_REQUEST);

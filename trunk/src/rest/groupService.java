@@ -1,8 +1,12 @@
 package rest;
 
-import bcid.dataGroup;
+import bcid.Renderer.JSONRenderer;
+import bcid.Renderer.Renderer;
+import bcid.dataGroupMinter;
 import bcid.database;
-import bcid.element;
+import bcid.bcid;
+import bcid.GenericIdentifier;
+
 
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
@@ -89,7 +93,7 @@ public class groupService {
         database db = new database();
         Integer user_id = db.getUserId(request.getRemoteUser());
 
-        dataGroup minterDataset = new dataGroup(false, suffixPassthrough);
+        dataGroupMinter minterDataset = new dataGroupMinter(false, suffixPassthrough);
         minterDataset.mint(
                 new Integer(sm.retrieveValue("bcidNAAN")),
                 user_id,
@@ -112,7 +116,10 @@ public class groupService {
     @Path("/metadata/{dataset_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public String run(@PathParam("dataset_id") Integer dataset_id) {
-        return "[" + new element(dataset_id).json() + "]";
+        GenericIdentifier bcid = new bcid(dataset_id);
+        Renderer renderer = new JSONRenderer();
+
+        return "[" + renderer.renderIdentifier(bcid) + "]";
     }
 
     /**
@@ -124,9 +131,9 @@ public class groupService {
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     public String datasetList(@Context HttpServletRequest request) {
-        dataGroup d = null;
+        dataGroupMinter d = null;
         try {
-            d = new dataGroup();
+            d = new dataGroupMinter();
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }

@@ -13,7 +13,7 @@ import java.util.Iterator;
  */
 public class inputFileParser {
 
-    public ArrayList<element> elementArrayList = new ArrayList();
+    public ArrayList<bcid> elementArrayList = new ArrayList();
 
     /**
      * Main method to demonstrate how this is used
@@ -59,10 +59,10 @@ public class inputFileParser {
             sourceID = splitarray[0];
             try {
                 webAddress = splitarray[1];
-                elementArrayList.add(new element(sourceID, new URI(webAddress),dataset_id));
+                elementArrayList.add(new bcid(sourceID, new URI(webAddress),dataset_id));
             } catch (ArrayIndexOutOfBoundsException e) {
                 // ArrayIndexOutOfBounds here we just assume sourceID
-                elementArrayList.add(new element(sourceID,dataset_id));
+                elementArrayList.add(new bcid(sourceID,dataset_id));
             }
         }
     }
