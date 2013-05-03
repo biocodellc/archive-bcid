@@ -1,6 +1,7 @@
 package bcid;
 
 import util.SettingsManager;
+import util.timer;
 
 import java.lang.Exception;
 import java.lang.Integer;
@@ -155,6 +156,9 @@ public class elementMinter extends dataGroupMinter {
      * @throws Exception
      */
     public String mintList(ArrayList elementList) throws Exception {
+        timer t = new timer();
+
+        t.lap("begin mintList");
 
         // First validate the list before doing anything if this is uuids
         // TODO: check for slashes and bad characters in the suffix-- these are not allowed
@@ -173,49 +177,72 @@ public class elementMinter extends dataGroupMinter {
         String loadedSetUUID = this.generateUUIDString();
 
         // Turn off autocommits just for this method
-        conn.setAutoCommit(false);
+        //conn.setAutoCommit(false);
         PreparedStatement insertStatement = null;
-
         try {
-            // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
-            // Also, use auto date assignment feature for when this was applied.
-            StringBuffer sql = new StringBuffer("INSERT INTO identifiers ( webaddress, localid, loadedSetUUID, datasets_id) " +
-                    "values (?,?,?,?)");
-            for (int i = 1; i < elementList.size(); i++) {
-                sql.append(",(?,?,?,?)");
+            int insertSize = 1000;
+            if (insertSize > elementList.size()) {
+                insertSize = elementList.size();
             }
-            insertStatement = conn.prepareStatement(sql.toString());
 
+            // Begin prepared statement logic
+            insertStatement = conn.prepareStatement(formatSQL(insertSize));
             Iterator ids = elementList.iterator();
-            int count = 1;
+            int rowcount = 0;
+            int paramcount = 1;
+            // Loop through identifiers
             while (ids.hasNext()) {
                 bcid id = (bcid) ids.next();
+
                 if (id.webAddress != null)
-                    insertStatement.setString(count++, id.webAddress.toString());
+                    insertStatement.setString(paramcount++, id.webAddress.toString());
                 else
-                    insertStatement.setString(count++, null);
-                insertStatement.setString(count++, id.sourceID);
-                //insertStatement.setString(count++, this.getResourceType());
-                insertStatement.setString(count++, loadedSetUUID.toString());
-                insertStatement.setInt(count++, this.getDatasets_id());
+                    insertStatement.setString(paramcount++, null);
 
-                // Execute a commit at every 10000 rows
-                /*if (count + 1 % 10000 == 0) {
-                   insertStatement.execute();
-                    conn.commit();
+                insertStatement.setString(paramcount++, id.sourceID);
+                insertStatement.setString(paramcount++, loadedSetUUID.toString());
+                insertStatement.setInt(paramcount++, id.dataset_id);
+
+                // Execute a commit at every so many number of rows
+                if ((rowcount + 1) % insertSize == 0) {
+                    insertStatement.execute();
+                    insertStatement.clearParameters();
+                    // Adjust the size of the next prepared statement
+                    if (insertSize >= (elementList.size() - rowcount)) {
+                        int lastSectionSize = elementList.size() - (rowcount + 1);
+                        insertStatement = conn.prepareStatement(formatSQL(lastSectionSize));
+                    }
+                    paramcount = 1;
                 }
-                count++;
-                */
+                rowcount++;
             }
-            insertStatement.execute();
-            insertStatement.close();
-            conn.commit();
-        } finally {
-            insertStatement.close();
-            conn.setAutoCommit(true);
-        }
+            // Finish up, last statement
+            if (paramcount > 1) {
+                insertStatement.execute();
+            }
 
+            insertStatement.close();
+
+        } finally {
+            // Finish up
+            insertStatement.close();
+        }
+        t.lap("end mintList");
         return loadedSetUUID.toString();
+    }
+
+    /**
+     * Special function to prepare SQL statement
+     * @param rowcount
+     * @return
+     */
+    private String formatSQL(Integer rowcount) {
+        StringBuffer sql = new StringBuffer("INSERT INTO identifiers ( webaddress, localid, loadedSetUUID, datasets_id) " +
+                "values (?,?,?,?)");
+        for (int i = 1; i < rowcount; i++) {
+            sql.append(",(?,?,?,?)");
+        }
+        return sql.toString();
     }
 
     /**
