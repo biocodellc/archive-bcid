@@ -4,7 +4,12 @@ import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import net.sf.json.JSONArray;
 import util.SettingsManager;
+import util.timer;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.Exception;
@@ -12,6 +17,9 @@ import java.lang.String;
 import java.lang.System;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.UUID;
@@ -25,19 +33,22 @@ public class run {
     ArrayList testDatafile;
 
     public run() {
+
+    }
+    public run(String path, dataGroupMinter dataset) {
         // Set this to the TEST dataset
-        Integer dataset_id = 1;
 
         // Create test data
-        System.out.println("\nConstructing Test ArrayList of LocalId's ...");
-        String sampleInputStringFromTextBox = "" +
+        System.out.println("\nReading input file = " + path + " ...");
+        /*String sampleInputStringFromTextBox = "" +
                 "MBIO056\thttp://biocode.berkeley.edu/specimens/MBIO56\n" +
                 "56\n" +
                 "urn:uuid:1234-abcd-5678-efgh-9012-ijkl\n" +
                 "38543e40-665f-11e2-89f3-001f29e2923c";
+          */
 
         try {
-            testDatafile = new inputFileParser(sampleInputStringFromTextBox,dataset_id).elementArrayList;
+            testDatafile = new inputFileParser(readFile(path), dataset).elementArrayList;
         } catch (IOException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -107,7 +118,7 @@ public class run {
                 UUID.randomUUID() + "\thttp://biocode.berkeley.edu/specimens/MBIO57\n" +
                 UUID.randomUUID() + "\n" +
                 UUID.randomUUID();
-        ArrayList localUUIDs = new inputFileParser(uuidInputStringFromTextBox, 1).elementArrayList;
+        ArrayList localUUIDs = new inputFileParser(uuidInputStringFromTextBox, minter).elementArrayList;
         System.out.println("  Successfully created test uuid dataset");
 
         // Create a bcid for each localId's
@@ -131,7 +142,7 @@ public class run {
                 UUID.randomUUID() + "\thttp://biocode.berkeley.edu/specimens/MBIO57\n" +
                 UUID.randomUUID() + "\n" +
                 UUID.randomUUID();
-        ArrayList localUUIDs2 = new inputFileParser(uuidInputStringFromTextBox2, 1).elementArrayList;
+        ArrayList localUUIDs2 = new inputFileParser(uuidInputStringFromTextBox2, minter).elementArrayList;
         System.out.println("  Successfully created test uuid dataset #2");
 
         // Create a bcid for each localId's
@@ -195,71 +206,78 @@ public class run {
 
     /**
      * Test creating a bunch of BCIDs as if it were being called from a REST service
-     * @param sm
-     * @param user_id
-     * @param suffixPassthrough
+     *
      * @throws Exception
      */
-    private void runBCIDCreatorService(EZIDService ezidAccount, SettingsManager sm, int user_id, Boolean suffixPassthrough) throws Exception {
-        new Integer(sm.retrieveValue("bcidNAAN"));
+    private  void runBCIDCreatorService() throws Exception {
 
-        // Create a minter object
-        elementMinter minter = new elementMinter(true,suffixPassthrough);
-        minter.mint(new Integer(sm.retrieveValue("bcidNAAN")), user_id, ResourceTypes.SOUND, null, null, "Test Title");
+        // Initialize variables
+        dataGroupMinter dataset = null;
+        SettingsManager sm = SettingsManager.getInstance();
+        sm.loadProperties();
+
+        EZIDService ezidAccount = new EZIDService();
+        Integer user_id = 1;
+        Integer NAAN = new Integer(sm.retrieveValue("bcidNAAN"));
+        Integer ResourceType = ResourceTypes.PRESERVEDSPECIMEN;
+        String doi = null;
+        String webaddress = null;
+        String title = "TEST Load from Java";
+
+        // Create a new dataset
+        System.out.println("\nCreating a new dataset");
+        try {
+            dataset = new dataGroupMinter(true, true);
+            dataset.mint(NAAN, user_id, ResourceType, doi, webaddress, title);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+        System.out.println("   New dataset is " + dataset.getPrefix());
+
+
+         // Create test data by using input file
+        String path = Thread.currentThread().getContextClassLoader().getResource("bigfile.txt").getFile();
+        System.out.println("\nReading input file = " + path + " ...");
+        try {
+            testDatafile = new inputFileParser(readFile(path), dataset).elementArrayList;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+
+        // Create an elementMinter object by using a dataset
+        elementMinter minter = new elementMinter(dataset.getDatasets_id());
 
         // Mint a list of identifiers
+        System.out.println("\nPreparing to mint " + testDatafile.size()+ " identifiers");
         String datasetUUID = minter.mintList(testDatafile);
 
         // Return the list of identifiers that were made here
         System.out.println(JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString());
-
-
-                    // Force an update on an individual bcid
-       // System.out.println("\nUpdate a single ezid metadata record for id = " + 3 + "  ...");
-      //  manageEZID me = new manageEZID();
-      //  me.updateDatasetsEZID(ezidAccount, 3);
-
-        // What does a client want in return?
-        /*
-        Dataset level data:
-        ArkID, Type, title
-        The created identifiers
-
-         */
     }
 
-    public static void main(String[] args) {
+    private static String readFile(String path) throws IOException {
+        FileInputStream stream = new FileInputStream(new File(path));
+        try {
+            FileChannel fc = stream.getChannel();
+            MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+            /* Instead of using default, pass in a decoder. */
+            return Charset.defaultCharset().decode(bb).toString();
+        } finally {
+            stream.close();
+        }
+    }
 
-            run r = new run();
-            // Initialize variables
-            SettingsManager sm = SettingsManager.getInstance();
-            EZIDService ezidAccount = new EZIDService();
-
-            try {
-                // Setup ezid account/login information
-                sm.loadProperties();
-                ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-                // Go through the processes of DOI assignment, bcid creation, ezid creation
-                //runAllServices(ds, ezidAccount);
-
-                // GetMyGUID, service #1
-                // Pass in a long list of local identifiers, and mint bcids
-                //r.runBiSciColIdentifierTools(ezidAccount, new Integer(sm.retrieveValue("bcidNAAN")), 1);
-
-                // create BCIDs with suffixPassthrough for user_id =1
-                r.runBCIDCreatorService(ezidAccount,sm, 1, false);
-
-
-
-                //resolver(ezidAccount);
-
-            } catch (EZIDException e) {
-                e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        public static void main(String[] args) {
+       run r = new run();
+        try {
+            r.runBCIDCreatorService();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
+    }
 }

@@ -10,9 +10,10 @@ import java.sql.Statement;
 import java.util.HashMap;
 
 /**
- * The bcid class encapsulates all of the information we know about a particular identifier.
+ * The bcid class encapsulates all of the information we know about a BCID.
  * This includes data such as the
  * status of EZID creation, associated dataset calls, and any metadata.
+ * It can include a data element or a data group.
  * There are several ways to construct an element, including creating it from scratch, or instantiating by looking
  * up an existing identifier from the database.
  */
@@ -35,6 +36,7 @@ public class bcid extends GenericIdentifier {
     protected dataGroupMinter dataset;
     protected String doi;
     protected String level = "data element";     // Default is element, can also be data group.
+    protected Integer dataset_id;
 
     // HashMap to store metadata values
     private HashMap<String, String> map = new HashMap<String, String>();
@@ -58,15 +60,16 @@ public class bcid extends GenericIdentifier {
      */
     public bcid(String sourceID, URI webAddress, Integer dataset_id) {
 
-        try {
-            dataset = new dataGroupMinter(dataset_id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        //try {
+        //    dataset = new dataGroupMinter(dataset_id);
+        //} catch (Exception e) {
+        //    e.printStackTrace();
+       // }
         when = new dates().now();
         this.webAddress = webAddress;
         this.sourceID = sourceID;
-        what = dataset.getResourceType();
+        this.dataset_id = dataset_id;
+        //what = dataset.getResourceType();
     }
 
     /**
@@ -172,11 +175,16 @@ public class bcid extends GenericIdentifier {
         }
     }
 
+    /**
+     * Convert the class variables to a HashMap of metadata.
+     * @return
+     */
     public HashMap<String, String> getMetadata() {
         put("ark", ark);
         put("who", who);
         put("when", when);
         put("what", what);
+        put("webaddress",webAddress);
         put("level", level);
         put("title", title);
         put("sourceID", sourceID);
@@ -197,6 +205,11 @@ public class bcid extends GenericIdentifier {
     private void put(String key, Boolean val) {
         if (val != null)
             map.put(key, val.toString());
+    }
+    private void put(String key, URI val) {
+        if (val != null) {
+            map.put(key,val.toString());
+        }
     }
 }
 

@@ -5,6 +5,7 @@ import bcid.Renderer.Renderer;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
+import util.timer;
 
 import java.math.BigInteger;
 import java.sql.ResultSet;
@@ -163,12 +164,16 @@ public class resolver extends database {
      * @return JSON string with information about BCID/EZID results
      */
     public String resolveAllAsJSON(EZIDService ezidService) {
+         timer t = new timer();
         Renderer renderer = new JSONRenderer();
         StringBuilder sb = new StringBuilder();
         sb.append("[\n");
+
         sb.append("  " +this.resolveARK(renderer));
+        t.lap("resolveARK");
         sb.append("\n  ,\n");
         sb.append("  " + this.resolveEZID(ezidService, renderer));
+        t.lap("resolveEZID");
         sb.append("\n]");
         return sb.toString();
     }
@@ -321,14 +326,17 @@ public class resolver extends database {
             e.printStackTrace();
         }
          */
+
         try {
-            r = new resolver("ark:/87286/C2");
+            r = new resolver("ark:/87286/C2_393939");
             EZIDService service = new EZIDService();
             service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
             System.out.println(r.resolveAllAsJSON(service));
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
 
         /* String result = null;
         try {

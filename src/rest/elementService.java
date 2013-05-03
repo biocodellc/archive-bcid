@@ -186,7 +186,7 @@ public class elementService {
         // Parse input file
         ArrayList elements = null;
         try {
-            elements = new inputFileParser(data, dataset.getDatasets_id()).elementArrayList;
+            elements = new inputFileParser(data, dataset).elementArrayList;
         } catch (IOException e) {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
