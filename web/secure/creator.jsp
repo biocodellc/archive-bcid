@@ -41,7 +41,10 @@
 
                 <tr>
                     <td>
-                        <textarea name="data" cols="80" rows="10">LocalIdentifier</textarea>
+                        You can paste in a column of local identifiers below, or optionally a 2nd column,
+                        <br>with a "|" delimiter of webaddresses to resolve the identifiers to.
+                        <br>E.g. ID1|http://webaddress/resolver/ID1
+                        <br>    <textarea name="data" cols="80" rows="10"></textarea>
                     </td>
                 </tr>
                 <tr>

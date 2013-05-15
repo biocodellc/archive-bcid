@@ -65,8 +65,8 @@ public class inputFileParser {
             String sourceID = null;
             URI webAddress = null;
 
-            // Break string up into tokens, using tab as the delimiter
-            StringTokenizer st = new StringTokenizer(strRead, "  ");
+            // Break string up into tokens, using pipe as the delimiter
+            StringTokenizer st = new StringTokenizer(strRead, "|");
             int count = 0;
             while (st.hasMoreTokens()) {
                 if (count == 0) {
