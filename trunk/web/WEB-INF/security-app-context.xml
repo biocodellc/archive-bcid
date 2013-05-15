@@ -16,6 +16,8 @@
         <intercept-url pattern="/js/**" access="permitAll"/>
         <intercept-url pattern="/rest/resolverService**" access="permitAll"/>
         <intercept-url pattern="/rest/resolverService/**" access="permitAll"/>
+        <intercept-url pattern="/rest/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/rest/rdf/ark:/**" access="permitAll"/>
         <intercept-url pattern="/rest/groupService/metadata**" access="permitAll"/>
         <intercept-url pattern="/rest/elementService/select/resourceTypes**" access="permitAll"/>
         <intercept-url pattern="/rest/elementService/resourceTypes**" access="permitAll"/>

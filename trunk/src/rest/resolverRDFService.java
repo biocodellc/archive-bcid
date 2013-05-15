@@ -1,17 +1,20 @@
 package rest;
 
+import bcid.Renderer.Renderer;
+import bcid.Renderer.TextRenderer;
 import bcid.resolver;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 
 import javax.servlet.ServletContext;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.FileNotFoundException;
-import java.lang.Exception;
-import java.lang.String;
 
 /**
  * The resolver service searches for identifiers in the BCID system and in EZID and returns a JSON
@@ -22,8 +25,8 @@ import java.lang.String;
  * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a
  * Data Element with a suffix.
  */
-@Path("ark:")
-public class resolverService {
+@Path("rdf")
+public class resolverRDFService {
     static SettingsManager sm;
     @Context
     static ServletContext context;
@@ -49,17 +52,16 @@ public class resolverService {
      * @return
      */
     @GET
-    @Path("/{naan}/{shoulderPlusIdentifier}")
+    @Path("/{scheme}/{naan}/{shoulderPlusIdentifier}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String run(
+    public String run(@PathParam("scheme") String scheme,
                       @PathParam("naan") String naan,
                       @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier) {
 
         // Clean up input
-        //scheme = scheme.trim();
-        String scheme = "ark:";
+        scheme = scheme.trim();
         shoulderPlusIdentifier = shoulderPlusIdentifier.trim();
-        
+
         // Structure the identifier element from path parameters
         String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
@@ -79,10 +81,11 @@ public class resolverService {
             // For now, just print stack trace here and proceed.
             e.printStackTrace();
         }
-        
+
         // Run Resolver
         try {
-            return new bcid.resolver(element).resolveAllAsJSON(ezidService);                               
+            Renderer ren = new TextRenderer();
+            return new resolver(element).resolveARK(ren);
         } catch (EZIDException e) {
             return new serviceErrorReporter(e).json();
         } catch (Exception e) {

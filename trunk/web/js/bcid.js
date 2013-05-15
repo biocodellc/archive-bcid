@@ -2,7 +2,7 @@
 function dataGroupCreatorSubmit() {
     $( "#dataGroupCreatorResults" ).html( "Processing ..." );
     /* Send the data using post */
-    var posting = $.post( "/bcid/rest/groupService", $("#dataGroupForm").serialize() );
+    var posting = $.post( "/bcid/groupService", $("#dataGroupForm").serialize() );
     results(posting,"#dataGroupCreatorResults");
 }
 
@@ -10,7 +10,7 @@ function dataGroupCreatorSubmit() {
 function creatorSubmit() {
     $( "#creatorResults" ).html( "Processing ..." );
     /* Send the data using post */
-    var posting = $.post( "/bcid/rest/elementService/creator", $("#localIDMinterForm").serialize() );
+    var posting = $.post( "/bcid/elementService/creator", $("#localIDMinterForm").serialize() );
     results(posting, "#creatorResults");
 }
 
@@ -39,7 +39,7 @@ function datasetListSelector() {
     // Set values when the user chooses a particular dataset
     if ($("#datasetList").val() != 0) {
         // Construct the URL
-        var url = "/bcid/rest/groupService/metadata/" + $("#datasetList").val();
+        var url = "/bcid/groupService/metadata/" + $("#datasetList").val();
         // Initialize cells
         $("#resourceTypesMinusDatasetDiv").html("");
         $("#suffixPassThroughDiv").html("");
@@ -92,7 +92,7 @@ function creatorDefaults() {
 
 // Populate a table of data showing resourceTypes
 function populateResourceTypes(a) {
-    var url = "/bcid/rest/elementService/resourceTypes";
+    var url = "/bcid/elementService/resourceTypes";
     var jqxhr = $.ajax(url, function() {})
         .done(function(data) {
            $("#" + a).html(data);
@@ -106,10 +106,10 @@ function populateResourceTypes(a) {
 function populateSelect(a) {
     // Dataset Service Call
     if (a == "datasetList") {
-        var url = "/bcid/rest/groupService/list";
+        var url = "/bcid/groupService/list";
     // bcid Service Call
     } else {
-        var url = "/bcid/rest/elementService/select/" + a;
+        var url = "/bcid/elementService/select/" + a;
     }
 
     // get JSON from server and loop results
@@ -129,7 +129,7 @@ function resolverResults() {
     $("#resolverResults").html("<div>Processing request ... </div>");
     var div = "";
 
-    var jqxhr = $.getJSON("/bcid/rest/resolverService/" + $("#identifier").val() , function(data) {
+    var jqxhr = $.getJSON("/bcid/" + $("#identifier").val() , function(data) {
         //var count=0;
         $.each(data, function() {
             $.each(this, function(service) {
