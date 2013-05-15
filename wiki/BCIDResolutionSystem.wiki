@@ -1,0 +1,3 @@
+The BCID Resolution system makes decisions based on the content of the identifier in terms of what is returned for a response. 
+
+http://bcid.googlecode.com/svn/trunk/web/documents/BCID_flowChart.jpg
