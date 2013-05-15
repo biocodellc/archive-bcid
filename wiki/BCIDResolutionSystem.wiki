@@ -1,3 +1,11 @@
 The BCID Resolution system resolves BCID identifiers that are passed through the Name-to-thing resolver (http://nt2.net/).  All BCID groups identifiers are registered with EZID.  EZID then uses its suffix passthrough feature to pass the suffix back to the BCID resolver.  At this point, a series of decisions are made based on the identifier syntax to determine how to display returned content.  Element-level identifiers,  with registered suffixes in the BCID system, also containing targets, can be resolved to a user-specified homepage.  Un-registered suffixes, or where there is no defined target associated with the identifier, or when machine resolution is specifically requested will return an HTML rendering of the identifier with embedded RDF/XML syntax describing the identifier.  Machine resolution can be specifically requested to any identifier by appending a "?" to the identifier.
 
 http://bcid.googlecode.com/svn/trunk/web/documents/BCID_flowChart.jpg
+
+*How does this all work in practice?*
+
+Suppose we have group ID = ark:/21547/Et2 (resource=dwc:Event) and do not register any elements.  Now, suppose someone passes in a resolution request for ark:/21547/Et2_UUID, the system will still tell you that this is some (dwc:Event) but can't tell you anything else -- the response will be a machine readable response (RDF/XML).  The response will be rather minimal but extremely predictable- it will tell you the resourceType, date it was loaded, perhaps a title and a DOI associated with it.
+
+Now, suppose we decide to register those UUIDs associated with ark:/21547/Et2 and also provide web pages that have some HTML content to look at (targets) then we can show a nicely formatted, human readable page of the collecting event itself and some formatted human readable text (HTML).
+
+However, what if we're a machine and we don't want to look at all the style sheets and extraneous, difficult to parse text, we just want to know when this thing was loaded and the resourceType (regardless if there is some target or not).   This is where "?" comes in... if the "?" is appended on the end of the ark like:  ark://21547/Et2_UUID? then we automatically get RDF/XML.  Minimalist but predictable.
