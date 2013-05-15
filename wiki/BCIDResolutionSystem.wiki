@@ -4,7 +4,7 @@ http://bcid.googlecode.com/svn/trunk/web/documents/BCID_flowChart.jpg
 
 *How does this all work in practice?*
 
-Suppose we have group ID = ark:/21547/Et2 (resource=dwc:Event) and do not register any elements.  Now, suppose someone passes in a resolution request for ark:/21547/Et2_UUID, the system will still tell you that this is some (dwc:Event) but can't tell you anything else -- the response will be a machine readable response (RDF/XML).  The response will be rather minimal but extremely predictable- it will tell you the resourceType, date it was loaded, perhaps a title and a DOI associated with it.
+Suppose we have group ID = ark:/21547/Et2 (resource=dwc:Event) and do not register any elements.  Now, suppose someone passes in a resolution request for ark:/21547/Et2_UUID, the system will still tell you that this is some (dwc:Event) but can't tell you anything else -- the response will be a machine readable response (RDF/XML).  The response will be rather minimal but extremely predictable- it will tell you the resourceType, date it was loaded, a title and if there is a DOI associated with it.
 
 Now, suppose we decide to register those UUIDs associated with ark:/21547/Et2 and also provide web pages that have some HTML content to look at (targets) then we can show a nicely formatted, human readable page of the collecting event itself and some formatted human readable text (HTML).
 
