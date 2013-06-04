@@ -2,15 +2,17 @@ package rest;
 
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.Renderer;
+import bcid.Renderer.TextRenderer;
 import bcid.dataGroupMinter;
 import bcid.database;
 import bcid.bcid;
 import bcid.GenericIdentifier;
-
+import bcid.resolver;
 
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
+import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -103,7 +105,18 @@ public class groupService {
                 title);
         minterDataset.close();
 
-        return "[\"" + minterDataset.getPrefix() + "\"]";
+        String datasetPrefix = minterDataset.getPrefix();
+
+        // Send an Email that this completed
+        sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
+                sm.retrieveValue("mailPassword"),
+                sm.retrieveValue("mailFrom"),
+                sm.retrieveValue("mailTo"),
+                "New Dataset Group",
+                new resolver(minterDataset.getPrefix()).resolveARK(new TextRenderer()));
+        sendEmail.start();
+
+        return "[\"" + datasetPrefix + "\"]";
     }
 
     /**
