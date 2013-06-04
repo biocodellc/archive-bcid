@@ -233,9 +233,8 @@ public class run {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
-        System.out.println("   New dataset is " + dataset.getPrefix());
 
-
+     /*
          // Create test data by using input file
         String path = Thread.currentThread().getContextClassLoader().getResource("bigfile.txt").getFile();
         System.out.println("\nReading input file = " + path + " ...");
@@ -257,6 +256,7 @@ public class run {
 
         // Return the list of identifiers that were made here
         System.out.println(JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString());
+        */
     }
 
     private static String readFile(String path) throws IOException {
@@ -275,6 +275,8 @@ public class run {
        run r = new run();
         try {
             r.runBCIDCreatorService();
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }

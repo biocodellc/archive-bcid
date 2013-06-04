@@ -22,6 +22,11 @@ bcidClass = com.mysql.jdbc.Driver
 bcidStartingNumber = 100
 creatorLimit = 50000
 
+# Mail settings
+mailUser = someone@gmail.com
+mailFrom = someone@gmail.com
+mailPassword = mypassword
+mailTo = someone@somedomain.com
 
 
 

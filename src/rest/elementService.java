@@ -1,10 +1,12 @@
 package rest;
 
 import bcid.*;
+import bcid.Renderer.TextRenderer;
 import net.sf.json.JSONArray;
 import util.SettingsManager;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
+import util.sendEmail;
 
 
 import javax.servlet.ServletContext;
@@ -214,6 +216,18 @@ public class elementService {
         }
 
         // Array of identifiers, or an error message
-        return JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString();
+        String returnVal = JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString();
+
+
+        // Send an Email that this completed
+        sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
+                sm.retrieveValue("mailPassword"),
+                sm.retrieveValue("mailFrom"),
+                sm.retrieveValue("mailTo"),
+                "New Elements From " + request.getRemoteUser(),
+                returnVal);
+        sendEmail.start();
+
+        return returnVal;
     }
 }

@@ -19,7 +19,7 @@
 
     <div id="header">
 
-        <div style='float:left'><h1>DRAFT - Biocode Commons Identifiers</h1></div>
+        <div style='float:left'><h1>Biocode Commons Identifiers</h1></div>
 
         <div style='float:right' id="loginLink">
             <sec:authorize ifNotGranted="user">
