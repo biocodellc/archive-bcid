@@ -92,6 +92,18 @@ function creatorDefaults() {
     populateSelect("resourceTypesMinusDataset");
 }
 
+// Populate a table of data showing group Elements
+function populateDataGroupTable(a)  {
+    var url = "/bcid/rest/groupService/listTable";
+    var jqxhr = $.ajax(url, function() {})
+        .done(function(data) {
+           $("#" + a).html(data);
+        })
+        .fail(function() {
+            $("#" + a).html("Unable to load groupService elements!");
+        });
+}
+
 // Populate a table of data showing resourceTypes
 function populateResourceTypes(a) {
     var url = "/bcid/rest/elementService/resourceTypes";
@@ -131,12 +143,12 @@ function resolverResults() {
     $("#resolverResults").html("<div>Processing request ... </div>");
     var div = "";
 
-    var jqxhr = $.getJSON("/bcid/rest/" + $("#identifier").val() , function(data) {
+    var jqxhr = $.getJSON("/bcid/rest/metadata/" + $("#identifier").val() , function(data) {
         //var count=0;
         $.each(data, function() {
-            $.each(this, function(service) {
+            //$.each(this, function(service) {
                 var tbl_body = "<div style='float:left;margin:20px;'>";
-                tbl_body += "service:" + service;
+                //tbl_body += "service:" + service;
                 tbl_body += "<table border=1>";
                 // Loop individual ID result values
                 $.each(this,function(k,v) {
@@ -144,7 +156,7 @@ function resolverResults() {
                 })
                 tbl_body += "</table></div>";
                 div += tbl_body;
-            })
+            //})
             //count++;
         })
     })

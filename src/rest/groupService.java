@@ -5,9 +5,11 @@ import bcid.Renderer.Renderer;
 import bcid.Renderer.TextRenderer;
 import bcid.dataGroupMinter;
 import bcid.database;
-import bcid.bcid;
+import bcid.manageEZID;
 import bcid.GenericIdentifier;
 import bcid.resolver;
+import bcid.bcid;
+
 
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
@@ -32,6 +34,7 @@ public class groupService {
     static String bcidShoulder;
     static String doiShoulder;
     static SettingsManager sm;
+    static EZIDService ezidAccount;
 
     /**
      * Load settings manager, set ontModelSpec.
@@ -46,7 +49,7 @@ public class groupService {
         }
 
         // Initialize ezid account
-        EZIDService ezidAccount = new EZIDService();
+         ezidAccount = new EZIDService();
         try {
             // Setup EZID account/login information
             ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
@@ -90,12 +93,21 @@ public class groupService {
             suffixPassthrough = false;
         }
 
+
         // TODO: go through and validate these values before submitting-- need to catch all input from UI
         // Create a Dataset
         database db = new database();
         Integer user_id = db.getUserId(request.getRemoteUser());
 
-        dataGroupMinter minterDataset = new dataGroupMinter(false, suffixPassthrough);
+        // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
+        // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
+        boolean ezidRequest = true;
+        if (request.getRemoteUser().equals("demo")) {
+            ezidRequest = false;
+        }
+
+        // Mint the data group
+        dataGroupMinter minterDataset = new dataGroupMinter(ezidRequest, suffixPassthrough);
         minterDataset.mint(
                 new Integer(sm.retrieveValue("bcidNAAN")),
                 user_id,
@@ -104,8 +116,11 @@ public class groupService {
                 webaddress,
                 title);
         minterDataset.close();
-
         String datasetPrefix = minterDataset.getPrefix();
+
+        // Create EZIDs right away for Dataset level Identifiers
+        manageEZID creator = new manageEZID();
+        creator.createDatasetsEZIDs(ezidAccount);
 
         // Send an Email that this completed
         sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
@@ -113,7 +128,7 @@ public class groupService {
                 sm.retrieveValue("mailFrom"),
                 sm.retrieveValue("mailTo"),
                 "New Dataset Group",
-                new resolver(minterDataset.getPrefix()).resolveARK(new TextRenderer()));
+                new resolver(minterDataset.getPrefix()).printMetadata(new TextRenderer()));
         sendEmail.start();
 
         return "[\"" + datasetPrefix + "\"]";
@@ -153,5 +168,25 @@ public class groupService {
 
         System.out.println("authenticated as " + request.getRemoteUser());
         return d.datasetList(request.getRemoteUser());
+    }
+
+    /**
+     * Return HTML response showing a table of groups belonging to this user
+     *
+     * @return String with HTML response
+     */
+    @GET
+    @Path("/listTable")
+    @Produces(MediaType.TEXT_HTML)
+    public String datasetListTable(@Context HttpServletRequest request) {
+        dataGroupMinter d = null;
+        try {
+            d = new dataGroupMinter();
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        System.out.println("authenticated as " + request.getRemoteUser());
+        return d.datasetTable(request.getRemoteUser());
     }
 }

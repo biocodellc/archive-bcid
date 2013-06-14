@@ -1,5 +1,6 @@
 package rest;
 
+import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.Renderer;
 import bcid.Renderer.TextRenderer;
 import bcid.resolver;
@@ -25,8 +26,8 @@ import java.io.FileNotFoundException;
  * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a
  * Data Element with a suffix.
  */
-@Path("rdf")
-public class resolverRDFService {
+@Path("metadata")
+public class resolverMetadataService {
     static SettingsManager sm;
     @Context
     static ServletContext context;
@@ -84,8 +85,8 @@ public class resolverRDFService {
 
         // Run Resolver
         try {
-            Renderer ren = new TextRenderer();
-            return new resolver(element).resolveARK(ren);
+            Renderer ren = new JSONRenderer();
+            return new resolver(element).printMetadata(ren);
         } catch (EZIDException e) {
             return new serviceErrorReporter(e).json();
         } catch (Exception e) {

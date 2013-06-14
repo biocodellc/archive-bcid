@@ -2,12 +2,15 @@ package bcid;
 
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.Renderer;
+import bcid.Renderer.TextRenderer;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 import util.timer;
 
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -97,32 +100,73 @@ public class resolver extends database {
     }
 
     /**
-     * Attempt to resolve a particular ARK
+     * Attempt to resolve a particular ARK.  If there is no webaddress defined for resolution then
+     * it points to the biscicol.org/bcid homepage.
      *
      * @return JSON String with content for the interface
      */
-    public String resolveARK(Renderer renderer) {
+    public URI resolveARK() throws URISyntaxException {
+        bcid bcid = null;
+
+        URI resolution = new URI("http://biscicol.org/bcid/index.jsp?id=" + ark);
+
+        // First  option is check if dataset, then look at other options after this is determined
+        if (isDataGroup()) {
+            bcid = new bcid(datagroup_id);
+
+            // Set resolution target to that specified by the datagroup ID webAddress, only if it exists
+            // and only if it does not specify suffixPassThrough.  If it specifies suffix passthrough
+            // the assumption here is we only want to resolve suffixes but not the dataset itself.
+            // TODO: update documentation with this behaviour!
+            if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().equals("") && !bcid.getDatasetsSuffixPassthrough()) {
+                resolution = bcid.getResolutionTarget();
+            }
+            // Determine if there is a resolvable suffix
+            if (isResolvableSuffix(datagroup_id)) {
+                bcid = new bcid(element_id, ark);
+                if (blade != null && bcid.getResolutionTarget() != null && !blade.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
+                    resolution = bcid.getResolutionTarget();
+                }
+            } else {
+                // Determine if this has some suffix on the datagroup and if so, then provide re-direct to
+                // location specified in the system
+                if (blade != null && bcid.getResolutionTarget() != null && !blade.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
+                    resolution = new URI(bcid.getResolutionTarget() + blade);
+                }
+            }
+        }
+        return resolution;
+    }
+
+    /**
+     * Print Metadata for a particular ARK
+     *
+     * @return JSON String with content for the interface
+     */
+    public String printMetadata(Renderer renderer) {
         GenericIdentifier bcid = null;
 
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
             bcid = new bcid(datagroup_id);
             // Check if this is an element that we can resolve
-            if (isElement(datagroup_id)) {
+
+            if (isResolvableSuffix(datagroup_id)) {
                 bcid = new bcid(element_id, ark);
-                // If not an element then check to see if this has a resolvable suffix
-            } else if (isResolvableSuffix(datagroup_id)) {
-                bcid = new bcid(element_id, ark);
+            } else if (blade != null && bcid.getResolutionTarget() != null) {
+                bcid = new bcid(blade,bcid.getResolutionTarget(),datagroup_id);
             }
         }
 
         return renderer.renderIdentifier(bcid);
     }
 
-
+    /**
+     * Determine if this ARK has a matching localID
+     *
+     * @return
+     */
     private boolean isLocalID() {
-
-        // Now we need to figure out if this datasets_id exists or not in the database
         String select = "SELECT identifiers_id FROM identifiers " +
                 "where i.localid = " + ark;
         Statement stmt = null;
@@ -164,12 +208,16 @@ public class resolver extends database {
      * @return JSON string with information about BCID/EZID results
      */
     public String resolveAllAsJSON(EZIDService ezidService) {
-         timer t = new timer();
+        timer t = new timer();
         Renderer renderer = new JSONRenderer();
         StringBuilder sb = new StringBuilder();
         sb.append("[\n");
 
-        sb.append("  " +this.resolveARK(renderer));
+        try {
+            sb.append("  " + this.resolveARK().toString());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
         t.lap("resolveARK");
         sb.append("\n  ,\n");
         sb.append("  " + this.resolveEZID(ezidService, renderer));
@@ -217,8 +265,8 @@ public class resolver extends database {
     }
 
     /**
-     * Tell us if this ARK is an EZID with suffix passthrough.  Note that BCIDs can resolve suffixes
-     * where EZID cannot since it actively registers individual instances.
+     * Tell us if this ARK is a BCID that has an individually resolvable suffix.  This means that the user has
+     * registered the identifier and provided a specific target URL
      *
      * @return
      */
@@ -244,7 +292,8 @@ public class resolver extends database {
     }
 
     /**
-     * Tell us if this ARK is a bcid
+     * Tell us if this ARK is a BCID by decoding the ARK itself and determining if we can
+     * assign an integer to it.  This then is a native BCID that uses character encoding.
      *
      * @return
      */
@@ -328,14 +377,14 @@ public class resolver extends database {
          */
 
         try {
-            r = new resolver("ark:/87286/C2_393939");
-            EZIDService service = new EZIDService();
-            service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            System.out.println(r.resolveAllAsJSON(service));
+            //r = new resolver("ark:/21547/P2_JDeck1");
+            r = new resolver("ark:/21547/V2");
+            // EZIDService service = new EZIDService();
+            // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+            System.out.println(r.printMetadata(new TextRenderer()));
         } catch (Exception e) {
             e.printStackTrace();
         }
-
 
 
         /* String result = null;

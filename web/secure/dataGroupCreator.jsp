@@ -5,12 +5,22 @@
 
     <div class="sectioncontent">
 
-        Create a dataset-level identifier that is not associated with any elements. You can associate elements to this dataset
-        later in the "Creator" tab. View the <a href="http://code.google.com/p/bcid">BCID codesite</a> for more information.
+        Create a dataset-level identifier that acts as a container for an unlimited number of user-specified elements.
+
+       <!--
+        <ul>
+        <li>BCID (datagroup) = ark:/21547/C2
+        <li>BCID (w/ suffix) = ark:/21547/C2_MyIdentifier1
+        <li>target URL       = http://mytargetservice/specimens/
+        <li>Resolves to      = http://mytargetservice/specimens/MyIdentifier1
+        <li>BCID Metadata    = http://biscicol.org/bcid/rest/ark:/21547/C2_MyIdentifier1
+        <li>EZID Metadata    = http://n2t.net/ezid/ark:/21547/C2_MyIdentifier1#
+        </ul>-->
+        View the <a href="http://code.google.com/p/bcid">BCID codesite</a> for more information.
         <ul>
             <li><b>Title*</b> is required.
-            <li><b>Concept*</b> is required.  Each "dataset" can have only one concept.
-            <li><b>Target URL</b> is a place where this can resolve to.
+            <li><b>Concept*</b> is required.  Each group level identifier can only represent one type of concept.
+            <li><b>Target URL</b> is a place where requests for this identifier and any suffixes will resolve to.
             <li><b>DOI</b> indicates a DOI that this dataset belongs to
         </ul>
 
@@ -28,17 +38,19 @@
                     </tr>
                 <tr>
                     <td align=right>Target URL</td>
-                    <td><input id=webaddress type=textbox size="40"></td>
+                    <td><input id=webaddress name=webaddress type=textbox size="40"></td>
                 </tr>
 
                 <tr>
                     <td align=right>DOI</td>
                     <td><input id=doi name=doi type=textbox size="40"></td>
                 </tr>
+                <!--
                 <tr>
                     <td align=right>Maintain local IDs</td>
                     <td><input type=checkbox id=suffixPassThrough name=suffixPassThrough checked=yes></td>
                 </tr>
+                -->
                 <tr>
                     <td colspan=2>
                     <input type="hidden" name="username" value="<%= request.getRemoteUser() %>" >

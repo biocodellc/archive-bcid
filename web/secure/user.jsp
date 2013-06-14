@@ -5,11 +5,18 @@
 
     <div class="sectioncontent">
         <p>
-        List of Datasets accessible to <%= request.getRemoteUser() %> (this part not functional yet):
+        List of Datasets accessible to <%= request.getRemoteUser() %>
         <p>
-        (<a href='/bcid/secure/doiMinter.jsp'>+</a>) Add a dataset
+        (<a href='/bcid/secure/dataGroupCreator.jsp'>+</a>) Add a dataset
+        <p>
+        <div name=listTable id=listTable style="overflow:auto;">Loading groups</div>
 
     </div>
 </div>
+
+<script>
+    window.onload = populateDataGroupTable('listTable');
+</script>
+
 
 <%@ include file="../footer.jsp" %>

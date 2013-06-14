@@ -35,6 +35,7 @@ public class run {
     public run() {
 
     }
+
     public run(String path, dataGroupMinter dataset) {
         // Set this to the TEST dataset
 
@@ -209,7 +210,7 @@ public class run {
      *
      * @throws Exception
      */
-    private  void runBCIDCreatorService() throws Exception {
+    private void runBCIDCreatorService() throws Exception {
 
         // Initialize variables
         dataGroupMinter dataset = null;
@@ -234,7 +235,7 @@ public class run {
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
         }
 
-     /*
+        /*
          // Create test data by using input file
         String path = Thread.currentThread().getContextClassLoader().getResource("bigfile.txt").getFile();
         System.out.println("\nReading input file = " + path + " ...");
@@ -271,14 +272,42 @@ public class run {
         }
     }
 
-        public static void main(String[] args) {
-       run r = new run();
+    public static void main(String[] args) {
+        /*
+            run r = new run();
+            try {
+                r.runBCIDCreatorService();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        */
+        EZIDService ezidAccount = new EZIDService();
+
+        // Initialize settings manager
+        SettingsManager sm = SettingsManager.getInstance();
         try {
-            r.runBCIDCreatorService();
-
-
+            sm.loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+
+        // Initialize ezid account
+        try {
+            // Setup EZID account/login information
+            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+
+        } catch (EZIDException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            manageEZID creator = new manageEZID();
+            creator.createDatasetsEZIDs(ezidAccount);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
     }

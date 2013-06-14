@@ -14,4 +14,7 @@ public abstract class GenericIdentifier implements GenericIdentifierInterface {
      */
     protected URI identifier;
 
+    public URI getResolutionTarget() {
+        return  null;
+    }
 }

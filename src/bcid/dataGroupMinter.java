@@ -17,9 +17,13 @@ public class dataGroupMinter extends dataGroupEncoder {
     protected String bow = "";
     protected String scheme = "ark:";
     protected String shoulder = "";
+    protected String doi = "";
+    protected String title = "";
+    protected String ts = "";
     private Boolean suffixPassThrough = false;
     private Integer datasets_id = null;
-    private boolean ezidRequest;
+    protected boolean ezidRequest;
+    protected boolean ezidMade;
 
     /**
      * Default to ezidRequest = false using default Constructor
@@ -27,7 +31,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @throws Exception
      */
     public dataGroupMinter() throws Exception {
-        this(false,false);
+        this(false, false);
     }
 
     public Integer getDatasets_id() {
@@ -91,12 +95,16 @@ public class dataGroupMinter extends dataGroupEncoder {
         database db = new database();
         conn = db.getConn();
         Statement stmt = conn.createStatement();
-        String sql = "select prefix,ezidRequest,suffixPassthrough from datasets where datasets_id = '" + datasets_id.toString() + "'";
+        String sql = "select prefix,ezidRequest,ezidMade,suffixPassthrough,doi,title,ts from datasets where datasets_id = '" + datasets_id.toString() + "'";
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         prefix = rs.getString("prefix");
         ezidRequest = rs.getBoolean("ezidRequest");
+        ezidMade = rs.getBoolean("ezidMade");
         shoulder = encode(new BigInteger(datasets_id.toString()));
+        this.doi = rs.getString("doi");
+        this.title = rs.getString("title");
+        this.ts  = rs.getString("ts");
         Integer naan = new Integer(prefix.split("/")[1]);
         this.datasets_id = datasets_id;
         this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
@@ -154,15 +162,15 @@ public class dataGroupMinter extends dataGroupEncoder {
             insertStatement.setString(6, internalID.toString());
             insertStatement.setBoolean(7, ezidRequest);
             insertStatement.setBoolean(8, suffixPassThrough);
-
-
             insertStatement.execute();
 
             // Get the datasets_id that was assigned
             datasets_id = getDatasetIdentifier(internalID);
 
             // Update the shoulder, and hence prefix, now that we know the datasets_id
-            String updateString = "UPDATE datasets SET prefix='" + bow.toString() + encode(new BigInteger(datasets_id.toString())) + "' WHERE datasets_id = " + datasets_id;
+            String updateString = "UPDATE datasets " +
+                    " SET prefix='" + bow.toString() + encode(new BigInteger(datasets_id.toString())) + "'" +
+                    " WHERE datasets_id = " + datasets_id;
             Statement u = conn.createStatement();
             u.execute(updateString);
 
@@ -235,6 +243,7 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     /**
      * Get the resourcetype defined for a particular dataset
+     *
      * @return
      */
     public String getResourceType() {
@@ -255,6 +264,7 @@ public class dataGroupMinter extends dataGroupEncoder {
     /**
      * Return a JSON representation of a datasetList
      * TODO: find a more appropriate spot for this
+     *
      * @param username
      * @return
      */
@@ -280,10 +290,119 @@ public class dataGroupMinter extends dataGroupEncoder {
         return sb.toString();
     }
 
+    /**
+     * Return an HTML table of datasets owned by a particular user
+     * TODO: find a more appropriate spot for this
+     *
+     * @param username
+     * @return
+     */
+    public String datasetTable(String username) {
+        Statement stmt = null;
+        Integer datasetId = null;
+        StringBuilder sb = new StringBuilder();
+        try {
+            stmt = conn.createStatement();
+            String sql = "SELECT \n\t" +
+                    "d.datasets_id as datasets_id," +
+                    "prefix," +
+                    "ifnull(title,'') as title," +
+                    "ifnull(doi,'') as doi," +
+                    "ifnull(webaddress,'') as webaddress," +
+                    "ifnull(resourceType,'') as resourceType" +
+                    "\nFROM\n\t" +
+                    "datasets d, users u " +
+                    "\nWHERE\n\t" +
+                    "u.username = '" + username + "' && " +
+                    "d.users_id=u.user_id";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            sb.append("<table>\n");
+            sb.append("\t");
+            sb.append("<tr>");
+            sb.append("<th>BCID</th>");
+            sb.append("<th>Title</th>");
+            sb.append("<th>DOI</th>");
+            sb.append("<th>webAddress</th>");
+            sb.append("<th>resourceType</th>");
+            sb.append("</tr>\n");
+            while (rs.next()) {
+                sb.append("\t<tr>");
+                sb.append("<td>" + getEZIDLink(rs.getString("prefix"), username) + " " + getEZIDMetadataLink(rs.getString("prefix"), username) + "</td>");
+                sb.append("<td>" + rs.getString("title") + "</td>");
+                sb.append("<td>" + getDOILink(rs.getString("doi")) + " " + getDOIMetadataLink(rs.getString("doi")) + "</td>");
+                sb.append("<td>" + rs.getString("webaddress") + "</td>");
+                sb.append("<td>" + rs.getString("resourceType") + "</td>");
+                sb.append("</tr>\n");
+            }
+            sb.append("\n</table>");
+
+        } catch (SQLException e) {
+            return null;
+        }
+        return sb.toString();
+    }
+
+    /**
+     * return a BCID formatted with LINK
+     *
+     * @param pPrefix
+     * @return
+     */
+    public String getEZIDLink(String pPrefix, String username) {
+        if (!username.equals("demo")) {
+            return "<a href='http://n2t.net/" + pPrefix + "'>" + pPrefix + "</a>";
+        } else {
+            return "<a href='http://biscicol.org/bcid/rest/" + pPrefix + "'>" + pPrefix + "</a>";
+        }
+    }
+
+    /**
+     * return a BCID formatted with LINK
+     *
+     * @param pPrefix
+     * @return
+     */
+    public String getEZIDMetadataLink(String pPrefix, String username) {
+        if (!username.equals("demo")) {
+            return "(<a href='http://n2t.net/ezid/id/" + pPrefix + "'>metadata</a>)";
+        } else {
+            return "(<a href='http://biscicol.org/bcid/rest/" + pPrefix + "'>metadata</a>)";
+        }
+    }
+
+    /**
+     * return a DOI formatted with LINK
+     *
+     * @param pDOI
+     * @return
+     */
+    public String getDOILink(String pDOI) {
+        if (pDOI != null && !pDOI.trim().equals("")) {
+            return "<a href='http://dx.doi.org/" + pDOI + "'>" + pDOI + "</a>";
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * Return a Metadata link for DOI
+     *
+     * @param pDOI
+     * @return
+     */
+    public String getDOIMetadataLink(String pDOI) {
+        if (pDOI != null && !pDOI.trim().equals("")) {
+            return "(<a href='http://data.datacite.org/text/html/" + pDOI.replace("doi:", "") + "'>metadata</a>)";
+        } else {
+            return "";
+        }
+    }
+
     public static void main(String args[]) {
         try {
             dataGroupMinter d = new dataGroupMinter();
-            System.out.println(d.datasetList("biocode"));
+            System.out.println(d.datasetTable("biocode"));
         } catch (Exception e) {
             e.printStackTrace();
         }

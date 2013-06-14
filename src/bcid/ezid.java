@@ -1,7 +1,6 @@
 package bcid;
 
 import java.util.HashMap;
-import java.util.TreeMap;
 
 /**
  * Represent an ezid identifier in our system
