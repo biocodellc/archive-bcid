@@ -39,6 +39,14 @@
 </div>
 
 
+<script>
+    /* parse input parameter -- ARKS must be minimum length of 12 characters*/
+    var a = '<%=request.getParameter("id")%>';
+    if (a.length > 12) {
+        $("#identifier").val(a);
+        resolverResults();
+    }
+</script>
 <%@ include file="footer.jsp" %>
 
 

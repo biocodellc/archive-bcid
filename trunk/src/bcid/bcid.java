@@ -5,6 +5,7 @@ import util.dates;
 import java.lang.String;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
@@ -35,8 +36,12 @@ public class bcid extends GenericIdentifier {
     protected String ark;
     protected dataGroupMinter dataset;
     protected String doi;
-    protected String level = "data element";     // Default is element, can also be data group.
     protected Integer dataset_id;
+
+    protected String level;
+    final static String UNREGISTERED_ELEMENT = "Unregistered Element";
+    final static String ELEMENT = "BCID Data Element";
+    final static String GROUP = "BCID Data Group";
 
     // HashMap to store metadata values
     private HashMap<String, String> map = new HashMap<String, String>();
@@ -60,16 +65,34 @@ public class bcid extends GenericIdentifier {
      */
     public bcid(String sourceID, URI webAddress, Integer dataset_id) {
 
-        //try {
-        //    dataset = new dataGroupMinter(dataset_id);
-        //} catch (Exception e) {
-        //    e.printStackTrace();
-       // }
+        try {
+            dataset = new dataGroupMinter(dataset_id);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         when = new dates().now();
         this.webAddress = webAddress;
         this.sourceID = sourceID;
         this.dataset_id = dataset_id;
-        //what = dataset.getResourceType();
+        this.what = dataset.getResourceType();
+        this.title = dataset.title;
+        this.datasetsTs = dataset.ts;
+        this.datasetsPrefix = dataset.getPrefix();
+        this.level = this.UNREGISTERED_ELEMENT;
+        identifiersEzidRequest = false;
+        identifiersEzidMade = false;
+        datasetsEzidMade = dataset.ezidMade;
+        datasetsEzidRequest = dataset.ezidRequest;
+
+        // Reformat webAddress in this constructor if there is a sourceID
+        if (sourceID != null && webAddress != null) {
+             try {
+                 this.webAddress = new URI(webAddress + sourceID);
+             } catch (URISyntaxException e) {
+                 e.printStackTrace();
+             }
+         }
+
     }
 
     /**
@@ -123,6 +146,7 @@ public class bcid extends GenericIdentifier {
             when = rs.getString(count++);
             who = rs.getString(count++);
             this.ark = ark;
+            this.level = this.ELEMENT;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -146,6 +170,7 @@ public class bcid extends GenericIdentifier {
                     "   d.resourceType," +
                     "   d.suffixPassthrough," +
                     "   d.doi," +
+                    "   d.webAddress," +
                     //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
                     "   u.fullname " +
                     " FROM datasets d, users u " +
@@ -164,11 +189,16 @@ public class bcid extends GenericIdentifier {
             what = rs.getString(count++);
             datasetsSuffixPassthrough = rs.getBoolean(count++);
             doi = rs.getString(count++);
+            try {
+            webAddress = new URI(rs.getString(count++));
+            } catch (NullPointerException e) {
+                webAddress = null;
+            }
             who = rs.getString(count++);
             ark = datasetsPrefix;
             //what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
             when = datasetsTs;
-            level = "data group";
+            level = this.GROUP;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -191,11 +221,16 @@ public class bcid extends GenericIdentifier {
         put("doi", doi);
         put("datasetsEzidMade", datasetsEzidMade);
         put("datasetsSuffixPassThrough", datasetsSuffixPassthrough);
+        put("datasetsEzidRequest",datasetsEzidRequest);
         put("datasetsPrefix", datasetsPrefix);
         put("datasetsTs", datasetsTs);
         put("identifiersEzidMade", identifiersEzidMade);
         put("identifiersTs", identifiersTs);
         return map;
+    }
+
+    public URI getResolutionTarget() {
+        return webAddress;
     }
 
     private void put(String key, String val) {
@@ -210,6 +245,10 @@ public class bcid extends GenericIdentifier {
         if (val != null) {
             map.put(key,val.toString());
         }
+    }
+
+    public Boolean getDatasetsSuffixPassthrough() {
+        return datasetsSuffixPassthrough;
     }
 }
 

@@ -1,6 +1,7 @@
 package bcid;
 
 import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  * All identifiers need to have a getMetadata function

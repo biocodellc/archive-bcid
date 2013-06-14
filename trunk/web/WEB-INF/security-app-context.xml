@@ -9,6 +9,7 @@
 
     <http use-expressions="true">
         <intercept-url pattern="/index.jsp" access="permitAll"/>
+
         <intercept-url pattern="/concepts.jsp" access="permitAll"/>
         <intercept-url pattern="/requestEZID.jsp" access="permitAll"/>
         <intercept-url pattern="/secure/**" access="isAuthenticated()"/>
@@ -27,7 +28,6 @@
         <intercept-url pattern="/rest/bcid.wadl" access="permitAll"/>
         <intercept-url pattern="/wadl.xsl" access="permitAll"/>
 
-        <intercept-url pattern="/**" access="isAuthenticated()"/>
         <form-login default-target-url="/index.jsp" always-use-default-target="true"/>
         <logout/>
     </http>
@@ -35,7 +35,6 @@
     <authentication-manager>
         <authentication-provider>
             <password-encoder hash="md5"/>
-
             <jdbc-user-service data-source-ref="securityDataSource"/>
         </authentication-provider>
     </authentication-manager>

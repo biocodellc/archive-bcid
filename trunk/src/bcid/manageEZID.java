@@ -20,7 +20,7 @@ import java.util.Iterator;
  */
 public class manageEZID extends elementMinter {
     // TODO: put resolverURLPrefix in SettingsManager
-    public String resolverURLPrefix = "http://biscicol.org/bcid/rest/resolverService/";
+    public String resolverURLPrefix = "http://biscicol.org/bcid/rest/";
     public manageEZID() throws Exception {
         super();
     }
@@ -112,7 +112,7 @@ public class manageEZID extends elementMinter {
                     "d.resourceType as what," +
                     "concat_ws('',u.fullname,' <',u.email,'>') as who " +
                     "FROM datasets d,users u " +
-                    "WHERE !ezidMade && ezidRequest && d.users_id=u.USER_ID " +
+                    "WHERE !ezidMade && ezidRequest && d.users_id=u.USER_ID && u.username != 'demo'" +
                     "LIMIT 1000");
 
             // Attempt to create an EZID for this row
@@ -130,7 +130,7 @@ public class manageEZID extends elementMinter {
                 // The ID string to register with ezid
                 String myIdentifier = rs.getString("prefix");
 
-                // Register this an ezid
+                // Register this as an EZID
                 try {
                     identifier = new URI(ezid.createIdentifier(myIdentifier, map));
                     idSuccessList.add(rs.getString("datasets_id"));
@@ -138,6 +138,7 @@ public class manageEZID extends elementMinter {
                 } catch (EZIDException e) {
                     // if an exception is thrown it could mean that the identifier already exists, this then can be
                     // simply a request to set Metadata
+                    e.printStackTrace();
                     System.out.println("  Exception thrown in attempting to create EZID " + myIdentifier + ", a permission issue, or this EZID already exists");
                 }
 
