@@ -309,7 +309,8 @@ public class dataGroupMinter extends dataGroupEncoder {
                     "ifnull(title,'') as title," +
                     "ifnull(doi,'') as doi," +
                     "ifnull(webaddress,'') as webaddress," +
-                    "ifnull(resourceType,'') as resourceType" +
+                    "ifnull(resourceType,'') as resourceType," +
+                    "suffixPassthrough as suffixPassthrough " +
                     "\nFROM\n\t" +
                     "datasets d, users u " +
                     "\nWHERE\n\t" +
@@ -325,6 +326,8 @@ public class dataGroupMinter extends dataGroupEncoder {
             sb.append("<th>DOI</th>");
             sb.append("<th>webAddress</th>");
             sb.append("<th>resourceType</th>");
+            sb.append("<th>Follow Suffixes</th>");
+
             sb.append("</tr>\n");
             while (rs.next()) {
                 sb.append("\t<tr>");
@@ -333,6 +336,8 @@ public class dataGroupMinter extends dataGroupEncoder {
                 sb.append("<td>" + getDOILink(rs.getString("doi")) + " " + getDOIMetadataLink(rs.getString("doi")) + "</td>");
                 sb.append("<td>" + rs.getString("webaddress") + "</td>");
                 sb.append("<td>" + rs.getString("resourceType") + "</td>");
+                sb.append("<td>" + rs.getBoolean("suffixPassthrough") + "</td>");
+
                 sb.append("</tr>\n");
             }
             sb.append("\n</table>");
@@ -351,9 +356,9 @@ public class dataGroupMinter extends dataGroupEncoder {
      */
     public String getEZIDLink(String pPrefix, String username) {
         if (!username.equals("demo")) {
-            return "<a href='http://n2t.net/" + pPrefix + "'>" + pPrefix + "</a>";
+            return "<a href='http://n2t.net/" + pPrefix + "'>http://n2t.net/" + pPrefix + "</a>";
         } else {
-            return "<a href='http://biscicol.org/bcid/rest/" + pPrefix + "'>" + pPrefix + "</a>";
+            return "<a href='http://biscicol.org/bcid/rest/" + pPrefix + "'>http://biscicol.org/bcid/rest/" + pPrefix + "</a>";
         }
     }
 
@@ -367,7 +372,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         if (!username.equals("demo")) {
             return "(<a href='http://n2t.net/ezid/id/" + pPrefix + "'>metadata</a>)";
         } else {
-            return "(<a href='http://biscicol.org/bcid/rest/" + pPrefix + "'>metadata</a>)";
+            return "(<a href='" + bcid.metadataroot + pPrefix + "'>metadata</a>)";
         }
     }
 
@@ -379,7 +384,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      */
     public String getDOILink(String pDOI) {
         if (pDOI != null && !pDOI.trim().equals("")) {
-            return "<a href='http://dx.doi.org/" + pDOI + "'>" + pDOI + "</a>";
+            return "<a href='http://dx.doi.org/" + pDOI + "'>http://dx.doi.org/" + pDOI + "</a>";
         } else {
             return "";
         }

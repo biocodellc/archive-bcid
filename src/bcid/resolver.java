@@ -1,6 +1,7 @@
 package bcid;
 
 import bcid.Renderer.JSONRenderer;
+import bcid.Renderer.RDFRenderer;
 import bcid.Renderer.Renderer;
 import bcid.Renderer.TextRenderer;
 import edu.ucsb.nceas.ezid.EZIDException;
@@ -118,8 +119,21 @@ public class resolver extends database {
             // and only if it does not specify suffixPassThrough.  If it specifies suffix passthrough
             // the assumption here is we only want to resolve suffixes but not the dataset itself.
             // TODO: update documentation with this behaviour!
-            if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().equals("") && !bcid.getDatasetsSuffixPassthrough()) {
-                resolution = bcid.getResolutionTarget();
+
+
+            // Group has a specified resolution target
+            if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().equals("")) {
+                // Group specifies suffix passthrough
+                if (bcid.getDatasetsSuffixPassthrough()) {
+                    resolution = bcid.getMetadataTarget();
+
+                // Group does not specify suffix passthrough
+                } else {
+                    resolution = bcid.getResolutionTarget();
+
+              }
+
+
             }
             // Determine if there is a resolvable suffix
             if (isResolvableSuffix(datagroup_id)) {
@@ -150,7 +164,6 @@ public class resolver extends database {
         if (isDataGroup()) {
             bcid = new bcid(datagroup_id);
             // Check if this is an element that we can resolve
-
             if (isResolvableSuffix(datagroup_id)) {
                 bcid = new bcid(element_id, ark);
             } else if (blade != null && bcid.getResolutionTarget() != null) {
@@ -378,10 +391,12 @@ public class resolver extends database {
 
         try {
             //r = new resolver("ark:/21547/P2_JDeck1");
-            r = new resolver("ark:/21547/V2");
+            r = new resolver("ark:/21547/R2");
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            System.out.println(r.printMetadata(new TextRenderer()));
+            RDFRenderer ren = new RDFRenderer();
+            System.out.println(r.printMetadata(ren));
+            //System.out.println(r.resolveARK().toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

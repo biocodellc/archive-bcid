@@ -1,21 +1,20 @@
 package rest;
 
-import bcid.Renderer.JSONRenderer;
-import bcid.Renderer.Renderer;
-import bcid.Renderer.TextRenderer;
+import bcid.Renderer.*;
 import bcid.resolver;
+import com.sun.jersey.api.view.Viewable;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 
 import javax.servlet.ServletContext;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The resolver service searches for identifiers in the BCID system and in EZID and returns a JSON
@@ -26,8 +25,9 @@ import java.io.FileNotFoundException;
  * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a
  * Data Element with a suffix.
  */
-@Path("metadata")
+@Path("id")
 public class resolverMetadataService {
+
     static SettingsManager sm;
     @Context
     static ServletContext context;
@@ -54,11 +54,11 @@ public class resolverMetadataService {
      */
     @GET
     @Path("/{scheme}/{naan}/{shoulderPlusIdentifier}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String run(@PathParam("scheme") String scheme,
-                      @PathParam("naan") String naan,
-                      @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier) {
-
+    @Produces({MediaType.TEXT_HTML, "application/rdf+xml"})
+    public Response run(@PathParam("scheme") String scheme,
+                        @PathParam("naan") String naan,
+                        @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier,
+                        @HeaderParam("Accept") String accept) {
         // Clean up input
         scheme = scheme.trim();
         shoulderPlusIdentifier = shoulderPlusIdentifier.trim();
@@ -71,7 +71,7 @@ public class resolverMetadataService {
         try {
             sm.loadProperties();
         } catch (FileNotFoundException e) {
-            return new serviceErrorReporter(e, "Unable to load properties file on server").json();
+            return Response.ok(new serviceErrorReporter(e, "Unable to load properties file on server").json()).build();
         }
 
         // Setup ezid account/login information
@@ -83,14 +83,22 @@ public class resolverMetadataService {
             e.printStackTrace();
         }
 
-        // Run Resolver
+        // Return an appropriate response based on the Accepts header that was passed in.
+        //
         try {
-            Renderer ren = new JSONRenderer();
-            return new resolver(element).printMetadata(ren);
-        } catch (EZIDException e) {
-            return new serviceErrorReporter(e).json();
+            if (accept.equalsIgnoreCase("application/rdf+xml")) {
+                // Return RDF when the Accepts header specifies rdf+xml
+                return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
+            } else {
+                // This next section uses the Jersey Viewable class, which is a type of Model, View, Controller
+                // construct, enabling us to pass content JSP code to a JSP template.  We do this in this section
+                // so we can have a REST style call and provide human readable content with BCID header/footer
+                Map<String, Object> map = new HashMap<String, Object>();
+                map.put("response", new resolver(element).printMetadata(new HTMLTableRenderer()));
+                return Response.ok(new Viewable("/index", map)).build();
+            }
         } catch (Exception e) {
-            return new serviceErrorReporter(e).json();
+            return Response.ok(new serviceErrorReporter(e).json()).build();
         }
-    }    
+    }
 }
