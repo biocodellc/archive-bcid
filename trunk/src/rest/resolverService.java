@@ -39,7 +39,7 @@ public class resolverService {
         sm = SettingsManager.getInstance();
         try {
             sm.loadProperties();
-        } catch (Exception e) {
+        } catch (Exception  e) {
             e.printStackTrace();
         }
     }
@@ -52,7 +52,7 @@ public class resolverService {
      */
     @GET
     @Path("/{naan}/{shoulderPlusIdentifier}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_HTML)
     public Response run(
             @PathParam("naan") String naan,
             @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier) {

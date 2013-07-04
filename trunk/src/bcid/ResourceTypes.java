@@ -98,7 +98,7 @@ public class ResourceTypes {
         list.add(new ResourceType(this.SPACER3));
 
         // OBI
-        list.add(new ResourceType(this.MATERIALSAMPLE, "obi:MaterialSample", "http://purl.obolibrary.org/obo/OBI_0000747", "A material entity that has the material sample role"));
+        list.add(new ResourceType(this.MATERIALSAMPLE, "obi:Specimen", "http://purl.obolibrary.org/obo/OBI_0100051", "A specimen that has the specimen role"));
         list.add(new ResourceType(this.SPACER4));
 
 

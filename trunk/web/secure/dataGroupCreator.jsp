@@ -22,6 +22,7 @@
             <li><b>Concept*</b> is required.  Each group level identifier can only represent one type of concept.
             <li><b>Target URL</b> is a place where requests for this identifier and any suffixes will resolve to.
             <li><b>DOI</b> indicates a DOI that this dataset belongs to
+            <li><b>Follow Suffixes</b> Check this box if you intend to append suffixes to this group for resolution.
         </ul>
 
 
@@ -45,12 +46,12 @@
                     <td align=right>DOI</td>
                     <td><input id=doi name=doi type=textbox size="40"></td>
                 </tr>
-                <!--
+
                 <tr>
-                    <td align=right>Maintain local IDs</td>
+                    <td align=right>Follow Suffixes</td>
                     <td><input type=checkbox id=suffixPassThrough name=suffixPassThrough checked=yes></td>
                 </tr>
-                -->
+
                 <tr>
                     <td colspan=2>
                     <input type="hidden" name="username" value="<%= request.getRemoteUser() %>" >

@@ -15,17 +15,18 @@
         <intercept-url pattern="/secure/**" access="isAuthenticated()"/>
         <intercept-url pattern="/css/**" access="permitAll"/>
         <intercept-url pattern="/js/**" access="permitAll"/>
-        <intercept-url pattern="/rest/ark:**" access="permitAll"/>
-        <intercept-url pattern="/rest/ark:/**" access="permitAll"/>
-        <intercept-url pattern="/rest/ark:/**" access="permitAll"/>
-        <intercept-url pattern="/rest/rdf/ark:/**" access="permitAll"/>
-        <intercept-url pattern="/rest/groupService/metadata**" access="permitAll"/>
-        <intercept-url pattern="/rest/elementService/select/resourceTypes**" access="permitAll"/>
-        <intercept-url pattern="/rest/elementService/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/ark:**" access="permitAll"/>
+        <intercept-url pattern="/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/id/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/rdf/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/groupService/metadata**" access="permitAll"/>
+        <intercept-url pattern="/elementService/select/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/elementService/resourceTypes**" access="permitAll"/>
         <intercept-url pattern="/login.jsp" access="permitAll"/>
 
         <intercept-url pattern="/javadoc/**" access="permitAll"/>
-        <intercept-url pattern="/rest/bcid.wadl" access="permitAll"/>
+        <intercept-url pattern="/bcid.wadl" access="permitAll"/>
         <intercept-url pattern="/wadl.xsl" access="permitAll"/>
 
         <form-login default-target-url="/index.jsp" always-use-default-target="true"/>

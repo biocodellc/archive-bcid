@@ -28,6 +28,7 @@
             <sec:authorize access="hasRole('user')">
                 <a href="/bcid/secure/user.jsp"><%= request.getRemoteUser() %></a> | <a href="/bcid/j_spring_security_logout">Logout</a>
             </sec:authorize>
+            | <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>
             | <a href="https://code.google.com/p/bcid/">Help</a>
         </div>
 
@@ -39,19 +40,19 @@
 
             <sec:authorize access="hasRole('user')">
                 <div class="link"><a href='/bcid/secure/dataGroupCreator.jsp'>Data Group Creator</a></div>
+                <!--<div class="separator">|</div>
+                <div class="link"><a href='/bcid/secure/creator.jsp'>Element Creator</a></div>-->
                 <div class="separator">|</div>
-                <div class="link"><a href='/bcid/secure/creator.jsp'>Element Creator</a></div>
+                <div class="link"><a href='/bcid/secure/projectCreator.jsp'>Project Creator</a></div>
             </sec:authorize>
 
             <sec:authorize ifNotGranted="user">
                 <div class="disabledlink">Data Group Creator</div>
+                <!--<div class="separator">|</div>
+                <div class="disabledlink">Element Creator</div>-->
                 <div class="separator">|</div>
-                <div class="disabledlink">Element Creator</div>
+                <div class="disabledlink">Project Creator</div>
             </sec:authorize>
-
-
-            <div class="separator">|</div>
-            <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>
 
             <!--<div class="separator">|</div>
             <div class="link"><a href='/bcid/requestEZID.jsp'>Request EZID</a></div>-->

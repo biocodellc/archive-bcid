@@ -5,9 +5,9 @@
 
     <div class="sectioncontent">
         <p>
-        List of Datasets accessible to <%= request.getRemoteUser() %>
+        List of Data Groups accessible to <%= request.getRemoteUser() %>
         <p>
-        (<a href='/bcid/secure/dataGroupCreator.jsp'>+</a>) Add a dataset
+        (<a href='/bcid/secure/dataGroupCreator.jsp'>+</a>) Add a Data Group
         <p>
         <div name=listTable id=listTable style="overflow:auto;">Loading groups</div>
 

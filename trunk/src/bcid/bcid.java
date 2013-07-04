@@ -37,6 +37,7 @@ public class bcid extends GenericIdentifier {
     protected dataGroupMinter dataset;
     protected String doi;
     protected Integer dataset_id;
+    public static String metadataroot = "http://biscicol.org/bcid/?id=";
 
     protected String level;
     final static String UNREGISTERED_ELEMENT = "Unregistered Element";
@@ -233,6 +234,9 @@ public class bcid extends GenericIdentifier {
         return webAddress;
     }
 
+     public URI getMetadataTarget() throws URISyntaxException {
+        return new URI(metadataroot + ark);
+    }
     private void put(String key, String val) {
         if (val != null)
             map.put(key, val);
