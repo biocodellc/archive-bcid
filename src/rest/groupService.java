@@ -147,7 +147,7 @@ public class groupService {
         GenericIdentifier bcid = new bcid(dataset_id);
         Renderer renderer = new JSONRenderer();
 
-        return "[" + renderer.renderIdentifier(bcid) + "]";
+        return "[" + renderer.render(bcid) + "]";
     }
 
     /**

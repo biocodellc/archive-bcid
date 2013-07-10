@@ -15,6 +15,7 @@
         <intercept-url pattern="/secure/**" access="isAuthenticated()"/>
         <intercept-url pattern="/css/**" access="permitAll"/>
         <intercept-url pattern="/js/**" access="permitAll"/>
+        <intercept-url pattern="/javadoc/**" access="permitAll"/>
         <intercept-url pattern="/ark:**" access="permitAll"/>
         <intercept-url pattern="/ark:/**" access="permitAll"/>
         <intercept-url pattern="/ark:/**" access="permitAll"/>
@@ -24,8 +25,6 @@
         <intercept-url pattern="/elementService/select/resourceTypes**" access="permitAll"/>
         <intercept-url pattern="/elementService/resourceTypes**" access="permitAll"/>
         <intercept-url pattern="/login.jsp" access="permitAll"/>
-
-        <intercept-url pattern="/javadoc/**" access="permitAll"/>
         <intercept-url pattern="/bcid.wadl" access="permitAll"/>
         <intercept-url pattern="/wadl.xsl" access="permitAll"/>
 

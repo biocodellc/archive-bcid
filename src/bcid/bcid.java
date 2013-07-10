@@ -33,11 +33,10 @@ public class bcid extends GenericIdentifier {
     protected Boolean identifiersEzidMade;
     protected Boolean datasetsSuffixPassthrough;
     protected String identifiersTs;
-    protected String ark;
+    //protected String ark;
     protected dataGroupMinter dataset;
     protected String doi;
     protected Integer dataset_id;
-    public static String metadataroot = "http://biscicol.org/bcid/?id=";
 
     protected String level;
     final static String UNREGISTERED_ELEMENT = "Unregistered Element";
@@ -79,20 +78,32 @@ public class bcid extends GenericIdentifier {
         this.title = dataset.title;
         this.datasetsTs = dataset.ts;
         this.datasetsPrefix = dataset.getPrefix();
+        this.doi = dataset.doi;
         this.level = this.UNREGISTERED_ELEMENT;
+        this.who = dataset.who;
         identifiersEzidRequest = false;
         identifiersEzidMade = false;
         datasetsEzidMade = dataset.ezidMade;
         datasetsEzidRequest = dataset.ezidRequest;
+        datasetsSuffixPassthrough = dataset.getSuffixPassThrough();
+        try {
+            if (sourceID != null && !sourceID.equals("")) {
+                identifier = new URI(dataset.identifier + "_" + sourceID);
+            } else {
+                identifier = dataset.identifier;
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
 
         // Reformat webAddress in this constructor if there is a sourceID
         if (sourceID != null && webAddress != null) {
-             try {
-                 this.webAddress = new URI(webAddress + sourceID);
-             } catch (URISyntaxException e) {
-                 e.printStackTrace();
-             }
-         }
+            try {
+                this.webAddress = new URI(webAddress + sourceID);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
@@ -146,7 +157,7 @@ public class bcid extends GenericIdentifier {
             what = rs.getString(count++);
             when = rs.getString(count++);
             who = rs.getString(count++);
-            this.ark = ark;
+            this.identifier = new URI(ark);
             this.level = this.ELEMENT;
 
         } catch (Exception e) {
@@ -155,7 +166,7 @@ public class bcid extends GenericIdentifier {
     }
 
     /**
-     * Create an element, dataset reference
+     * Create data group
      *
      * @param datasets_id
      */
@@ -191,12 +202,12 @@ public class bcid extends GenericIdentifier {
             datasetsSuffixPassthrough = rs.getBoolean(count++);
             doi = rs.getString(count++);
             try {
-            webAddress = new URI(rs.getString(count++));
+                webAddress = new URI(rs.getString(count++));
             } catch (NullPointerException e) {
                 webAddress = null;
             }
             who = rs.getString(count++);
-            ark = datasetsPrefix;
+            identifier = new URI(datasetsPrefix);
             //what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
             when = datasetsTs;
             level = this.GROUP;
@@ -208,46 +219,51 @@ public class bcid extends GenericIdentifier {
 
     /**
      * Convert the class variables to a HashMap of metadata.
+     *
      * @return
      */
     public HashMap<String, String> getMetadata() {
-        put("ark", ark);
+        put("ark", identifier);
         put("who", who);
         put("when", when);
         put("what", what);
-        put("webaddress",webAddress);
+        put("webaddress", webAddress);
         put("level", level);
         put("title", title);
         put("sourceID", sourceID);
         put("doi", doi);
         put("datasetsEzidMade", datasetsEzidMade);
         put("datasetsSuffixPassThrough", datasetsSuffixPassthrough);
-        put("datasetsEzidRequest",datasetsEzidRequest);
+        put("datasetsEzidRequest", datasetsEzidRequest);
         put("datasetsPrefix", datasetsPrefix);
         put("datasetsTs", datasetsTs);
         put("identifiersEzidMade", identifiersEzidMade);
         put("identifiersTs", identifiersTs);
+        put("rights", rights);
         return map;
     }
 
-    public URI getResolutionTarget() {
+    public URI getResolutionTarget() throws URISyntaxException {
         return webAddress;
     }
 
-     public URI getMetadataTarget() throws URISyntaxException {
-        return new URI(metadataroot + ark);
+    public URI getMetadataTarget() throws URISyntaxException {
+        return new URI(resolverMetadataPrefix + identifier);
     }
+
     private void put(String key, String val) {
         if (val != null)
             map.put(key, val);
     }
+
     private void put(String key, Boolean val) {
         if (val != null)
             map.put(key, val.toString());
     }
+
     private void put(String key, URI val) {
         if (val != null) {
-            map.put(key,val.toString());
+            map.put(key, val.toString());
         }
     }
 

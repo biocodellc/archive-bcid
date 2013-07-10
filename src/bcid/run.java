@@ -302,6 +302,7 @@ public class run {
             e.printStackTrace();
         }
         try {
+            // Create EZID metadata for all Outstanding Identifiers.
             manageEZID creator = new manageEZID();
             creator.createDatasetsEZIDs(ezidAccount);
         } catch (URISyntaxException e) {

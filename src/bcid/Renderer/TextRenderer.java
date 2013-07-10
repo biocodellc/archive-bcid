@@ -10,11 +10,12 @@ import java.util.Map;
  */
 public class TextRenderer extends Renderer {
 
-    public void enter(GenericIdentifier identifier) {
+
+    public void enter() {
         outputSB.append("***" + identifier.getClass().getSimpleName() + "***\n");
     }
 
-    public void printMetadata(GenericIdentifier identifier) {
+    public void printMetadata() {
         Iterator iterator = identifier.getMetadata().entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry pairs = (Map.Entry) iterator.next();
@@ -22,10 +23,10 @@ public class TextRenderer extends Renderer {
         }
     }
 
-    public void leave(GenericIdentifier identifier) {
+    public void leave() {
     }
 
-    public boolean validIdentifier(GenericIdentifier identifier) {
+    public boolean validIdentifier() {
         if (identifier == null) {
             outputSB.append("identifier is null");
             return false;

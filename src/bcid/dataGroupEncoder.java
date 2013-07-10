@@ -3,6 +3,7 @@ package bcid;
 import com.ibm.icu.math.BigDecimal;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 
 /**
  * The purpsose of the datasetEncoder is to encode very short identifiers for EZID shoulders to represent
@@ -15,7 +16,7 @@ import java.math.BigInteger;
  * If we have 3 letters in the shoulder including 1 digit this gives 1,217,727 possible permutations.
  * 4 letters and 1 digit will give 74,549,800 possible permutations.
  */
-public class dataGroupEncoder implements encoder {
+public class dataGroupEncoder extends GenericIdentifier implements encoder {
     private boolean debug = false;
     int[] endDigits = {1};
 
@@ -294,4 +295,7 @@ public class dataGroupEncoder implements encoder {
 
     }
 
+    public HashMap<String, String> getMetadata() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

@@ -1,6 +1,6 @@
 package rest;
 
-import bcid.TestingRenderer.Renderer.Renderer;
+import bcid.Renderer.RDFRenderer;
 import bcid.resolver;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
@@ -39,29 +39,32 @@ public class resolverService {
         sm = SettingsManager.getInstance();
         try {
             sm.loadProperties();
-        } catch (Exception  e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
      * User passes in an identifier of the form scheme:/naan/shoulder_identifier
+     *
      * @param naan
      * @param shoulderPlusIdentifier
      * @return
      */
     @GET
+
     @Path("/{naan}/{shoulderPlusIdentifier}")
-    @Produces(MediaType.TEXT_HTML)
+    @Produces({MediaType.TEXT_HTML, "application/rdf+xml"})
     public Response run(
             @PathParam("naan") String naan,
-            @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier) {
+            @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier,
+            @HeaderParam("accept") String accept) {
 
         // Clean up input
         //scheme = scheme.trim();
         String scheme = "ark:";
         shoulderPlusIdentifier = shoulderPlusIdentifier.trim();
-        
+
         // Structure the identifier element from path parameters
         String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
@@ -90,20 +93,21 @@ public class resolverService {
             seeOtherUri = new resolver(element).resolveARK();
         } catch (Exception e) {
             e.printStackTrace();
-           return null;
+            return null;
         }
 
-        return Response.status(303).location(seeOtherUri).build();
-
-       /* // Run Resolver
-        try {
-            return new bcid.resolver(element).resolveAllAsJSON(ezidService);                               
-        } catch (EZIDException e) {
-            return new serviceErrorReporter(e).json();
-        } catch (Exception e) {
-            return new serviceErrorReporter(e).json();
+        // Return RDF when the Accepts header specifies rdf+xml
+        if (accept.equalsIgnoreCase("application/rdf+xml")) {
+            try {
+                return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.serverError().build();
+            }
+        // Else return Redirect
+        } else {
+            return Response.status(303).location(seeOtherUri).build();
         }
-        return null;
-        */
+
     }
 }

@@ -1,6 +1,5 @@
 package bcid.Renderer;
 
-import bcid.GenericIdentifier;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -9,13 +8,13 @@ import java.util.Map;
  */
 public class JSONRenderer extends TextRenderer {
 
-    public void enter(GenericIdentifier identifier) {
+    public void enter() {
         outputSB.append("{");
         outputSB.append("\"" + identifier.getClass().getSimpleName() + "\":");
         outputSB.append("{");
     }
 
-    public void printMetadata(GenericIdentifier identifier) {
+    public void printMetadata() {
         Iterator iterator = identifier.getMetadata().entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry pairs = (Map.Entry) iterator.next();
@@ -26,11 +25,11 @@ public class JSONRenderer extends TextRenderer {
         }
     }
 
-    public void leave(GenericIdentifier identifier) {
+    public void leave() {
         outputSB.append("}}");
     }
 
-    public boolean validIdentifier(GenericIdentifier identifier)  {
+    public boolean validIdentifier()  {
         if (identifier == null) {
             outputSB.append("{\"Identifier\":{\"status\":\"not found\"}}");
             return false;

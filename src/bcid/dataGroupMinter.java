@@ -1,6 +1,7 @@
 package bcid;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.sql.*;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ public class dataGroupMinter extends dataGroupEncoder {
     private Integer datasets_id = null;
     protected boolean ezidRequest;
     protected boolean ezidMade;
+    protected String who = "";
 
     /**
      * Default to ezidRequest = false using default Constructor
@@ -95,16 +97,30 @@ public class dataGroupMinter extends dataGroupEncoder {
         database db = new database();
         conn = db.getConn();
         Statement stmt = conn.createStatement();
-        String sql = "select prefix,ezidRequest,ezidMade,suffixPassthrough,doi,title,ts from datasets where datasets_id = '" + datasets_id.toString() + "'";
+        String sql = "SELECT " +
+                "d.prefix as prefix," +
+                "d.ezidRequest as ezidRequest," +
+                "d.ezidMade as ezidMade," +
+                "d.suffixPassthrough as suffixPassthrough," +
+                "d.doi as doi," +
+                "d.title as title," +
+                "d.ts as ts, " +
+                "u.fullname as who" +
+                " FROM datasets d, users u " +
+                " WHERE d.datasets_id = '" + datasets_id.toString() + "'" +
+                " AND d.users_id = u.user_id";
+
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         prefix = rs.getString("prefix");
+        identifier = new URI(prefix);
         ezidRequest = rs.getBoolean("ezidRequest");
         ezidMade = rs.getBoolean("ezidMade");
         shoulder = encode(new BigInteger(datasets_id.toString()));
         this.doi = rs.getString("doi");
         this.title = rs.getString("title");
-        this.ts  = rs.getString("ts");
+        this.ts = rs.getString("ts");
+        this.who = rs.getString("who");
         Integer naan = new Integer(prefix.split("/")[1]);
         this.datasets_id = datasets_id;
         this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
@@ -372,7 +388,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         if (!username.equals("demo")) {
             return "(<a href='http://n2t.net/ezid/id/" + pPrefix + "'>metadata</a>)";
         } else {
-            return "(<a href='" + bcid.metadataroot + pPrefix + "'>metadata</a>)";
+            return "(<a href='" + resolverTargetPrefix + pPrefix + "'>metadata</a>)";
         }
     }
 
