@@ -20,7 +20,7 @@ import java.util.Iterator;
  */
 public class manageEZID extends elementMinter {
     // TODO: put resolverURLPrefix in SettingsManager
-    public String resolverURLPrefix = "http://biscicol.org/bcid/rest/";
+    //public String resolverURLPrefix = "http://biscicol.org/bcid/";
     public manageEZID() throws Exception {
         super();
     }
@@ -65,7 +65,7 @@ public class manageEZID extends elementMinter {
 
             // Build the hashmap to pass to ezid
             HashMap<String, String> map = ercMap(
-                    resolverURLPrefix + rs.getString("prefix"),
+                    resolverTargetPrefix + rs.getString("prefix"),
                     //new ResourceTypes().get(ResourceTypes.DATASET).uri,
                     rs.getString("what"),
                     rs.getString("who"),
@@ -121,7 +121,7 @@ public class manageEZID extends elementMinter {
 
                 // Create the hashmap to send to ezid functions
                 HashMap<String, String> map = ercMap(
-                        resolverURLPrefix + rs.getString("prefix"),
+                        resolverTargetPrefix + rs.getString("prefix"),
                         rs.getString("what"),
                         rs.getString("who"),
                         rs.getString("ts"));
@@ -136,10 +136,15 @@ public class manageEZID extends elementMinter {
                     idSuccessList.add(rs.getString("datasets_id"));
                     System.out.println("  " + identifier.toString());
                 } catch (EZIDException e) {
-                    // if an exception is thrown it could mean that the identifier already exists, this then can be
-                    // simply a request to set Metadata
-                    e.printStackTrace();
-                    System.out.println("  Exception thrown in attempting to create EZID " + myIdentifier + ", a permission issue, or this EZID already exists");
+                    // Attempt to set Metadata if this is an Exception
+                    try {
+                        ezid.setMetadata(myIdentifier,map);
+                        idSuccessList.add(rs.getString("datasets_id"));
+                    } catch (EZIDException e1) {
+                        e1.printStackTrace();
+                        System.out.println("  Exception thrown in attempting to create OR update EZID " + myIdentifier + ", a permission issue?");
+                    }
+
                 }
 
             }

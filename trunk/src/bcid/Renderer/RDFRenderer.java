@@ -1,70 +1,70 @@
 package bcid.Renderer;
 
-import bcid.GenericIdentifier;
-
-import java.util.Iterator;
-import java.util.Map;
-
 /**
- * textRenderer renders object results as Text
+ * Renders a BCID as RDF.  This is for machine negotiation of an identifier
  */
 public class RDFRenderer extends Renderer {
-    String about = null;
-    String resource = null;
-    StringBuilder output = new StringBuilder();
 
-    public void enter(GenericIdentifier identifier) {
+    public void enter() {
         outputSB.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n" +
-                "                 xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n" +
-                "                 xmlns:dcterms=\"http://purl.org/dc/terms/\"\n" +
-                "                 xmlns:dwc=\"http://rs.tdwg.org/dwc/terms/\"\n" +
-                "                 xmlns:dsw=\"http://purl.org/dsw/\"\n" +
-                "                 xmlns:mrtg=\"http://rs.tdwg.org/mrtg/trunk/RDF/mrtg.n3#\"\n" +
-                "                 xmlns:xmp=\"http://ns.adobe.com/xap/1.0/\"\n" +
-                "                 xmlns:bsc=\"http://biscicol.org/terms/index.htm#\"\n" +
-                "                 xmlns:foaf=\"http://xmlns.com/foaf/0.1/\">\n");
+                "\txmlns:dc=\"http://purl.org/dc/elements/1.1/\"\n" +
+                "\txmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n" +
+                "\txmlns:bsc=\"http://biscicol.org/terms/index.html#\"\n" +
+                "\txmlns:dcterms=\"http://purl.org/dc/terms/\">\n");
+        outputSB.append("<rdf:Description rdf:about=\"" + identifier.identifier.toString() + "\">\n");
     }
 
-    public void printMetadata(GenericIdentifier identifier) {
-        Iterator iterator = identifier.getMetadata().entrySet().iterator();
-        while (iterator.hasNext()) {
-            //System.out.println(identifier.getMetadata().toString());
-            //Map.Entry pairs = (Map.Entry) iterator.next();
-
-            Map.Entry pairs = (Map.Entry) iterator.next();
-            String bcidKey = (String) pairs.getKey();
-            try {
-                if (bcidKey.equalsIgnoreCase("datasetsPrefix")) {
-                    about = "<rdf:Description rdf:about=\"" + pairs.getValue() + "\">\n";
-                } else if (bcidKey.equalsIgnoreCase("what"))
-                    resource = "\t<rdf:type rdf:resource=\"" + pairs.getValue() + "\" />\n";
-                else if (pairs.getValue() != null && !pairs.getValue().equals("")) {
-                    output.append("\t<bsc:" +bcidKey + ">" + pairs.getValue() + "</bsc:" + bcidKey+ ">\n");
-                }
-            } catch (NullPointerException e) {
-                //e.getMessage();
-            }
-        }
+    public void printMetadata() {
+        resourceAppender(resource);
+        resourceAppender(dcMediator);
+        resourceAppender(dcHasVersion);
+        resourceAppender(dcIsPartOf);
+        resourceAppender(dcRights);
+        propertyAppender(dcTitle);
+        propertyAppender(dcCreator);
+        propertyAppender(dcDate);
+        propertyAppender(dcSource);
+        propertyAppender(bscSuffixPassthrough);
     }
 
-    public void leave(GenericIdentifier identifier) {
-        if (about != null) {
-            outputSB.append(about);
-        }
-        if (resource != null) {
-            outputSB.append(resource);
-        }
-        outputSB.append(output.toString());
-        outputSB.append("</rdf:Description>");
+    public void leave() {
+        outputSB.append("</rdf:Description>\n");
+        outputSB.append("</rdf:RDF>");
     }
 
-    public boolean validIdentifier(GenericIdentifier identifier) {
+    public boolean validIdentifier() {
         if (identifier == null) {
             outputSB.append("identifier is null");
             return false;
         } else {
             return true;
+        }
+    }
+
+    /**
+     * append the rdf:Resource
+     *
+     * @param map
+     */
+    private void resourceAppender(metadataElement map) {
+        if (map != null) {
+            if (!map.getValue().trim().equals("")) {
+                outputSB.append("\t<" + map.getKey() + " rdf:resource=\"" + map.getValue() + "\" />\n");
+            }
+        }
+    }
+
+    /**
+     * append each property
+     *
+     * @param map
+     */
+    private void propertyAppender(metadataElement map) {
+        if (map != null) {
+            if (!map.getValue().trim().equals("")) {
+                outputSB.append("\t<" + map.getKey() + ">" + map.getValue() + "</" + map.getKey() + ">\n");
+            }
         }
 
     }

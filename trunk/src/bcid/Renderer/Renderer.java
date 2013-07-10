@@ -1,29 +1,34 @@
 package bcid.Renderer;
 
+import bcid.BCIDMetadataSchema;
 import bcid.GenericIdentifier;
 
 /**
  * Abstract class Renderer implements the visitor methods
  * and controls all renderer subClasses for rendering bcids
  */
-public abstract class Renderer implements RendererInterface {
+public abstract class Renderer extends BCIDMetadataSchema implements RendererInterface {
     protected StringBuilder outputSB;
+
+    GenericIdentifier identifier = null;
 
     /**
      * render an Identifier
      *
-     * @param identifier
      * @return
      */
-    public String renderIdentifier(GenericIdentifier identifier)  {
+    public String render(GenericIdentifier identifier) {
+        this.identifier = identifier;
+
+        BCIDMetadataInit(identifier);
         outputSB = new StringBuilder();
 
-        if (validIdentifier(identifier)) {
-            enter(identifier);
-            printMetadata(identifier);
-            leave(identifier);
+        if (validIdentifier()) {
+            enter();
+            printMetadata();
+            leave();
             return outputSB.toString();
-        }else {
+        } else {
             return outputSB.toString();
         }
     }

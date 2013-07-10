@@ -1,47 +1,77 @@
 package bcid.Renderer;
 
-import bcid.GenericIdentifier;
-
-import java.util.Iterator;
-import java.util.Map;
-
 /**
- * HTMLTableRenderer renders object results as HTMLTable
+ * HTMLTableRenderer renders Identifier results as an HTMLTable
  */
 public class HTMLTableRenderer extends Renderer {
-    String ark = null;
-    StringBuilder runningSB = new StringBuilder();
 
-    public void enter(GenericIdentifier identifier) {
-        runningSB.append("<table>");
+    public void enter() {
+        outputSB.append("<h2>" + identifier.identifier + "</h2>\n\n");
+        outputSB.append("<table>\n");
+        outputSB.append("\t<tr>\n" +
+                "\t\t<th>Description</th>\n" +
+                "\t\t<th>Value</th>\n" +
+                "\t\t<th>Definition</th>\n" +
+                "\t</tr>\n");
     }
 
-    public void printMetadata(GenericIdentifier identifier) {
-        Iterator iterator = identifier.getMetadata().entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry pairs = (Map.Entry) iterator.next();
-
-            if (pairs.getKey().toString().equalsIgnoreCase("datasetsPrefix")) {
-                ark = pairs.getValue().toString();
-            }
-            runningSB.append("<tr><td>" + pairs.getKey() + "</td><td>" + pairs.getValue() + "</td></tr>\n");
-        }
+    public void printMetadata() {
+        tableResourceRowAppender(resource);
+        tableResourceRowAppender(about);
+        tableResourceRowAppender(dcMediator);
+        tableResourceRowAppender(dcHasVersion);
+        tablePropertyRowAppender(dcDate);
+        tablePropertyRowAppender(dcCreator);
+        tablePropertyRowAppender(dcTitle);
+        tableResourceRowAppender(dcRights);
+        tableResourceRowAppender(dcIsPartOf);
+        tablePropertyRowAppender(dcSource);
+        tablePropertyRowAppender(bscSuffixPassthrough);
     }
 
-    public void leave(GenericIdentifier identifier) {
-        runningSB.append("</table>");
-        if (ark != null) {
-            outputSB.append("<h2>" + ark + "</h2>");
-        }
-        outputSB.append(runningSB);
+    public void leave() {
+        outputSB.append("</table>\n");
     }
 
-    public boolean validIdentifier(GenericIdentifier identifier) {
+    public boolean validIdentifier() {
         if (identifier == null) {
             outputSB.append("<h2>Unable to find identifier</h2>");
             return false;
         } else {
             return true;
+        }
+    }
+
+    /**
+     * append each property
+     *
+     * @param map
+     */
+    private void tablePropertyRowAppender(metadataElement map) {
+        if (map != null) {
+            if (!map.getValue().trim().equals("")) {
+                outputSB.append("\t<tr>\n\t\t" +
+                        "<td>" + map.getDescription() + "</td>\n\t\t" +
+                        "<td>" + map.getValue() + "</td>\n\t\t" +
+                        "<td><a href=\"" + map.getFullKey() + "\">" + map.getKey() + "</a></td>\n\t</tr>\n");
+            }
+        }
+
+    }
+
+    /**
+     * append each property
+     *
+     * @param map
+     */
+    private void tableResourceRowAppender(metadataElement map) {
+        if (map != null) {
+            if (!map.getValue().trim().equals("")) {
+                outputSB.append("\t<tr>\n\t\t" +
+                        "<td>" + map.getDescription() + "</td>\n\t\t" +
+                        "<td><a href=\"" + map.getValue() + "\">" + map.getValue() + "</a></td>\n\t\t" +
+                        "<td><a href=\"" + map.getFullKey() + "\">" + map.getKey() + "</a></td>\n\t</tr>\n");
+            }
         }
 
     }

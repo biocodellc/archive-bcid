@@ -1,9 +1,9 @@
 package bcid;
 
+import bcid.Renderer.HTMLTableRenderer;
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.RDFRenderer;
 import bcid.Renderer.Renderer;
-import bcid.Renderer.TextRenderer;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
@@ -108,8 +108,7 @@ public class resolver extends database {
      */
     public URI resolveARK() throws URISyntaxException {
         bcid bcid = null;
-
-        URI resolution = new URI("http://biscicol.org/bcid/index.jsp?id=" + ark);
+        URI resolution = null;
 
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
@@ -120,21 +119,26 @@ public class resolver extends database {
             // the assumption here is we only want to resolve suffixes but not the dataset itself.
             // TODO: update documentation with this behaviour!
 
-
+            /**
+             * GROUP RESOLUTION
+             */
             // Group has a specified resolution target
             if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().equals("")) {
                 // Group specifies suffix passthrough
                 if (bcid.getDatasetsSuffixPassthrough()) {
                     resolution = bcid.getMetadataTarget();
-
-                // Group does not specify suffix passthrough
+                    // Group does not specify suffix passthrough
                 } else {
                     resolution = bcid.getResolutionTarget();
-
-              }
-
-
+                }
+            // This is a group and no resolution target is specified then just return metadata.
+            } else {
+                resolution = bcid.getMetadataTarget();
             }
+
+            /**
+             * ELEMENT RESOLUTION
+             */
             // Determine if there is a resolvable suffix
             if (isResolvableSuffix(datagroup_id)) {
                 bcid = new bcid(element_id, ark);
@@ -162,16 +166,25 @@ public class resolver extends database {
 
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
+
             bcid = new bcid(datagroup_id);
-            // Check if this is an element that we can resolve
+            // Has a registered, resolvable suffix
             if (isResolvableSuffix(datagroup_id)) {
                 bcid = new bcid(element_id, ark);
-            } else if (blade != null && bcid.getResolutionTarget() != null) {
-                bcid = new bcid(blade,bcid.getResolutionTarget(),datagroup_id);
             }
-        }
+            // Has a suffix, but not resolvable
+            else {
+                try {
+                    if (blade != null && bcid.getResolutionTarget() != null) {
+                        bcid = new bcid(blade, bcid.getResolutionTarget(), datagroup_id);
+                    }
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+            }
 
-        return renderer.renderIdentifier(bcid);
+        }
+        return renderer.render(bcid);
     }
 
     /**
@@ -210,7 +223,7 @@ public class resolver extends database {
         } catch (EZIDException e) {
             e.printStackTrace();
         }
-        return renderer.renderIdentifier(ezid);
+        return renderer.render(ezid);
     }
 
 
@@ -394,9 +407,9 @@ public class resolver extends database {
             r = new resolver("ark:/21547/R2");
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            RDFRenderer ren = new RDFRenderer();
+            Renderer ren = new HTMLTableRenderer();
             System.out.println(r.printMetadata(ren));
-            //System.out.println(r.resolveARK().toString());
+            System.out.println(r.resolveARK().toString());
         } catch (Exception e) {
             e.printStackTrace();
         }

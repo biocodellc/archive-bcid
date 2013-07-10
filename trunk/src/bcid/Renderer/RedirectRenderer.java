@@ -1,6 +1,8 @@
 package bcid.Renderer;
 
 import bcid.GenericIdentifier;
+
+import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -21,7 +23,11 @@ public class RedirectRenderer extends TextRenderer {
                 outputSB.append(",");
             }
         }
-        outputSB.append(identifier.getResolutionTarget());
+        try {
+            outputSB.append(identifier.getResolutionTarget());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
     public void leave(GenericIdentifier identifier) {
