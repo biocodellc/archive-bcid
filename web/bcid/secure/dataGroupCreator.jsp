@@ -1,11 +1,12 @@
 <%@ include file="../header.jsp" %>
 
 <div id="doiMinter" class="section">
-    <h2>Data Group Creator</h2>
 
     <div class="sectioncontent">
+        <h2>BCID Creator</h2>
 
-        Create a dataset-level identifier that acts as a container for an unlimited number of user-specified elements.
+
+        Create a group-level identifier that acts as a container for an unlimited number of user-specified elements.
 
        <!--
         <ul>
@@ -22,6 +23,7 @@
             <li><b>Concept*</b> is required.  Each group level identifier can only represent one type of concept.
             <li><b>Target URL</b> is a place where requests for this identifier and any suffixes will resolve to.
             <li><b>DOI</b> indicates a DOI that this dataset belongs to
+            <li><b>Rights</b> All BCIDS fall under <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0</a>
             <li><b>Follow Suffixes</b> Check this box if you intend to append suffixes to this group for resolution.
         </ul>
 
@@ -45,6 +47,11 @@
                 <tr>
                     <td align=right>DOI</td>
                     <td><input id=doi name=doi type=textbox size="40"></td>
+                </tr>
+
+                <tr>
+                    <td align=right>Rights</td>
+                    <td><a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0</a></td>
                 </tr>
 
                 <tr>

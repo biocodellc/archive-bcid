@@ -1,19 +1,19 @@
 <%@ include file="../header.jsp" %>
 
 <div id="doiMinter" class="section">
-    <h2>Project Creator</h2>
 
     <div class="sectioncontent">
-        <h2>DRAFT FORM -- Presented here to show proposed functionality only, not operational</h2>
-        Create a Project that defines sets of Data Groups for use in a Field Information Management System. You will
-        automatically be assigned ARKs for all Samples, Events, and Information Artifacts.
+        <h2>Biocode Commons Project Creator - DRAFT FORM</h2>
+
+        Create a project holding the core concepts of material sample, event, and information artifact.  Together, these concepts form
+        the basis of a Biocode Commons Project.  Each of the core concepts defined per project will be assigned a BCID.  In addition,
+        projects can define a DOI, abstract, and a <a href="http://biovalidator.sourceforge.net/">bioValidator</a> XML Validation file.
 
         <ul>
-            <li><b>FIMS Installation*</b> defines the particular FIMS installation you wish to associate this project
-            with.  You will only be shown FIMS systems to which you have been granted access.  You must ask the system administrator
-            for access to the FIMS.
-            <li><b>Project Code*</b> A 4-6 letter code for your project.  It must be unique across all FIMS instances.
-            <li><b>Abstract</b> is an abstract for this project.
+            <li><b>Project Code*</b> A 4-6 letter code for your project.</li>
+            <li><b>Abstract</b> is an abstract for this project.</li>
+            <li><b>Material Sample BCID</b> is the BCID </li>
+
         </ul>
 
         <div style='float:left;'>
@@ -26,8 +26,8 @@
                     <td>
                         <select name=fims_id id=fims_id class="">
                             <option value='0'>TEST LIST</option>
-                            <option value='1'>Biocode</option>
-                            <option value='2'>Smithsonian</option>
+                            <option value='1'>Moorea Biocode DB</option>
+                            <option value='2'>Smithsonian LAB DB</option>
                         </select>
                     </td>
                 </tr>
@@ -55,7 +55,7 @@
         <div style='float:left;'>
 
         <table>
-            <tr><td colspan=2><b>{FIMS_NAME} FIMS Details</b></td></tr>
+            <tr><td colspan=2><b>{IMPLEMENTATION NAME}</b></td></tr>
             <tr>
                 <td>abstract</td><td>ABSTRACT GOES HERE</td>
             </tr>
@@ -66,7 +66,7 @@
                 <td>db_location_url</td><td>db_location_url</td>
             </tr>
             <tr>
-                <td>fims ARK</td><td>ARK for FIMS goes here</td>
+                <td>Identifier</td><td>DOI/ARK for Implementation</td>
             </tr>
         </table>
         </div>
