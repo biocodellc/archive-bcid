@@ -71,8 +71,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 /**
 * GRM tables
 */
-DROP TABLE IF EXISTS `project`;
-CREATE TABLE `project` (
+DROP TABLE IF EXISTS `projects`;
+CREATE TABLE `projects` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
   `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
   `abstract` text COMMENT 'The abstract for this particular project',

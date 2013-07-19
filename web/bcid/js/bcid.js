@@ -104,15 +104,14 @@ function creatorDefaults() {
     populateSelect("resourceTypesMinusDataset");
 }
 
-// Populate a table of data showing group Elements
-function populateDataGroupTable(a)  {
-    var url = "/id/groupService/listTable";
+// Populate Div element from a REST service with HTML
+function populateDivFromService(url,elementID,failMessage)  {
     var jqxhr = $.ajax(url, function() {})
         .done(function(data) {
-           $("#" + a).html(data);
+           $("#" + elementID).html(data);
         })
         .fail(function() {
-            $("#" + a).html("Unable to load groupService elements!");
+            $("#" + elementID).html(failMessage);
         });
 }
 
@@ -152,24 +151,6 @@ function populateSelect(a) {
 // Take the resolver results and populate a table
 function resolverResults() {
     window.location.replace("/id/metadata/" + $("#identifier").val());
-    /*
-    $("#resolverResults").html("<div>Processing request ... </div>");
-    var div = "";
-
-    var jqxhr = $.getJSON("/bcid/metadata/" + $("#identifier").val() , function(data) {
-        $.each(data, function() {
-            var tbl_body = "<div style='float:left;margin:20px;'>";
-            tbl_body += "<table border=1>";
-            // Loop metadata elements
-            $.each(this,function(k,v) {
-                tbl_body += "<tr><td>"+k+"</td>" + "<td>"+v+"</td></tr>";
-            })
-            tbl_body += "</table></div>";
-            div += tbl_body;
-        })
-    })
-    .done(function() { $("#resolverResults").html(div); })
-    .fail(function() { $("#resolverResults").html("<div>Unable to resolve " + $("#identifier").val() + "</div>"); });
-    */
-
 }
+
+

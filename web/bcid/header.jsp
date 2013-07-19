@@ -46,6 +46,10 @@
                 <div class="separator">|</div>
 
                 <div class="link"><a href='/bcid/secure/projectCreator.jsp'>Project Creator</a></div>
+
+                <div class="separator">|</div>
+
+                <div class="link"><a href='/bcid/secure/user.jsp'>User Tools</a></div>
             </sec:authorize>
 
             <sec:authorize ifNotGranted="user">
@@ -56,6 +60,10 @@
                 <div class="separator">|</div>
 
                 <div class="disabledlink">Project Creator</div>
+
+                <div class="separator">|</div>
+
+                <div class="disabledlink">User Tools</div>
             </sec:authorize>
 
             <!--<div class="separator">|</div>

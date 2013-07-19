@@ -41,7 +41,7 @@ public final class WadlResources {
     @GET
     public synchronized Response getWadl(@Context UriInfo uriInfo) {
 
-        String styleSheetUrl = uriInfo.getBaseUri().toString() + "../wadl.xsl";
+        String styleSheetUrl = uriInfo.getBaseUri().toString() + "../bcid/wadl.xsl";
         ApplicationDescription ae = wadlContext.getApplication(uriInfo);
         this.application = ae.getApplication();
 
