@@ -1,5 +1,6 @@
 package bcid;
 
+import util.SettingsManager;
 import util.dates;
 
 import java.lang.String;
@@ -56,6 +57,17 @@ public class bcid extends GenericIdentifier {
         this(sourceID, null, dataset_id);
     }
 
+    static SettingsManager sm;
+
+    static {
+        sm = SettingsManager.getInstance();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Create an element given a source identifier, web address for resolution, and a resource type identifier
      *
@@ -88,7 +100,7 @@ public class bcid extends GenericIdentifier {
         datasetsSuffixPassthrough = dataset.getSuffixPassThrough();
         try {
             if (sourceID != null && !sourceID.equals("")) {
-                identifier = new URI(dataset.identifier + "_" + sourceID);
+                identifier = new URI(dataset.identifier + sm.retrieveValue("divider") + sourceID);
             } else {
                 identifier = dataset.identifier;
             }

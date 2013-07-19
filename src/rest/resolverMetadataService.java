@@ -25,7 +25,7 @@ import java.util.Map;
  * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a
  * Data Element with a suffix.
  */
-@Path("id")
+@Path("metadata")
 public class resolverMetadataService {
 
     static SettingsManager sm;
@@ -66,14 +66,6 @@ public class resolverMetadataService {
         // Structure the identifier element from path parameters
         String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
-        // SettingsManager
-        SettingsManager sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (FileNotFoundException e) {
-            return Response.ok(new serviceErrorReporter(e, "Unable to load properties file on server").json()).build();
-        }
-
         // Setup ezid account/login information
         EZIDService ezidService = new EZIDService();
         try {
@@ -82,6 +74,9 @@ public class resolverMetadataService {
             // For now, just print stack trace here and proceed.
             e.printStackTrace();
         }
+
+        System.out.println("eziduser = " + sm.retrieveValue("eziduser"));
+        System.out.println("shoulderPlusIdentifier = " + shoulderPlusIdentifier);
 
         // Return an appropriate response based on the Accepts header that was passed in.
         //

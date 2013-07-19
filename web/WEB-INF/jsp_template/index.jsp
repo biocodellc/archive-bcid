@@ -1,7 +1,7 @@
-<%@ include file="/header.jsp" %>
+<%@ include file="/bcid/header.jsp" %>
 
 <div class="sectioncontent">
     ${it.response}
 </div>
 
-<%@ include file="/footer.jsp" %>
+<%@ include file="/bcid/footer.jsp" %>

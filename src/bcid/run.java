@@ -273,14 +273,7 @@ public class run {
     }
 
     public static void main(String[] args) {
-        /*
-            run r = new run();
-            try {
-                r.runBCIDCreatorService();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        */
+
         EZIDService ezidAccount = new EZIDService();
 
         // Initialize settings manager
@@ -311,5 +304,15 @@ public class run {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
+        /*
+        dataGroupMinter d = null;
+        try {
+            d = new dataGroupMinter();
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+
+        System.out.println( d.datasetTable("biocode"));
+        */
     }
 }

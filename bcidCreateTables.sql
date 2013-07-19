@@ -71,38 +71,20 @@ SET FOREIGN_KEY_CHECKS = 1;
 /**
 * GRM tables
 */
-SET FOREIGN_KEY_CHECKS = 0;
-
-DROP TABLE IF EXISTS `fims`;
-CREATE TABLE `fims` (
-   `fims_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this FIMS installation',
-   `fimsname` VARCHAR(50) NOT NULL COMMENT 'The name of this FIMS installation',
-   `abstract` text COMMENT 'An abstract for this FIMS',
-   `xml_validation_url` VARCHAR(2083) COMMENT 'The URL for the validation file for this FIMS',
-   `db_location_url` VARCHAR(2083) COMMENT 'The location of the database for this FIMS',
-   `fims_key` int(11) COMMENT 'The BCID root for this FIMS element',
-   UNIQUE KEY `fims_fims_id_idx` (`fims_id`),
-   CONSTRAINT `FK_fims_key_datasets` FOREIGN KEY(`fims_key`) REFERENCES `datasets` (`datasets_id`)
-) ENGINE=Innodb DEFAULT CHARSET=utf8;
-
 DROP TABLE IF EXISTS `project`;
 CREATE TABLE `project` (
-   `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
-   `fims_id` int(11) NOT NULL COMMENT 'Key to the fims table',
-   `projectname` VARCHAR(6) NOT NULL COMMENT 'The short name for this project',
-   `abstract` text COMMENT 'The abstract for this particular project',
-   `sample_key` int(11) COMMENT 'The BCID root for samples contained in the database',
-   `event_key` int(11) COMMENT 'The BCID root for events contained in the database',
-   `information_artifact_key` int(11) COMMENT 'The BCID root for information artifacts contained in the database',
-   UNIQUE KEY `project_project_id_idx` (`project_id`),
-   UNIQUE KEY `project_projectname_idx` (`projectname`),
-   KEY `project_fims_id_idx` (`fims_id`),
-   CONSTRAINT `FK_project_fims` FOREIGN KEY(`fims_id`) REFERENCES `fims` (`fims_id`),
-   CONSTRAINT `FK_sample_key_datasets` FOREIGN KEY(`sample_key`) REFERENCES `datasets` (`datasets_id`),
-   CONSTRAINT `FK_event_key_datasets` FOREIGN KEY(`event_key`) REFERENCES `datasets` (`datasets_id`),
-   CONSTRAINT `FK_information_artifact_key_datasets` FOREIGN KEY(`information_artifact_key`) REFERENCES `datasets` (`datasets_id`)
-) ENGINE=Innodb DEFAULT CHARSET=utf8;
-SET FOREIGN_KEY_CHECKS = 1;
+  `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
+  `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
+  `abstract` text COMMENT 'The abstract for this particular project',
+  `material_sample_bcid` varchar(16) NOT NULL DEFAULT '' COMMENT 'The BCID root for samples contained in the database',
+  `event_bcid` varchar(16) NOT NULL DEFAULT '' COMMENT 'The BCID root for events contained in the database',
+  `information_artifact_bcid` varchar(16) NOT NULL DEFAULT '' COMMENT 'The BCID root for information artifacts contained in the database',
+  `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
+  UNIQUE KEY `project_project_id_idx` (`project_id`),
+  UNIQUE KEY `project_projectcode_idx` (`project_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 
 
 

@@ -34,6 +34,16 @@ public class elementMinter extends dataGroupMinter {
 
     static int TRUE = 1;
     static int FALSE = 0;
+    static SettingsManager sm;
+
+    static {
+        sm = SettingsManager.getInstance();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * TEST Case, uses test case dataset.
@@ -233,6 +243,7 @@ public class elementMinter extends dataGroupMinter {
 
     /**
      * Special function to prepare SQL statement
+     *
      * @param rowcount
      * @return
      */
@@ -269,7 +280,7 @@ public class elementMinter extends dataGroupMinter {
             while (rs.next()) {
                 // If this is suffixPassthrough then use prefix + localid
                 if (this.getSuffixPassThrough()) {
-                    results.add(rs.getString("prefix") + "_" + rs.getString("localid"));
+                    results.add(rs.getString("prefix") + sm.retrieveValue("divider") + rs.getString("localid"));
                     // else use the current encode function
                 } else {
                     results.add(new elementEncoder(prefix).encode(new BigInteger(rs.getString("id"))));
@@ -394,7 +405,7 @@ public class elementMinter extends dataGroupMinter {
         if (!validateUUID(uuidAsString)) {
             throw new Exception("Invalid uuid: " + uuidAsString);
         }
-        return prefix + "_" + UUID.fromString(uuidAsString).toString();
+        return prefix + sm.retrieveValue("divider") + UUID.fromString(uuidAsString).toString();
     }
 
     /**
