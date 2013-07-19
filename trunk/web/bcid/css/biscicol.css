@@ -153,3 +153,9 @@ div.sectioncontent {
     background: #eee;
     color: #000;
 }
+
+table.subtable {
+    background:#ffffff;
+    margin-left:12px;
+    border:none;
+}

@@ -1,9 +1,10 @@
 <%@ include file="../header.jsp" %>
 
 <div id="user" class="section">
-    <h2>User Tools</h2>
 
     <div class="sectioncontent">
+        <h2>User Tools</h2>
+
         <p>
         List of Data Groups accessible to <%= request.getRemoteUser() %>
         <p>
