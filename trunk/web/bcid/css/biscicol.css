@@ -159,3 +159,17 @@ table.subtable {
     margin-left:12px;
     border:none;
 }
+
+/**
+* A special Div class for toggling content on and off
+**/
+div.toggle-bcid-content, div.toggle-project-content {
+    display:none;
+    margin: 0px 20px;
+}
+
+.img-arrow {
+    vertical-align:middle;
+    height:20px;
+    border:none;
+}

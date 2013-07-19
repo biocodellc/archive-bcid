@@ -218,17 +218,15 @@ public class ResourceTypes {
 
         output.append("<table>");
         output.append("<tr>");
-        output.append("<th>Shortname</th>");
-        output.append("<th>URI</th>");
-        output.append("<th>Description</th>");
+        output.append("<td><b>Name/URI</b></td>");
+        output.append("<td><b>Description</b></td>");
         output.append("</tr>");
 
         while (it.hasNext()) {
             ResourceType rt = (ResourceType) it.next();
             if (!rt.string.equals("spacer")) {
                 output.append("<tr>");
-                output.append("<td>" + rt.string + "</td>");
-                output.append("<td>" + rt.uri + "</td>");
+                output.append("<td><a href=\"" + rt.uri + "\">" + rt.string + "</a></td>");
                 output.append("<td>" + rt.description + "</td>");
                 output.append("</tr>");
             }

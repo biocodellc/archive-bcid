@@ -188,9 +188,9 @@ public class groupService {
      * @return String with HTML response
      */
     @GET
-    @Path("/listTable")
+    @Path("/listUserBCIDsAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String datasetListTable(@Context HttpServletRequest request) {
+    public String listUserBCIDsAsTable(@Context HttpServletRequest request) {
         dataGroupMinter d = null;
         try {
             d = new dataGroupMinter();
@@ -198,14 +198,26 @@ public class groupService {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        Enumeration e = request.getHeaderNames();
-        while (e.hasMoreElements()) {
-            String headerName = e.nextElement().toString();
-            System.out.println(headerName + " = " + request.getHeader(headerName));
-        }
-
         return d.datasetTable(request.getRemoteUser());
     }
 
+      /**
+     * Return HTML response showing a table of groups belonging to this user
+     *
+     * @return String with HTML response
+     */
+    @GET
+    @Path("/listUserProjectsAsTable")
+    @Produces(MediaType.TEXT_HTML)
+    public String listUserProjectssAsTable(@Context HttpServletRequest request) {
+        dataGroupMinter d = null;
+        try {
+            d = new dataGroupMinter();
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return "SERVICE NOT CURRENTLY AVAILABLE - Need to write service code to return list of projects";
+        //return d.datasetTable(request.getRemoteUser());
+    }
 
 }
