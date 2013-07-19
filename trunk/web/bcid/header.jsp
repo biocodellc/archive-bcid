@@ -35,22 +35,26 @@
         <div style="clear: both;"></div>
 
         <div style="overflow: auto;width: 100%;">
-            <div class="link"><a href='/bcid/index.jsp'>Resolver</a></div>
+            <div class="link"><a href='/bcid/index.jsp'>Lookup</a></div>
             <div class="separator">|</div>
 
             <sec:authorize access="hasRole('user')">
-                <div class="link"><a href='/bcid/secure/dataGroupCreator.jsp'>Data Group Creator</a></div>
-                <!--<div class="separator">|</div>
-                <div class="link"><a href='/bcid/secure/creator.jsp'>Element Creator</a></div>-->
+                <div class="link"><a href='/bcid/secure/dataGroupCreator.jsp'>BCID Creator</a></div>
+
+                <!--<div class="separator">|</div><div class="link"><a href='/bcid/secure/creator.jsp'>Element Creator</a></div>-->
+
                 <div class="separator">|</div>
+
                 <div class="link"><a href='/bcid/secure/projectCreator.jsp'>Project Creator</a></div>
             </sec:authorize>
 
             <sec:authorize ifNotGranted="user">
-                <div class="disabledlink">Data Group Creator</div>
-                <!--<div class="separator">|</div>
-                <div class="disabledlink">Element Creator</div>-->
+                <div class="disabledlink">BCID Creator</div>
+
+                <!--<div class="separator">|</div><div class="disabledlink">Element Creator</div>-->
+
                 <div class="separator">|</div>
+
                 <div class="disabledlink">Project Creator</div>
             </sec:authorize>
 
