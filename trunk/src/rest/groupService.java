@@ -13,14 +13,30 @@ import bcid.bcid;
 
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.authentication.AuthenticationManagerBeanDefinitionParser;
+import org.springframework.security.config.authentication.AuthenticationManagerFactoryBean;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.GrantedAuthorityImpl;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import util.SettingsManager;
 import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 /**
  * REST interface calls for working with data groups.    This includes creating a group, looking up
@@ -33,33 +49,12 @@ public class groupService {
     static ServletContext context;
     static String bcidShoulder;
     static String doiShoulder;
-    static SettingsManager sm;
+    //static SettingsManager sm;
     static EZIDService ezidAccount;
 
     /**
      * Load settings manager, set ontModelSpec.
      */
-    static {
-        // Initialize settings manager
-        sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Initialize ezid account
-         ezidAccount = new EZIDService();
-        try {
-            // Setup EZID account/login information
-            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-
-        } catch (EZIDException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Create a data group
@@ -82,7 +77,6 @@ public class groupService {
                        @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                        @Context HttpServletRequest request) throws Exception {
 
-        //System.out.println(doi + "|" + webaddress + "|" + title + "|" + resourceType + "|" +stringSuffixPassThrough);
         Boolean suffixPassthrough = false;
         // Format Input variables
         try {
@@ -93,6 +87,25 @@ public class groupService {
             suffixPassthrough = false;
         }
 
+        // Initialize settings manager
+        SettingsManager sm = SettingsManager.getInstance();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Initialize ezid account
+        ezidAccount = new EZIDService();
+        try {
+            // Setup EZID account/login information
+            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+
+        } catch (EZIDException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // TODO: go through and validate these values before submitting-- need to catch all input from UI
         // Create a Dataset
@@ -166,7 +179,6 @@ public class groupService {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        System.out.println("authenticated as " + request.getRemoteUser());
         return d.datasetList(request.getRemoteUser());
     }
 
@@ -186,7 +198,14 @@ public class groupService {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
 
-        System.out.println("authenticated as " + request.getRemoteUser());
+        Enumeration e = request.getHeaderNames();
+        while (e.hasMoreElements()) {
+            String headerName = e.nextElement().toString();
+            System.out.println(headerName + " = " + request.getHeader(headerName));
+        }
+
         return d.datasetTable(request.getRemoteUser());
     }
+
+
 }

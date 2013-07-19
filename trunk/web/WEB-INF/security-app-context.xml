@@ -8,28 +8,32 @@
 
 
     <http use-expressions="true">
-        <intercept-url pattern="/index.jsp" access="permitAll"/>
 
-        <intercept-url pattern="/concepts.jsp" access="permitAll"/>
-        <intercept-url pattern="/requestEZID.jsp" access="permitAll"/>
-        <intercept-url pattern="/secure/**" access="isAuthenticated()"/>
-        <intercept-url pattern="/css/**" access="permitAll"/>
-        <intercept-url pattern="/js/**" access="permitAll"/>
-        <intercept-url pattern="/javadoc/**" access="permitAll"/>
-        <intercept-url pattern="/ark:**" access="permitAll"/>
-        <intercept-url pattern="/ark:/**" access="permitAll"/>
-        <intercept-url pattern="/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/bcid/index.jsp" access="permitAll"/>
+
+        <intercept-url pattern="/bcid/concepts.jsp" access="permitAll"/>
+        <intercept-url pattern="/bcid/requestEZID.jsp" access="permitAll"/>
+        <intercept-url pattern="/bcid/secure/**" access="isAuthenticated()"/>
+        <intercept-url pattern="/bcid/css/**" access="permitAll"/>
+        <intercept-url pattern="/bcid/js/**" access="permitAll"/>
+        <intercept-url pattern="/bcid/javadoc/**" access="permitAll"/>
+        <intercept-url pattern="/id/ark:**" access="permitAll"/>
         <intercept-url pattern="/id/ark:/**" access="permitAll"/>
-        <intercept-url pattern="/rdf/ark:/**" access="permitAll"/>
-        <intercept-url pattern="/groupService/metadata**" access="permitAll"/>
-        <intercept-url pattern="/elementService/select/resourceTypes**" access="permitAll"/>
-        <intercept-url pattern="/elementService/resourceTypes**" access="permitAll"/>
-        <intercept-url pattern="/login.jsp" access="permitAll"/>
-        <intercept-url pattern="/bcid.wadl" access="permitAll"/>
-        <intercept-url pattern="/wadl.xsl" access="permitAll"/>
+        <intercept-url pattern="/id/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/id/metadata/ark:/**" access="permitAll"/>
+        <intercept-url pattern="/id/groupService/metadata**" access="permitAll"/>
+        <intercept-url pattern="/id/groupService/listTable**" access="permitAll"/>
 
-        <form-login default-target-url="/index.jsp" always-use-default-target="true"/>
-        <logout/>
+        <intercept-url pattern="/id/elementService/select/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/id/elementService/resourceTypes**" access="permitAll"/>
+        <intercept-url pattern="/bcid/login.jsp" access="permitAll"/>
+        <intercept-url pattern="/bcid/bcid.wadl" access="permitAll"/>
+        <intercept-url pattern="/bcid/wadl.xsl" access="permitAll"/>
+        <intercept-url pattern="/bcid/error/**" access="permitAll"/>
+
+
+        <form-login default-target-url="/bcid/index.jsp" always-use-default-target="true"/>
+        <logout />
     </http>
 
     <authentication-manager>

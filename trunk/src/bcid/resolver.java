@@ -9,6 +9,7 @@ import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 import util.timer;
 
+import javax.swing.text.html.HTMLDocument;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -29,6 +30,20 @@ public class resolver extends database {
     String blade = null;
     BigInteger element_id = null;
     Integer datagroup_id = null;
+    static SettingsManager sm;
+    /**
+     * Load settings manager, set ontModelSpec.
+     */
+    static {
+        // Initialize settings manager
+        sm = SettingsManager.getInstance();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * Pass an ARK identifier to the resolver
@@ -95,7 +110,7 @@ public class resolver extends database {
         blade = sbBlade.toString();
 
         // String the slash between the shoulder and the blade
-        if (blade.startsWith("_")) {
+        if (blade.startsWith(sm.retrieveValue("divider"))) {
             blade = blade.substring(1);
         }
     }
