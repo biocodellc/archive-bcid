@@ -2,9 +2,10 @@ This page explains how to call BCID services using curl  --  For a list of BCID 
 
 = Public Content =
 
-Attempt a simple call to resolve an ARK:
+Attempt a simple call to resolve an ARK (return HTML)
 
-  * curl http://biscicol.org/bcid/rest/ark:/87286/C2
+  * curl -L http://biscicol.org/id/ark:/21547/R2
+
 
 = Secure Content =
 
