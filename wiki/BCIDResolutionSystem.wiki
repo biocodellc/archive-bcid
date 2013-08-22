@@ -1,6 +1,6 @@
 The BCID Resolution system resolves BCID identifiers that are passed through the Name-to-thing resolver (http://nt2.net/).  All BCID groups identifiers are registered with EZID.  EZID then uses its suffix passthrough feature to pass the suffix back to the BCID resolver.  At this point, a series of decisions are made based on the identifier syntax to determine how to display returned content.  Element-level identifiers,  with registered suffixes in the BCID system, also containing targets, can be resolved to a user-specified homepage.  Un-registered suffixes, or where there is no defined target associated with the identifier, or when machine resolution is specifically requested will return an HTML rendering of the identifier with embedded RDF/XML syntax describing the identifier.  Machine resolution can be specifically requested to any identifier by appending a "?" to the identifier.
 
-http://bcid.googlecode.com/svn/trunk/web/documents/BCID_flowChart.jpg
+https://bcid.googlecode.com/svn-history/r27/trunk/web/documents/BCID_flowChart.jpg
 
 *How does this all work in practice?*
 
