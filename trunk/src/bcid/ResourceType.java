@@ -11,6 +11,7 @@ public class ResourceType {
     public  String description;
     public Integer resourceType;
 
+
     /**
      *
      * @param string String is the short description (e.g. PhysicalObject, Image, Text)
@@ -32,5 +33,25 @@ public class ResourceType {
         this.string = "spacer";
         this.uri = null;
         this.description = null;
+    }
+
+    /**
+     * Return the prefix of the "string". So, for "string" = "dwcterms:PreservedSpecimen", this would return "dwcterms"
+     * @return
+     */
+    public String getPrefix() {
+          return string.split(":")[0];
+    }
+
+    /**
+     * Return the prefix of the "string". So, for "string" = "dwcterms:PreservedSpecimen", this would return "PreservedSpecimen"
+     * @return
+     */
+    public String getShortName() {
+          return string.split(":")[1];
+    }
+
+    public static void main (String args[]) {
+       ResourceType rt = new ResourceType(ResourceTypes.PRESERVEDSPECIMEN, "dwcterms:PreservedSpecimen", "http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen", "A resource describing a preserved specimen.");
     }
 }

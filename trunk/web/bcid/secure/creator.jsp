@@ -64,7 +64,7 @@
             <input type="hidden" name="username" value="<%= request.getRemoteUser() %>" >
         </form>
 
-        <div id="creatorResults" style="overflow:auto;"></div>
+        <div id="creatorResults" class="sectioncontent-results"></div>
 
     </div>
 </div>

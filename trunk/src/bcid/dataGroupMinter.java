@@ -157,6 +157,13 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @throws Exception
      */
     public Integer mint(Integer NAAN, Integer who, Integer resourceType, String doi, String webaddress, String title) throws Exception {
+
+        database db = new database();
+
+        // Never request EZID for user=demo
+        if (db.getUserName(who).equalsIgnoreCase("demo")) {
+            ezidRequest = false;
+        }
         this.bow = scheme + "/" + NAAN + "/";
 
         // Generate an internal ID to track this submission
@@ -316,6 +323,8 @@ public class dataGroupMinter extends dataGroupEncoder {
     public String datasetTable(String username) {
         Statement stmt = null;
         Integer datasetId = null;
+        ResourceTypes rts = new ResourceTypes();
+
         StringBuilder sb = new StringBuilder();
         try {
             stmt = conn.createStatement();
@@ -339,19 +348,28 @@ public class dataGroupMinter extends dataGroupEncoder {
             sb.append("<tr>");
             sb.append("<th>BCID</th>");
             sb.append("<th>Title</th>");
-            sb.append("<th>DOI</th>");
-            sb.append("<th>webAddress</th>");
+            //sb.append("<th>DOI</th>");
+            //sb.append("<th>webAddress</th>");
             sb.append("<th>resourceType</th>");
             sb.append("<th>Follow Suffixes</th>");
 
             sb.append("</tr>\n");
             while (rs.next()) {
                 sb.append("\t<tr>");
-                sb.append("<td>" + getEZIDLink(rs.getString("prefix"), username) + " " + getEZIDMetadataLink(rs.getString("prefix"), username) + "</td>");
+                //sb.append("<td>" + getEZIDLink(rs.getString("prefix"), username) + " " + getEZIDMetadataLink(rs.getString("prefix"), username) + "</td>");
+                sb.append("<td>" +
+                        rs.getString("prefix") +
+                        " " +
+                        // Normally we would use resolverMetadataPrefix here but i'm stripping the host so this
+                        // can be more easily tested on localhost
+                        "(<a href='/bcid/secure/dataGroupEditor.jsp?ark=" + rs.getString("prefix") + "'>edit</a>)" +
+                        "</td>");
+
                 sb.append("<td>" + rs.getString("title") + "</td>");
-                sb.append("<td>" + getDOILink(rs.getString("doi")) + " " + getDOIMetadataLink(rs.getString("doi")) + "</td>");
-                sb.append("<td>" + rs.getString("webaddress") + "</td>");
-                sb.append("<td>" + rs.getString("resourceType") + "</td>");
+                //sb.append("<td>" + getDOILink(rs.getString("doi")) + " " + getDOIMetadataLink(rs.getString("doi")) + "</td>");
+                //sb.append("<td>" + rs.getString("webaddress") + "</td>");
+
+                sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rts.get(rs.getString("resourceType")).string + "</a></td>");
                 sb.append("<td>" + rs.getBoolean("suffixPassthrough") + "</td>");
 
                 sb.append("</tr>\n");
@@ -370,11 +388,12 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param pPrefix
      * @return
      */
-    public String getEZIDLink(String pPrefix, String username) {
+    public String getEZIDLink(String pPrefix, String username, String linkText) {
         if (!username.equals("demo")) {
-            return "<a href='http://n2t.net/" + pPrefix + "'>http://n2t.net/" + pPrefix + "</a>";
+            return "(<a href='http://n2t.net/" + pPrefix + "'>" + linkText +"</a>)";
         } else {
-            return "<a href='http://biscicol.org/bcid/rest/" + pPrefix + "'>http://biscicol.org/bcid/rest/" + pPrefix + "</a>";
+            return "";
+            //return "<a href='http://biscicol.org/id/" + pPrefix + "'>http://biscicol.org/id/" + pPrefix + "</a>";
         }
     }
 
@@ -384,11 +403,12 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param pPrefix
      * @return
      */
-    public String getEZIDMetadataLink(String pPrefix, String username) {
+    public String getEZIDMetadataLink(String pPrefix, String username, String linkText) {
         if (!username.equals("demo")) {
-            return "(<a href='http://n2t.net/ezid/id/" + pPrefix + "'>metadata</a>)";
+            return "(<a href='http://n2t.net/ezid/id/" + pPrefix + "'>" + linkText+ "</a>)";
         } else {
-            return "(<a href='" + resolverTargetPrefix + pPrefix + "'>metadata</a>)";
+            return "";
+            //return "(<a href='" + resolverTargetPrefix + pPrefix + "'>metadata</a>)";
         }
     }
 

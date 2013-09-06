@@ -10,12 +10,8 @@ function dataGroupCreatorSubmit() {
 function projectCreatorSubmit() {
     $( "#projectCreatorResults" ).html( "Processing ..." );
     /* Send the data using post */
-    // Temporary output
-    results($("#projectForm").serialize(),"#projectCreatorResults");
-    /*
-    var posting = $.post( "/bcid/rest/projectService", $("#projectForm").serialize() );
+    var posting = $.post( "/id/projectService", $("#projectForm").serialize() );
     results(posting,"#projectCreatorResults");
-    */
 }
 
 /** Process submit button for Creator **/
@@ -32,9 +28,10 @@ function results(posting, a) {
     posting.done(function( data ) {
         var content = "<table>";
         content += "<tr><th>Results</th></tr>"
-        $.each(data, function(k,v) {
-            content += "<tr><td>"+v+"</td></tr>";
-        })
+        content += "<tr><td>"+data+"</td></tr>";
+        //$.each(data, function(k,v) {
+        //    content += "<tr><td>"+v+"</td></tr>";
+        //})
         content += "</table>";
         $( a ).html( content );
     });

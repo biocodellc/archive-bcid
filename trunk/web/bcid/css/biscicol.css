@@ -145,6 +145,10 @@ div.sectioncontent {
     font-size: 90%;
 }
 
+div.sectioncontent-results {
+    style="overflow:auto;"
+}
+
 .sectioncontent table {
     margin: 10px 0;
     border: solid 1px #888;
