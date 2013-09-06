@@ -4,6 +4,7 @@ import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.Renderer;
 import bcid.Renderer.TextRenderer;
 import bcid.dataGroupMinter;
+import bcid.projectMinter;
 import bcid.database;
 import bcid.manageEZID;
 import bcid.GenericIdentifier;
@@ -33,6 +34,7 @@ import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -69,8 +71,8 @@ public class groupService {
      */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.APPLICATION_JSON)
-    public String mint(@FormParam("doi") String doi,
+    @Produces(MediaType.TEXT_HTML)
+    public Response mint(@FormParam("doi") String doi,
                        @FormParam("webaddress") String webaddress,
                        @FormParam("title") String title,
                        @FormParam("resourceTypesMinusDataset") Integer resourceType,
@@ -93,24 +95,17 @@ public class groupService {
             sm.loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
+            return Response.ok("ERROR: " + e.getMessage()).build();
         }
 
-        // Initialize ezid account
-        ezidAccount = new EZIDService();
-        try {
-            // Setup EZID account/login information
-            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-
-        } catch (EZIDException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // TODO: go through and validate these values before submitting-- need to catch all input from UI
         // Create a Dataset
         database db = new database();
+        // Check for remote-user
         Integer user_id = db.getUserId(request.getRemoteUser());
+        if (user_id == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).build();
+        }
 
         // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
         // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
@@ -132,6 +127,22 @@ public class groupService {
         String datasetPrefix = minterDataset.getPrefix();
 
         // Create EZIDs right away for Dataset level Identifiers
+        // TODO: fix the ezidAccount registration here--- it seems to be hanging things up
+        // Initialize ezid account
+        /*
+        ezidAccount = new EZIDService();
+        try {
+            // Setup EZID account/login information
+            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+
+        } catch (EZIDException e) {
+            e.printStackTrace();
+            return Response.ok("ERROR: " + e.getMessage()).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok("ERROR: " + e.getMessage()).build();
+        }
+         */
         manageEZID creator = new manageEZID();
         creator.createDatasetsEZIDs(ezidAccount);
 
@@ -144,7 +155,8 @@ public class groupService {
                 new resolver(minterDataset.getPrefix()).printMetadata(new TextRenderer()));
         sendEmail.start();
 
-        return "[\"" + datasetPrefix + "\"]";
+        return Response.ok(datasetPrefix).build();
+
     }
 
     /**
@@ -176,7 +188,7 @@ public class groupService {
         try {
             d = new dataGroupMinter();
         } catch (Exception e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
 
         return d.datasetList(request.getRemoteUser());
@@ -195,7 +207,7 @@ public class groupService {
         try {
             d = new dataGroupMinter();
         } catch (Exception e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
 
         return d.datasetTable(request.getRemoteUser());
@@ -209,15 +221,15 @@ public class groupService {
     @GET
     @Path("/listUserProjectsAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String listUserProjectssAsTable(@Context HttpServletRequest request) {
-        dataGroupMinter d = null;
+    public String listUserProjectsAsTable(@Context HttpServletRequest request) {
+        projectMinter p = null;
         try {
-            d = new dataGroupMinter();
+            p = new projectMinter();
+            return p.projectTable(request.getRemoteUser());
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        return "SERVICE NOT CURRENTLY AVAILABLE - Need to write service code to return list of projects";
-        //return d.datasetTable(request.getRemoteUser());
+        return "Exception encountered attempting to list projects";
     }
 
 }

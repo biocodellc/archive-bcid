@@ -43,8 +43,12 @@ public class database {
         return conn;
     }
 
+    /**
+     * Return the userID given a username
+     * @param username
+     * @return
+     */
     public Integer getUserId(String username) {
-
         Statement stmt = null;
         try {
             stmt = conn.createStatement();
@@ -53,6 +57,26 @@ public class database {
 
             if (rs.next()) {
                 return rs.getInt("user_id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    /**
+     * Return the username given a userId
+     * @param userId
+     * @return
+     */
+    public String getUserName(Integer userId) {
+        Statement stmt = null;
+        try {
+            stmt = conn.createStatement();
+
+            ResultSet rs = stmt.executeQuery("Select username from users where user_id=" + userId + "");
+
+            if (rs.next()) {
+                return rs.getString("username");
             }
         } catch (SQLException e) {
             e.printStackTrace();

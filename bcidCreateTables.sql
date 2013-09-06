@@ -66,23 +66,40 @@ CREATE TABLE `identifiers` (
   CONSTRAINT `FK_identifiers_datasets` FOREIGN KEY(`datasets_id`) REFERENCES `datasets` (`datasets_id`)
 ) ENGINE=Innodb DEFAULT CHARSET=utf8;
 
-SET FOREIGN_KEY_CHECKS = 1;
 
 /**
 * GRM tables
 */
 DROP TABLE IF EXISTS `projects`;
+
 CREATE TABLE `projects` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
+  `internalID` char(36) COLLATE utf8_bin NOT NULL DEFAULT '' COMMENT 'The internal ID for this project',
   `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
+  `project_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project, will be used to populate group title',
   `abstract` text COMMENT 'The abstract for this particular project',
-  `material_sample_bcid` varchar(16) NOT NULL DEFAULT '' COMMENT 'The BCID root for samples contained in the database',
-  `event_bcid` varchar(16) NOT NULL DEFAULT '' COMMENT 'The BCID root for events contained in the database',
-  `information_artifact_bcid` varchar(16) NOT NULL DEFAULT '' COMMENT 'The BCID root for information artifacts contained in the database',
   `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
+  `users_id` int(10) DEFAULT NULL COMMENT 'who created this data',
+  `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   UNIQUE KEY `project_project_id_idx` (`project_id`),
   UNIQUE KEY `project_projectcode_idx` (`project_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `projectsBCIDs`;
+
+CREATE TABLE `projectsBCIDs` (
+  `projectsBCIDs_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this element',
+  `project_id` int(11) NOT NULL COMMENT 'The project_id',
+  `datasets_id` int NOT NULL COMMENT 'The dataset_id',
+  UNIQUE KEY `projectsBCIDs_projectsBCIDs_id` (`projectsBCIDs_id`),
+  KEY `projectsBCIDs_project_id` (`project_id`),
+  KEY `datasets_id` (`datasets_id`),
+  CONSTRAINT `FK_projectsBCIDs_datasets` FOREIGN KEY(`datasets_id`) REFERENCES `datasets` (`datasets_id`),
+  CONSTRAINT `FK_projectsBCIDs_project` FOREIGN KEY(`project_id`) REFERENCES `projects` (`project_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
 
 
 

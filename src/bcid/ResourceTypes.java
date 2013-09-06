@@ -131,7 +131,7 @@ public class ResourceTypes {
     }
 
     /**
-     * Return a ResourceType given an Integer
+     * Return a ResourceType object given an Integer
      *
      * @param typeIncrement
      * @return ResourceType
@@ -140,6 +140,21 @@ public class ResourceTypes {
         return (ResourceType) list.get(typeIncrement - 1);
     }
 
+    /**
+     * Return a ResourceType object given a string in the form of a URI
+     * @param uri
+     * @return
+     */
+    public  ResourceType get(String uri) {
+        Iterator iterator = list.iterator();
+        while (iterator.hasNext()) {
+            ResourceType rt = (ResourceType) iterator.next();
+            if (uri.equals(rt.uri)) {
+                return rt;
+            }
+        }
+        return null;
+    }
     /**
      * Return all the resources as JSON
      *
