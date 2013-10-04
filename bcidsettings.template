@@ -28,7 +28,7 @@ mailFrom = someone@gmail.com
 mailPassword = mypassword
 mailTo = someone@somedomain.com
 
-# The divider to use
+# The divider to use that separates the ARK portion and the Suffix Portion
 divider = _
 
 

@@ -31,6 +31,7 @@ public class resolver extends database {
     BigInteger element_id = null;
     Integer datagroup_id = null;
     static SettingsManager sm;
+
     /**
      * Load settings manager, set ontModelSpec.
      */
@@ -67,6 +68,42 @@ public class resolver extends database {
             System.out.println("The ark = " + ark);
             throw new Exception("Invalid ARK");
         }
+    }
+
+    /**
+     * Find the appropriate BCID for this project given an conceptAlias.  This instantiation of the resolver
+     * looks up a project specific BCID given the project code and an concept Alias
+     *
+     * @param project_code defines the BCID project_code to lookup
+     * @param conceptAlias defines the alias to narrow this,  a one-word reference denoting a BCID
+     * @return returns the BCID for this project and conceptURI combination
+     */
+    public resolver(String project_code, String conceptAlias) throws Exception {
+
+        try {
+            Statement stmt = conn.createStatement();
+
+            String query = "select \n" +
+                    "d.prefix as prefix \n" +
+                    "from \n" +
+                    "datasets d, projectsBCIDs pb, projects p \n" +
+                    "where \n" +
+                    "d.datasets_id=pb.datasets_id && \n" +
+                    "pb.project_id=p.project_id && \n" +
+                    "p.project_code='" + project_code + "' && \n" +
+                    "d.resourceAlias='" + conceptAlias + "'";
+            ResultSet rs = stmt.executeQuery(query);
+            rs.next();
+            this.ark = rs.getString("prefix");
+        } catch (SQLException e) {
+            this.ark = null;
+        } catch (Exception e) {
+            this.ark = null;
+        }
+    }
+
+    public String getArk() {
+        return ark;
     }
 
     /**
@@ -146,7 +183,7 @@ public class resolver extends database {
                 } else {
                     resolution = bcid.getResolutionTarget();
                 }
-            // This is a group and no resolution target is specified then just return metadata.
+                // This is a group and no resolution target is specified then just return metadata.
             } else {
                 resolution = bcid.getMetadataTarget();
             }

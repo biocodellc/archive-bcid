@@ -41,6 +41,7 @@ CREATE TABLE `datasets` (
   `title` text COMMENT 'title for this dataset',
   `webaddress` text COLLATE utf8_bin COMMENT 'the target URL for this dataset',
   `resourceType` text NOT NULL COMMENT 'default resource type for this dataset, stored as a URI',
+  `resourceAlias` text NOT NULL COMMENT 'alias to use for the resource Type',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   PRIMARY KEY `datasets_datasets_id` (`datasets_id`),
   KEY `datasets_users_id` (`users_id`),
