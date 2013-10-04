@@ -12,8 +12,10 @@ import bcid.bcid;
 import bcid.projectMinter;
 
 
+import com.sun.jersey.server.wadl.WadlGenerator;
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
+import org.springframework.web.client.ResponseErrorHandler;
 import util.SettingsManager;
 import util.sendEmail;
 
@@ -23,6 +25,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
 
 /**
  * REST interface calls for working with projects.  This includes creating, updating and deleting projects.
@@ -37,11 +40,11 @@ public class projectService {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public Response mint(@FormParam("project_code") String project_code,
-                       @FormParam("project_title") String project_title,
-                       @FormParam("abstract") String strAbstract,
-                       @FormParam("resolverWebAddress") String resolverWebAddress,
-                       @FormParam("biovalidator_Validation_xml") String bioValidator_Validation_xml,
-                       @Context HttpServletRequest request) throws Exception {
+                         @FormParam("project_title") String project_title,
+                         @FormParam("abstract") String strAbstract,
+                         @FormParam("resolverWebAddress") String resolverWebAddress,
+                         @FormParam("biovalidator_Validation_xml") String bioValidator_Validation_xml,
+                         @Context HttpServletRequest request) throws Exception {
 
         // Get the user_id
         database db = new database();
@@ -105,6 +108,22 @@ public class projectService {
         sendEmail.start();
 
         return Response.ok("Succesfully created project:<br>" + project.printMetadataHTML(project_id)).build();
+    }
+
+
+    @GET
+    @Path("/{project}/{resourceAlias}")
+    @Produces(MediaType.TEXT_HTML)
+    public Response fetchAlias(@PathParam("project") String project,
+                               @FormParam("resourceAlias") String resourceAlias) throws Exception {
+
+        resolver r = new resolver(project, resourceAlias);
+        String response = r.getArk();
+        if (response == null) {
+            return Response.status(204).build();
+        } else {
+            return Response.ok(r.getArk()).build();
+        }
     }
 }
 
