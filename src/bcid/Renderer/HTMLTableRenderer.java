@@ -20,11 +20,12 @@ public class HTMLTableRenderer extends Renderer {
         tableResourceRowAppender(about);
         tableResourceRowAppender(dcMediator);
         tableResourceRowAppender(dcHasVersion);
+        tableResourceRowAppender(dcIsReferencedBy);
+        tableResourceRowAppender(dcRights);
+        tableResourceRowAppender(dcIsPartOf);
         tablePropertyRowAppender(dcDate);
         tablePropertyRowAppender(dcCreator);
         tablePropertyRowAppender(dcTitle);
-        tableResourceRowAppender(dcRights);
-        tableResourceRowAppender(dcIsPartOf);
         tablePropertyRowAppender(dcSource);
         tablePropertyRowAppender(bscSuffixPassthrough);
     }
@@ -50,13 +51,13 @@ public class HTMLTableRenderer extends Renderer {
     private void tablePropertyRowAppender(metadataElement map) {
         if (map != null) {
             if (!map.getValue().trim().equals("")) {
-                outputSB.append("\t<tr>\n\t\t" +
-                        "<td>" + map.getDescription() + "</td>\n\t\t" +
-                        "<td>" + map.getValue() + "</td>\n\t\t" +
-                        "<td><a href=\"" + map.getFullKey() + "\">" + map.getKey() + "</a></td>\n\t</tr>\n");
+                outputSB.append("\t<tr>\n" +
+                        "\t\t<td>" + map.getValue() + "</td>\n" +
+                        "\t\t<td><a href=\"" + map.getFullKey() + "\">" + map.getKey() + "</a></td>\n" +
+                        "\t\t<td>" + map.getDescription() + "</td>\n" +
+                        "\t</tr>\n");
             }
         }
-
     }
 
     /**
@@ -67,10 +68,11 @@ public class HTMLTableRenderer extends Renderer {
     private void tableResourceRowAppender(metadataElement map) {
         if (map != null) {
             if (!map.getValue().trim().equals("")) {
-                outputSB.append("\t<tr>\n\t\t" +
-                        "<td>" + map.getDescription() + "</td>\n\t\t" +
-                        "<td><a href=\"" + map.getValue() + "\">" + map.getValue() + "</a></td>\n\t\t" +
-                        "<td><a href=\"" + map.getFullKey() + "\">" + map.getKey() + "</a></td>\n\t</tr>\n");
+                outputSB.append("\t<tr>\n" +
+                        "\t\t<td><a href=\"" + map.getValue() + "\">" + map.getValue() + "</a></td>\n" +
+                        "\t\t<td><a href=\"" + map.getFullKey() + "\">" + map.getKey() + "</a></td>\n" +
+                        "\t\t<td>" + map.getDescription() + "</td>\n" +
+                        "\t</tr>\n");
             }
         }
 

@@ -66,7 +66,7 @@ public class resolver extends database {
             setShoulderAndBlade(bits[2]);
         } catch (Exception e) {
             System.out.println("The ark = " + ark);
-            throw new Exception("Invalid ARK");
+            throw new Exception("Invalid ARK", e);
         }
     }
 
@@ -147,8 +147,10 @@ public class resolver extends database {
         blade = sbBlade.toString();
 
         // String the slash between the shoulder and the blade
-        if (blade.startsWith(sm.retrieveValue("divider"))) {
-            blade = blade.substring(1);
+        if (!sm.retrieveValue("divider").equals("")) {
+            if (blade.startsWith(sm.retrieveValue("divider"))) {
+                blade = blade.substring(1);
+            }
         }
     }
 
@@ -192,18 +194,26 @@ public class resolver extends database {
              * ELEMENT RESOLUTION
              */
             // Determine if there is a resolvable suffix
-            if (isResolvableSuffix(datagroup_id)) {
+           /* if (isResolvableSuffix(datagroup_id)) {
                 bcid = new bcid(element_id, ark);
-                if (blade != null && bcid.getResolutionTarget() != null && !blade.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
+                if (blade != null &&
+                        bcid.getResolutionTarget() != null &&
+                        !blade.trim().equals("") &&
+                        !bcid.getResolutionTarget().equals("")) {
                     resolution = bcid.getResolutionTarget();
+                } else {
+                    // No resolution target, set metadata target....
+                    resolution = bcid.getMetadataTarget();
                 }
-            } else {
+            }
+            else {
+            */
                 // Determine if this has some suffix on the datagroup and if so, then provide re-direct to
                 // location specified in the system
                 if (blade != null && bcid.getResolutionTarget() != null && !blade.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
                     resolution = new URI(bcid.getResolutionTarget() + blade);
                 }
-            }
+            //}
         }
         return resolution;
     }
@@ -221,11 +231,11 @@ public class resolver extends database {
 
             bcid = new bcid(datagroup_id);
             // Has a registered, resolvable suffix
-            if (isResolvableSuffix(datagroup_id)) {
-                bcid = new bcid(element_id, ark);
-            }
+            //if (isResolvableSuffix(datagroup_id)) {
+            //    bcid = new bcid(element_id, ark);
+            //}
             // Has a suffix, but not resolvable
-            else {
+            //else {
                 try {
                     if (blade != null && bcid.getResolutionTarget() != null) {
                         bcid = new bcid(blade, bcid.getResolutionTarget(), datagroup_id);
@@ -233,7 +243,7 @@ public class resolver extends database {
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                 }
-            }
+            //}
 
         }
         return renderer.render(bcid);
@@ -456,7 +466,7 @@ public class resolver extends database {
 
         try {
             //r = new resolver("ark:/21547/P2_JDeck1");
-            r = new resolver("ark:/21547/R2");
+            r = new resolver("ark:/21547/R2MBIO56");
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
             Renderer ren = new HTMLTableRenderer();

@@ -67,7 +67,9 @@ public class resolverMetadataService {
         String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
         // Setup ezid account/login information
-        EZIDService ezidService = new EZIDService();
+       // NOTE: i don't think i need to call the EZID service function here
+       /*
+       EZIDService ezidService = new EZIDService();
         try {
             ezidService.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
         } catch (EZIDException e) {
@@ -78,6 +80,7 @@ public class resolverMetadataService {
         System.out.println("eziduser = " + sm.retrieveValue("eziduser"));
         System.out.println("shoulderPlusIdentifier = " + shoulderPlusIdentifier);
 
+*/
         // Return an appropriate response based on the Accepts header that was passed in.
         //
         try {
