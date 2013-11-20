@@ -15,7 +15,7 @@
                         name="identifier"
                         id="identifier"
                         size="40"
-                        onkeypress="if(event.keyCode==13) {resolverResults(); return false;}" />  (e.g. ark:/21547/R2_MBIO56)
+                        onkeypress="if(event.keyCode==13) {resolverResults(); return false;}" />  (e.g. ark:/21547/R2MBIO56)
                 </td>
             </tr>
             <tr>
@@ -47,17 +47,17 @@
         group-level identifiers.
          A metadata service provides metadata about the identifier itself (in HTML format if you are human or RDF/XML format
         if you are machine). The following table lists sample BCID and EZID resolution and metadata services for the
-        identifier ark:/21547/R2_MBIO56 :
+        identifier ark:/21547/R2MBIO56 :
 
          <table class="subtable" border=0>
             <tr><td>URL</td><td>Service</td><td>Description</td></tr>
             <tr>
-                <td><a href="http://biscicol.org/id/ark:/21547/R2_MBIO56">http://biscicol.org/id/ark:/21547/R2_MBIO56</a></td>
+                <td><a href="http://biscicol.org/id/ark:/21547/R2MBIO56">http://biscicol.org/id/ark:/21547/R2_MBIO56</a></td>
                 <td>BCID</td>
                 <td>Resolution service for a group plus suffix identifier</td>
             </tr>
              <tr>
-                <td><a href="http://biscicol.org/id/metadata/ark:/21547/R2_MBIO56">http://biscicol.org/id/metadata/ark:/21547/R2_MBIO56</a></td>
+                <td><a href="http://biscicol.org/id/metadata/ark:/21547/R2MBIO56">http://biscicol.org/id/metadata/ark:/21547/R2_MBIO56</a></td>
                 <td>BCID</td>
                 <td>Metadata service for a group plus suffix</td>
             </tr>
@@ -67,7 +67,7 @@
                 <td>Resolution service for a group identifier</td>
             </tr>
             <tr>
-                <td>http://n2t.net/ark:/21547/R2_MBIO56</td>
+                <td>http://n2t.net/ark:/21547/R2MBIO56</td>
                 <td>EZID</td>
                 <td>Resolution service for a group plus suffix identifier, not active yet!</td>
             </tr>

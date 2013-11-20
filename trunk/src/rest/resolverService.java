@@ -17,32 +17,14 @@ import java.lang.String;
 import java.net.URI;
 
 /**
- * The resolver service searches for identifiers in the BCID system and in EZID and returns a JSON
- * representation of results containing identifier metadata.
- * One can parse the JSON result for "Error" for non-responses or bad identifiers.
- * This service is open to ALL and does not require authentication.
- * <p/>
- * Resolution determines if this is a Data Group, a Data Element with an encoded ID, or a
- * Data Element with a suffix.
+ * This is the core resolver Service for BCIDs.  It returns URIs
  */
 @Path("ark:")
 public class resolverService {
-    static SettingsManager sm;
+
+    String scheme = "ark:";
     @Context
     static ServletContext context;
-
-    /**
-     * Load settings manager
-     */
-    static {
-        // Initialize settings manager
-        sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * User passes in an identifier of the form scheme:/naan/shoulder_identifier
@@ -52,7 +34,6 @@ public class resolverService {
      * @return
      */
     @GET
-
     @Path("/{naan}/{shoulderPlusIdentifier}")
     @Produces({MediaType.TEXT_HTML, "application/rdf+xml"})
     public Response run(
@@ -60,43 +41,12 @@ public class resolverService {
             @PathParam("shoulderPlusIdentifier") String shoulderPlusIdentifier,
             @HeaderParam("accept") String accept) {
 
-        // Clean up input
-        //scheme = scheme.trim();
-        String scheme = "ark:";
         shoulderPlusIdentifier = shoulderPlusIdentifier.trim();
 
         // Structure the identifier element from path parameters
         String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
-        // SettingsManager
-        SettingsManager sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return null;
-            //return new serviceErrorReporter(e, "Unable to load properties file on server").json();
-        }
-
-        // Setup ezid account/login information
-        EZIDService ezidService = new EZIDService();
-        try {
-            ezidService.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-        } catch (EZIDException e) {
-            // For now, just print stack trace here and proceed.
-            e.printStackTrace();
-        }
-
-
-        URI seeOtherUri = null;
-        try {
-            seeOtherUri = new resolver(element).resolveARK();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        // Return RDF when the Accepts header specifies rdf+xml
+        // When the Accept Header = "application/rdf+xml" return Metadata as RDF
         if (accept.equalsIgnoreCase("application/rdf+xml")) {
             try {
                 return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
@@ -104,10 +54,16 @@ public class resolverService {
                 e.printStackTrace();
                 return Response.serverError().build();
             }
-        // Else return Redirect
+        // All other Accept Headers, or none specified, then attempt a redirect
         } else {
+            URI seeOtherUri = null;
+            try {
+                seeOtherUri = new resolver(element).resolveARK();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
             return Response.status(303).location(seeOtherUri).build();
         }
-
     }
 }

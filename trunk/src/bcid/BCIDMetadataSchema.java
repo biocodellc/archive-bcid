@@ -18,6 +18,7 @@ public class BCIDMetadataSchema {
     public metadataElement dcTitle = null;
     public metadataElement dcDate = null;
     public metadataElement dcRights = null;
+    public metadataElement dcIsReferencedBy = null;
     public metadataElement dcIsPartOf = null;
     public metadataElement dcSource = null;
     public metadataElement dcMediator = null;
@@ -40,27 +41,29 @@ public class BCIDMetadataSchema {
             try {
                 if (bcidKey.equalsIgnoreCase("ark")) {
                     ark = pairs.getValue().toString();
-                    about = new metadataElement("rdf:Description", identifier.resolverTargetPrefix + ark, "Identifier Resolver");
+                    about = new metadataElement("rdf:Description", identifier.resolverTargetPrefix + ark, "The current identifier resolution service.");
                 } else if (bcidKey.equalsIgnoreCase("what")) {
-                    resource = new metadataElement("rdf:type", pairs.getValue().toString(), "What");
+                    resource = new metadataElement("rdf:type", pairs.getValue().toString(), "What is this object.");
                 } else if (bcidKey.equalsIgnoreCase("when")) {
-                    dcDate = new metadataElement("dc:date", pairs.getValue().toString(), "Date last updated");
+                    dcDate = new metadataElement("dc:date", pairs.getValue().toString(), "Date that metadata was last updated for this identifier.");
                 } else if (bcidKey.equalsIgnoreCase("who")) {
-                    dcCreator = new metadataElement("dc:creator", pairs.getValue().toString(), "Creator");
+                    dcCreator = new metadataElement("dc:creator", pairs.getValue().toString(), "Who created the group definition.");
                 } else if (bcidKey.equalsIgnoreCase("title")) {
                     dcTitle = new metadataElement("dc:title", pairs.getValue().toString(), "Title");
                 } else if (bcidKey.equalsIgnoreCase("sourceID")) {
-                    dcSource = new metadataElement("dc:source", pairs.getValue().toString(), "Source ID");
+                    dcSource = new metadataElement("dc:source", pairs.getValue().toString(), "The locally-unique identifier.");
                 } else if (bcidKey.equalsIgnoreCase("rights")) {
-                    dcRights = new metadataElement("dcterms:rights", pairs.getValue().toString(), "Rights");
+                    dcRights = new metadataElement("dcterms:rights", pairs.getValue().toString(), "Rights applied to the metadata content describing this identifier.");
+                } else if (bcidKey.equalsIgnoreCase("datasetsPrefix")) {
+                    dcIsReferencedBy = new metadataElement("dcterms:isReferencedBy", "http://n2t.net/" + pairs.getValue().toString(), "The group level identifier, registered with EZID.");
                 } else if (bcidKey.equalsIgnoreCase("doi")) {
                     // Create mapping here for DOI if it only shows the prefix
                     String doi = pairs.getValue().toString().replace("doi:", "http://dx.doi.org/");
-                    dcIsPartOf = new metadataElement("dcterms:isPartOf", doi, "Dataset DOI");
+                    dcIsPartOf = new metadataElement("dcterms:isPartOf", doi, "A DOI describing the dataset which this identifier belongs to.");
                 } else if (bcidKey.equalsIgnoreCase("webaddress")) {
-                    dcHasVersion = new metadataElement("dcterms:hasVersion", pairs.getValue().toString(), "Has Version (Redirection target)");
+                    dcHasVersion = new metadataElement("dcterms:hasVersion", pairs.getValue().toString(), "The redirection target for this identifier.");
                 } else if (bcidKey.equalsIgnoreCase("datasetsSuffixPassThrough")) {
-                    bscSuffixPassthrough = new metadataElement("bsc:suffixPassthrough", pairs.getValue().toString(), "Supports suffixPassthrough");
+                    bscSuffixPassthrough = new metadataElement("bsc:suffixPassthrough", pairs.getValue().toString(), "Indicates that this identifier supports suffixPassthrough.");
                 }
             } catch (NullPointerException e) {
                 e.getMessage();
@@ -93,6 +96,20 @@ public class BCIDMetadataSchema {
             return key;
         }
 
+        public String getValue() {
+            return value;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public String setValue(String value) {
+            String old = this.value;
+            this.value = value;
+            return old;
+        }
+
         /**
          * Replace prefixes with fully qualified URL's
          *
@@ -106,20 +123,6 @@ public class BCIDMetadataSchema {
             tempKey = tempKey.replace("rdf:", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
             tempKey = tempKey.replace("bsc:", "http://biscicol.org/terms/index.html#");
             return tempKey;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public String setValue(String value) {
-            String old = this.value;
-            this.value = value;
-            return old;
-        }
-
-        public String getDescription() {
-            return description;
         }
     }
 }

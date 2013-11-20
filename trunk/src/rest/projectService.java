@@ -115,7 +115,7 @@ public class projectService {
     @Path("/{project}/{resourceAlias}")
     @Produces(MediaType.TEXT_HTML)
     public Response fetchAlias(@PathParam("project") String project,
-                               @FormParam("resourceAlias") String resourceAlias) throws Exception {
+                               @PathParam("resourceAlias") String resourceAlias) throws Exception {
 
         resolver r = new resolver(project, resourceAlias);
         String response = r.getArk();
