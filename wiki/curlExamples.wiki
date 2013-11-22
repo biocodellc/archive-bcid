@@ -7,7 +7,7 @@ Attempt a simple call to resolve an ARK (return HTML)
   * curl -L http://biscicol.org/id/ark:/21547/R2
 
 Resolve an ARK, returning RDF/XML, for a group + suffix:
-  * curl -L  -H "Accept: application/rdf+xml" http://biscicol.org/id/ark:/21547/R2_MBIO56
+  * curl -L  -H "Accept: application/rdf+xml" http://biscicol.org/id/ark:/21547/R2MBIO56
 
 
 = Secure Content =
