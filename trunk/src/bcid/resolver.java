@@ -450,12 +450,12 @@ public class resolver extends database {
 
         try {
             //r = new resolver("ark:/21547/P2_JDeck1");
-            r = new resolver("ark:/21547/R2MBIO56");
+            r = new resolver("ark:/21547/R2");
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            Renderer ren = new HTMLTableRenderer();
-            //System.out.println(r.printMetadata(ren));
-            System.out.println(r.resolveARK().toString());
+            Renderer ren = new RDFRenderer();
+            System.out.println(r.printMetadata(ren));
+            //System.out.println(r.resolveARK().toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
