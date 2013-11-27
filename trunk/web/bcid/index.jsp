@@ -52,12 +52,12 @@
          <table class="subtable" border=0>
             <tr><td>URL</td><td>Service</td><td>Description</td></tr>
             <tr>
-                <td><a href="http://biscicol.org/id/ark:/21547/R2MBIO56">http://biscicol.org/id/ark:/21547/R2_MBIO56</a></td>
+                <td><a href="http://biscicol.org/id/ark:/21547/R2MBIO56">http://biscicol.org/id/ark:/21547/R2MBIO56</a></td>
                 <td>BCID</td>
                 <td>Resolution service for a group plus suffix identifier</td>
             </tr>
              <tr>
-                <td><a href="http://biscicol.org/id/metadata/ark:/21547/R2MBIO56">http://biscicol.org/id/metadata/ark:/21547/R2_MBIO56</a></td>
+                <td><a href="http://biscicol.org/id/metadata/ark:/21547/R2MBIO56">http://biscicol.org/id/metadata/ark:/21547/R2MBIO56</a></td>
                 <td>BCID</td>
                 <td>Metadata service for a group plus suffix</td>
             </tr>

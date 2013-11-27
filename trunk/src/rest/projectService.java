@@ -111,6 +111,14 @@ public class projectService {
     }
 
 
+    /**
+     * Given a project code and a resource alias, return a BCID
+     *
+     * @param project
+     * @param resourceAlias
+     * @return
+     * @throws Exception
+     */
     @GET
     @Path("/{project}/{resourceAlias}")
     @Produces(MediaType.TEXT_HTML)
@@ -123,6 +131,28 @@ public class projectService {
             return Response.status(204).build();
         } else {
             return Response.ok(r.getArk()).build();
+        }
+    }
+
+    /**
+     * Given a project code return a validation URL
+     *
+     * @param project
+     * @return
+     * @throws Exception
+     */
+    @GET
+    @Path("/{project}")
+    @Produces(MediaType.TEXT_HTML)
+    public Response fetchAlias(@PathParam("project") String project) throws Exception {
+
+        projectMinter projectMinter = new projectMinter();
+        String response = projectMinter.getValidationXML(project);
+
+        if (response == null) {
+            return Response.status(204).build();
+        } else {
+            return Response.ok(response).build();
         }
     }
 }

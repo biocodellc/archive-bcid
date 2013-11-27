@@ -129,7 +129,7 @@ public class groupService {
         // Create EZIDs right away for Dataset level Identifiers
         // TODO: fix the ezidAccount registration here--- it seems to be hanging things up
         // Initialize ezid account
-        /*
+
         ezidAccount = new EZIDService();
         try {
             // Setup EZID account/login information
@@ -142,7 +142,7 @@ public class groupService {
             e.printStackTrace();
             return Response.ok("ERROR: " + e.getMessage()).build();
         }
-         */
+
         manageEZID creator = new manageEZID();
         creator.createDatasetsEZIDs(ezidAccount);
 

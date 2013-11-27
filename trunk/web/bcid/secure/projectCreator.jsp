@@ -16,7 +16,7 @@
             <li><b>Project Title*</b> A brief title for this project.</li>
             <li><b>Resolver Web Address</b> The web root for resolving child BCIDs (e.g. http://example.com/ will construct http://example.com/Agent/, http://example.com/Occurrence/, etc..)</li>
             <li><b>Abstract</b> is an abstract for this project.</li>
-            <li><b>Validation XML</b> is the XML used to validate data loaded for this project, as specified by <a href="http://biovalidator.sourceforge.net/">bioValidator</a></li>
+            <li><b>Validation URL</b> is a URL pointer to the Validation XML file as specified by <a href="http://code.google.com/p/biocode-fims/">biocode-fims</a></li>
         </ul>
 
         <form method="POST" id="projectForm">
@@ -40,8 +40,8 @@
                     <td><textarea name=abstract id=abstract cols="100" rows="10"></textarea></td>
                 </tr>
                 <tr>
-                    <td align=right>Validation XML</td>
-                    <td><textarea name=biovalidator_Validation_xml id=bioValidator_validation_xml cols="100" rows="10"></textarea></td>
+                    <td align=right>Validation URL</td>
+                    <td><input name=biovalidator_Validation_xml id=bioValidator_validation_xml type=textbox size="40"></td>
                 </tr>
                 <!--
                 <tr><td align=right>Agent BCID</td><td><i>Automatically assigned upon creation</i></td></tr>
