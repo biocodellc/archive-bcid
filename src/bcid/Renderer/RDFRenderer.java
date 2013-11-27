@@ -21,6 +21,7 @@ public class RDFRenderer extends Renderer {
         resourceAppender(dcHasVersion);
         resourceAppender(dcIsPartOf);
         resourceAppender(dcRights);
+        resourceAppender(dcIsReferencedBy);
         propertyAppender(dcTitle);
         propertyAppender(dcCreator);
         propertyAppender(dcDate);

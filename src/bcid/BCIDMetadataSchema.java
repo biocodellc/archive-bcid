@@ -55,7 +55,10 @@ public class BCIDMetadataSchema {
                 } else if (bcidKey.equalsIgnoreCase("rights")) {
                     dcRights = new metadataElement("dcterms:rights", pairs.getValue().toString(), "Rights applied to the metadata content describing this identifier.");
                 } else if (bcidKey.equalsIgnoreCase("datasetsPrefix")) {
-                    dcIsReferencedBy = new metadataElement("dcterms:isReferencedBy", "http://n2t.net/" + pairs.getValue().toString(), "The group level identifier, registered with EZID.");
+                    //Don't print this line for the Test Account
+                    if (!identifier.getMetadata().get("who").equals("Test Account")) {
+                        dcIsReferencedBy = new metadataElement("dcterms:isReferencedBy", "http://n2t.net/" + pairs.getValue().toString(), "The group level identifier, registered with EZID.");
+                    }
                 } else if (bcidKey.equalsIgnoreCase("doi")) {
                     // Create mapping here for DOI if it only shows the prefix
                     String doi = pairs.getValue().toString().replace("doi:", "http://dx.doi.org/");
