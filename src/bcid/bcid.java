@@ -109,7 +109,8 @@ public class bcid extends GenericIdentifier {
         }
 
         // Reformat webAddress in this constructor if there is a sourceID
-        if (sourceID != null && webAddress != null) {
+        if (sourceID != null && webAddress != null && !sourceID.toString().trim().equals("") && !webAddress.toString().trim().equals("")) {
+            //System.out.println("HERE" + webAddress);
             try {
                 this.webAddress = new URI(webAddress + sourceID);
             } catch (URISyntaxException e) {

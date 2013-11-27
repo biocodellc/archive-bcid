@@ -305,6 +305,33 @@ public class projectMinter {
         return sb.toString();
     }
 
+    /**
+     * Find the BCID that denotes the validation file location for a particular project
+     *
+     * @param project_code defines the BCID project_code to lookup
+     * @return returns the BCID for this project and conceptURI combination
+     */
+    public String getValidationXML(String project_code) throws Exception {
+
+        try {
+            Statement stmt = conn.createStatement();
+
+            String query = "select \n" +
+                    "biovalidator_validation_xml \n" +
+                    "from \n" +
+                    "projects \n" +
+                    "where \n" +
+                    "project_code='" + project_code + "'";
+            ResultSet rs = stmt.executeQuery(query);
+            rs.next();
+            return rs.getString("biovalidator_validation_xml");
+        } catch (SQLException e) {
+            throw new Exception("Trouble getting Validation XML", e);
+        } catch (Exception e) {
+            throw new Exception("Trouble getting Validation XML", e);
+        }
+    }
+
     public static void main(String args[]) {
         try {
             // Mint a project

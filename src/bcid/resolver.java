@@ -102,6 +102,7 @@ public class resolver extends database {
         }
     }
 
+
     public String getArk() {
         return ark;
     }
@@ -177,43 +178,26 @@ public class resolver extends database {
              * GROUP RESOLUTION
              */
             // Group has a specified resolution target
-            if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().equals("")) {
+            if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().toString().trim().equals("")) {
                 // Group specifies suffix passthrough
                 if (bcid.getDatasetsSuffixPassthrough()) {
                     resolution = bcid.getMetadataTarget();
                     // Group does not specify suffix passthrough
                 } else {
                     resolution = bcid.getResolutionTarget();
-                }
-                // This is a group and no resolution target is specified then just return metadata.
-            } else {
-                resolution = bcid.getMetadataTarget();
-            }
 
-            /**
-             * ELEMENT RESOLUTION
-             */
-            // Determine if there is a resolvable suffix
-           /* if (isResolvableSuffix(datagroup_id)) {
-                bcid = new bcid(element_id, ark);
-                if (blade != null &&
-                        bcid.getResolutionTarget() != null &&
-                        !blade.trim().equals("") &&
-                        !bcid.getResolutionTarget().equals("")) {
-                    resolution = bcid.getResolutionTarget();
-                } else {
-                    // No resolution target, set metadata target....
-                    resolution = bcid.getMetadataTarget();
                 }
-            }
-            else {
-            */
                 // Determine if this has some suffix on the datagroup and if so, then provide re-direct to
                 // location specified in the system
                 if (blade != null && bcid.getResolutionTarget() != null && !blade.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
                     resolution = new URI(bcid.getResolutionTarget() + blade);
                 }
-            //}
+            }
+            // This is a group and no resolution target is specified then just return metadata.
+            else {
+                resolution = bcid.getMetadataTarget();
+            }
+
         }
         return resolution;
     }
@@ -236,13 +220,13 @@ public class resolver extends database {
             //}
             // Has a suffix, but not resolvable
             //else {
-                try {
-                    if (blade != null && bcid.getResolutionTarget() != null) {
-                        bcid = new bcid(blade, bcid.getResolutionTarget(), datagroup_id);
-                    }
-                } catch (URISyntaxException e) {
-                    e.printStackTrace();
+            try {
+                if (blade != null && bcid.getResolutionTarget() != null) {
+                    bcid = new bcid(blade, bcid.getResolutionTarget(), datagroup_id);
                 }
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
             //}
 
         }
@@ -470,7 +454,7 @@ public class resolver extends database {
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
             Renderer ren = new HTMLTableRenderer();
-            System.out.println(r.printMetadata(ren));
+            //System.out.println(r.printMetadata(ren));
             System.out.println(r.resolveARK().toString());
         } catch (Exception e) {
             e.printStackTrace();
