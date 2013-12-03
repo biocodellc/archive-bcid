@@ -72,6 +72,12 @@ public class ResourceTypes {
     // Catch All
     public static int RESOURCE = 34;
 
+    public static int SPACER8 = 35;
+
+    // Sequencing Terms
+    public static int NUCLEICACIDSEQUENCESOURCE = 36;
+    public static int SEQUENCING = 37;
+
 
     public ResourceTypes() {
         list.clear();
@@ -127,6 +133,12 @@ public class ResourceTypes {
 
         // Catch All
         list.add(new ResourceType(this.RESOURCE, "rdfs:Resource", "http://www.w3.org/2000/01/rdf-schema#Resource", "Resource is the class of everything"));
+        list.add(new ResourceType(this.SPACER8));
+
+        // Sequencing Terms
+        list.add(new ResourceType(this.NUCLEICACIDSEQUENCESOURCE, "mixs:NucleicAcidSequenceSource", "http://gensc.org/ns/mixs/NucleicAcidSequenceSource", "The category of information pertaining to nucleic acid sequence source."));
+        list.add(new ResourceType(this.SEQUENCING, "mixs:Sequencing", "http://gensc.org/ns/mixs/Sequencing", "The category of information pertaining to sequencing."));
+
 
     }
 
@@ -155,6 +167,23 @@ public class ResourceTypes {
         }
         return null;
     }
+
+    /**
+     * shortName also equals "alias"
+     * @param shortname
+     * @return
+     */
+    public ResourceType getByShortName(String shortname) {
+        Iterator iterator = list.iterator();
+        while (iterator.hasNext()) {
+           ResourceType rt = (ResourceType) iterator.next();
+            if (shortname.equals(rt.getShortName())) {
+                return rt;
+            }
+        }
+        return null;
+    }
+
     /**
      * Return all the resources as JSON
      *
@@ -219,7 +248,9 @@ public class ResourceTypes {
 
     public static void main(String args[]) {
         ResourceTypes rts = new ResourceTypes();
-        System.out.println(rts.getAllAsJSON());
+        System.out.println(rts.get("http://purl.obolibrary.org/obo/IAO_0000030").string);
+        //System.out.println(rts.getAllAsJSON());
+
     }
 
     /**

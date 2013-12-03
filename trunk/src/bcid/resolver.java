@@ -64,6 +64,8 @@ public class resolver extends database {
             naan = bits[1];
             // Now decipher the shoulder and blade in the next bit
             setShoulderAndBlade(bits[2]);
+            // Call isDataGroup() to set datagroup_id
+            isDataGroup();
         } catch (Exception e) {
             System.out.println("The ark = " + ark);
             throw new Exception("Invalid ARK", e);
@@ -79,7 +81,9 @@ public class resolver extends database {
      * @return returns the BCID for this project and conceptURI combination
      */
     public resolver(String project_code, String conceptAlias) throws Exception {
-
+        ResourceTypes resourceTypes = new ResourceTypes();
+        ResourceType rt = resourceTypes.getByShortName(conceptAlias);
+        String uri = rt.uri;
         try {
             Statement stmt = conn.createStatement();
 
@@ -91,7 +95,7 @@ public class resolver extends database {
                     "d.datasets_id=pb.datasets_id && \n" +
                     "pb.project_id=p.project_id && \n" +
                     "p.project_code='" + project_code + "' && \n" +
-                    "d.resourceAlias='" + conceptAlias + "'";
+                    "d.resourceType='" + uri + "'";
             ResultSet rs = stmt.executeQuery(query);
             rs.next();
             this.ark = rs.getString("prefix");
@@ -450,11 +454,17 @@ public class resolver extends database {
 
         try {
             //r = new resolver("ark:/21547/P2_JDeck1");
-            r = new resolver("ark:/21547/R2");
+            //r = new resolver("ark:/21547/R2");
+
+
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-            Renderer ren = new RDFRenderer();
-            System.out.println(r.printMetadata(ren));
+            //System.out.println(r.);
+            //Renderer ren = new RDFRenderer();
+            //System.out.println(r.printMetadata(ren));
+
+            r = new resolver("DEMOH", "Sequencing");
+            System.out.println(r.getArk());
             //System.out.println(r.resolveARK().toString());
         } catch (Exception e) {
             e.printStackTrace();
