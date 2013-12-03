@@ -61,7 +61,6 @@ public class projectService {
     public Response mint(@FormParam("project_code") String project_code,
                          @FormParam("project_title") String project_title,
                          @FormParam("abstract") String strAbstract,
-                         @FormParam("resolverWebAddress") String resolverWebAddress,
                          @FormParam("biovalidator_Validation_xml") String bioValidator_Validation_xml,
                          @Context HttpServletRequest request) throws Exception {
 
@@ -82,7 +81,6 @@ public class projectService {
                     project_code,
                     project_title,
                     strAbstract,
-                    resolverWebAddress,
                     bioValidator_Validation_xml,
                     user_id);
         } catch (Exception e) {
@@ -90,7 +88,6 @@ public class projectService {
             return Response.ok("ERROR: " + e.getMessage()).build();
         }
 
-        // Create EZIDs right away for Dataset level Identifiers
 
         // Initialize settings manager
         SettingsManager sm = SettingsManager.getInstance();
@@ -100,21 +97,6 @@ public class projectService {
             e.printStackTrace();
             return Response.ok("ERROR: " + e.getMessage()).build();
         }
-
-        // Initialize ezid account
-        /*
-        // TODO: fix the ezidAccount registration here--- it seems to be hanging things up
-        EZIDService ezidAccount = new EZIDService();
-        try {
-            // Setup EZID account/login information
-            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-        } catch (Exception e) {
-            e.printStackTrace();
-            //return "[\"Project not created, error: " + e.getMessage() + "\"]";
-        }
-        manageEZID creator = new manageEZID();
-        creator.createDatasetsEZIDs(ezidAccount);
-        */
 
         // Send an Email that this completed
         sendEmail sendEmail = new sendEmail(

@@ -5,12 +5,9 @@
     <div class="sectioncontent">
         <h2>Project Creator</h2>
 
-        Create a project holding the core concepts of material sample, event, agent, and information artifact.  Together, these concepts form
-        the basis of a Biocode Commons Project and are created automatically when the project itself is created.
-        Each of the core concepts defined per project will be assigned a BCID.  All suffixes assigned by users
-        for these identifiers will be appended to the group-level identifiers using suffixPassthrough.  In addition,
-        projects can optionally define an abstract and a <a href="http://biovalidator.sourceforge.net/">bioValidator</a> XML Validation file.
+        Currently, project creation is limited to the REST/application programming interface.  Please check with the system manager to have a project created for you.
 
+        <!--
         <ul>
             <li><b>Project Code*</b> A 4-6 letter code for your project.</li>
             <li><b>Project Title*</b> A brief title for this project.</li>
@@ -58,6 +55,7 @@
             </table>
         </form>
         <div id="projectCreatorResults" class="sectioncontent-results"></div>
+        -->
     </div>
 </div>
 

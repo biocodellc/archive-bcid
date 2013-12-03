@@ -29,38 +29,13 @@ public class projectMinter {
         database db = new database();
         conn = db.getConn();
 
-        projectResources = new ArrayList<Integer>();
-        // Populate projectResources with a default set of resources to use for all projects
-        projectResources.add(ResourceTypes.DATASET);                    // Describe the project dataset itself
-        projectResources.add(ResourceTypes.AGENT);                      // Agents (people, machines)
-        projectResources.add(ResourceTypes.MATERIALSAMPLE);             // MaterialSample/Specimen descriptions
-        projectResources.add(ResourceTypes.INFORMATIONCONTENTENTITY);   // InformationContentEntities (photos, text)
-        projectResources.add(ResourceTypes.EVENT);                      // Event descriptions (collecting, assay)
-
         // Initialize settings manager
-
         sm = SettingsManager.getInstance();
         try {
             sm.loadProperties();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        /*
-        // Initialize ezid account
-        ezidAccount = new EZIDService();
-        try {
-            // Setup EZID account/login information
-            System.out.println("eziduser" + sm.retrieveValue("eziduser"));
-            System.out.println("ezidpass" + sm.retrieveValue("ezidpass"));
-
-            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-
-        } catch (EZIDException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        */
     }
 
     /**
@@ -77,7 +52,6 @@ public class projectMinter {
             String project_code,
             String project_title,
             String strAbstract,
-            String ResolverWebAddress,
             String bioValidator_validation_xml,
             Integer users_id) throws Exception {
 
@@ -87,6 +61,13 @@ public class projectMinter {
          *  Insert the values into the projects table
          */
         try {
+            try {
+                checkProjectCodeValid(project_code);
+                checkProjectCodeAvailable(project_code);
+            } catch (Exception e) {
+                throw new Exception(e);
+            }
+
             // Generate an internal ID to track this submission
             UUID internalID = UUID.randomUUID();
 
@@ -108,55 +89,8 @@ public class projectMinter {
             // Get the datasets_id that was assigned
             project_id = getProjectIdentifier(internalID);
         } catch (SQLException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             throw new Exception(e.getMessage());
-        }
-
-        /**
-         *  Create dataGroup identifiers to associate with this project
-         */
-        try {
-            Iterator it = projectResources.iterator();
-            while (it.hasNext()) {
-                Integer resource = (Integer) it.next();
-                ResourceTypes rt = new ResourceTypes();
-                // Construct a default resolver web Address
-                String thisResolverWebAddress = ResolverWebAddress + rt.get(resource).getShortName() + "/";
-
-                // Mint a data group for each of these resources we are looping
-                dataGroupMinter minterDataset = new dataGroupMinter(true, true);
-                minterDataset.mint(
-                        new Integer(sm.retrieveValue("bcidNAAN")),
-                        users_id,
-                        resource,
-                        null,
-                        thisResolverWebAddress,
-                        project_title);
-                minterDataset.close();
-                Integer datasetsId = minterDataset.getDatasets_id();
-
-                // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
-                String insertString = "INSERT INTO projectsBCIDs " +
-                        "(project_id, datasets_id) " +
-                        "values (?,?)";
-                PreparedStatement insertStatement = null;
-                insertStatement = conn.prepareStatement(insertString);
-                insertStatement.setInt(1, project_id);
-                insertStatement.setInt(2, datasetsId);
-                insertStatement.execute();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception(e.getMessage());
-        }
-
-        // Create EZIDs right away for the datagroups we just made
-        manageEZID creator = null;
-        try {
-            creator = new manageEZID();
-            creator.createDatasetsEZIDs(ezidAccount);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return project_id;
@@ -165,6 +99,7 @@ public class projectMinter {
 
     /**
      * Attach an individual URI reference to a project
+     *
      * @param project_code
      * @param bcid
      * @throws Exception
@@ -369,25 +304,63 @@ public class projectMinter {
 
     public static void main(String args[]) {
         try {
-            // Mint a project
             projectMinter project = new projectMinter();
+
+            // Test associating a BCID to a project
+            /*
             project.attachReferenceToProject("DEMOH", "ark:/21547/Fu2");
-/*
+            */
+
+            // Test creating a project
+
             Integer project_id = project.mint(
-                    "DEMOG",
+                    "DEMO1",
                     "DEMO TITLE",
                     null,
-                    "http://example.com/",
                     null,
                     8);
 
             System.out.println(project.printMetadata(project_id));
 
-            //projectMinter p = new projectMinter();
             //System.out.println(p.projectTable("demo"));
-           */
+
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println(e.getMessage());
         }
+    }
+
+    /**
+     * Check that project code is between 4 and 6 characters
+     *
+     * @param project_code
+     * @return
+     */
+    private void checkProjectCodeValid(String project_code) throws Exception {
+        // Check project_code length
+        if (project_code.length() < 4 || project_code.length() > 6)
+            throw new Exception("Project code " + project_code + " must be between 4 and 6 characters long");
+        // Check to make sure characters are normal!
+        if (!project_code.matches("[a-zA-Z0-9]*")) {
+            throw new Exception("Project code " + project_code + " contains invalid characters.");
+        }
+    }
+
+    /**
+     * Check that project code is between 4 and 6 characters
+     *
+     * @param project_code
+     * @return
+     */
+    private void checkProjectCodeAvailable(String project_code) throws Exception {
+
+        Statement stmt = conn.createStatement();
+        String sql = "select count(*) as count from projects where project_code = '" + project_code + "'";
+        ResultSet rs = stmt.executeQuery(sql);
+        rs.next();
+        Integer count = rs.getInt("count");
+        if (count >= 1) {
+            throw new Exception("Project code " + project_code + " already exists!");
+        }
+
     }
 }
