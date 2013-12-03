@@ -55,6 +55,36 @@ public class projectService {
 
     }
 
+    @GET
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.TEXT_HTML)
+    @Path("/validateUser/{project}")
+    public Response mint(@PathParam("project_code") String project_code,
+                         @Context HttpServletRequest request) throws Exception {
+
+        // Get the user_id
+        database db = new database();
+        Integer user_id = db.getUserId(request.getRemoteUser());
+
+        if (user_id == null) {
+            return Response.status(401).build();
+        }
+         projectMinter project = null;
+
+        try {
+            // Mint a project
+            project = new projectMinter();
+            if (project.userOwnsProject(user_id,project_code)) {
+                return Response.status(200).build();
+            } else {
+                return Response.status(202).build();
+            }
+        } catch (Exception e) {
+            return Response.status(202).build();
+        }
+
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
