@@ -186,6 +186,26 @@ public class projectMinter {
     }
 
 
+    public boolean userOwnsProject(Integer users_id, String project_code) throws SQLException {
+        Statement stmt = conn.createStatement();
+        //String sql = "select project_id,project_code,project_title,username from projects,users where users.user_id = projects.users_id && users.username =\"" + remoteUser + "\"";
+
+        String sql = "SELECT " +
+                "   count(*) as count " +
+                "FROM " +
+                "   projects " +
+                "WHERE " +
+                "   project_code='" + project_code + "' && " +
+                "   users_id = " + users_id;
+
+        ResultSet rs = stmt.executeQuery(sql);
+        rs.next();
+        if (rs.getInt("count") < 1)
+            return false;
+        else
+            return true;
+    }
+
     public String projectTable(String remoteUser) throws SQLException {
 
         StringBuilder sb = new StringBuilder();
@@ -304,15 +324,20 @@ public class projectMinter {
 
     public static void main(String args[]) {
         try {
+           // See if the user owns this project or no
             projectMinter project = new projectMinter();
-
+            if (project.userOwnsProject(8, "DEMOG")) {
+                System.out.println("YES the user owns this project");
+            } else {
+                System.out.println("NO the user does not own this project");
+            }
             // Test associating a BCID to a project
             /*
             project.attachReferenceToProject("DEMOH", "ark:/21547/Fu2");
             */
 
             // Test creating a project
-
+            /*
             Integer project_id = project.mint(
                     "DEMO1",
                     "DEMO TITLE",
@@ -321,7 +346,7 @@ public class projectMinter {
                     8);
 
             System.out.println(project.printMetadata(project_id));
-
+            */
             //System.out.println(p.projectTable("demo"));
 
         } catch (Exception e) {
@@ -346,7 +371,7 @@ public class projectMinter {
     }
 
     /**
-     * Check that project code is between 4 and 6 characters
+     * Check that project code is no already in the database
      *
      * @param project_code
      * @return
