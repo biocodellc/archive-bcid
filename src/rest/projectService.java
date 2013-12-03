@@ -39,6 +39,25 @@ public class projectService {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
+    @Path("/associate")
+    public Response mint(@FormParam("project_code") String project_code,
+                         @FormParam("bcid") String bcid) {
+        projectMinter project = null;
+        try {
+            project = new projectMinter();
+            project.attachReferenceToProject(project_code, bcid);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.ok("ERROR: " + e.getMessage()).build();
+        }
+        return Response.ok("Succesfully associated project_code = " + project_code + " with bcid = " + bcid).build();
+
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.TEXT_HTML)
     public Response mint(@FormParam("project_code") String project_code,
                          @FormParam("project_title") String project_title,
                          @FormParam("abstract") String strAbstract,

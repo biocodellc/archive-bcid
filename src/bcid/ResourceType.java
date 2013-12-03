@@ -6,16 +6,15 @@ import java.lang.String;
  * Components used to describe individual resource types.
  */
 public class ResourceType {
-    public  String string;
-    public  String uri;
-    public  String description;
+    public String string;
+    public String uri;
+    public String description;
     public Integer resourceType;
 
 
     /**
-     *
-     * @param string String is the short description (e.g. PhysicalObject, Image, Text)
-     * @param uri URI represents the URI that describes this particular resource.
+     * @param string      String is the short description (e.g. PhysicalObject, Image, Text)
+     * @param uri         URI represents the URI that describes this particular resource.
      * @param description Expanded text describing what this refers to.
      */
     public ResourceType(int resourceType, String string, String uri, String description) {
@@ -29,7 +28,7 @@ public class ResourceType {
      * Empty resourceType
      */
     public ResourceType(int resourceType) {
-            this.resourceType = resourceType;
+        this.resourceType = resourceType;
         this.string = "spacer";
         this.uri = null;
         this.description = null;
@@ -37,21 +36,27 @@ public class ResourceType {
 
     /**
      * Return the prefix of the "string". So, for "string" = "dwcterms:PreservedSpecimen", this would return "dwcterms"
+     *
      * @return
      */
     public String getPrefix() {
-          return string.split(":")[0];
+        return string.split(":")[0];
     }
 
     /**
      * Return the prefix of the "string". So, for "string" = "dwcterms:PreservedSpecimen", this would return "PreservedSpecimen"
+     *
      * @return
      */
     public String getShortName() {
-          return string.split(":")[1];
+        try {
+            return string.split(":")[1];
+        } catch (Exception e) {
+            return "";
+        }
     }
 
-    public static void main (String args[]) {
-       ResourceType rt = new ResourceType(ResourceTypes.PRESERVEDSPECIMEN, "dwcterms:PreservedSpecimen", "http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen", "A resource describing a preserved specimen.");
+    public static void main(String args[]) {
+        ResourceType rt = new ResourceType(ResourceTypes.PRESERVEDSPECIMEN, "dwcterms:PreservedSpecimen", "http://rs.tdwg.org/dwc/dwctype/PreservedSpecimen", "A resource describing a preserved specimen.");
     }
 }

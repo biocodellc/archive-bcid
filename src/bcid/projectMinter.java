@@ -162,6 +162,28 @@ public class projectMinter {
         return project_id;
     }
 
+
+    /**
+     * Attach an individual URI reference to a project
+     * @param project_code
+     * @param bcid
+     * @throws Exception
+     */
+    public void attachReferenceToProject(String project_code, String bcid) throws Exception {
+        Integer project_id = getProjectIdentifier(project_code);
+        Integer datasetsId = new resolver(bcid).getDataGroupID();
+
+        String insertString = "INSERT INTO projectsBCIDs " +
+                "(project_id, datasets_id) " +
+                "values (?,?)";
+
+        PreparedStatement insertStatement = null;
+        insertStatement = conn.prepareStatement(insertString);
+        insertStatement.setInt(1, project_id);
+        insertStatement.setInt(2, datasetsId);
+        insertStatement.execute();
+    }
+
     /**
      * Return the project identifier given the internalID
      *
@@ -172,6 +194,14 @@ public class projectMinter {
     private Integer getProjectIdentifier(UUID datasetUUID) throws SQLException {
         Statement stmt = conn.createStatement();
         String sql = "select project_id from projects where internalID = '" + datasetUUID.toString() + "'";
+        ResultSet rs = stmt.executeQuery(sql);
+        rs.next();
+        return rs.getInt("project_id");
+    }
+
+    private Integer getProjectIdentifier(String project_code) throws SQLException {
+        Statement stmt = conn.createStatement();
+        String sql = "select project_id from projects where project_code = '" + project_code + "'";
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         return rs.getInt("project_id");
@@ -279,7 +309,12 @@ public class projectMinter {
 
             // Structure the second column-- BCIDs associated with projects
             ResourceTypes rt = new ResourceTypes();
-            String rtString = "<a href='" + rs.getString("resourceType") + "'>" + rt.get(rs.getString("resourceType")).string + "</a>";
+            String rtString;
+            try {
+                rtString = "<a href='" + rs.getString("resourceType") + "'>" + rt.get(rs.getString("resourceType")).string + "</a>";
+            } catch (Exception e) {
+                rtString = "<a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a>";
+            }
 
             sb.append("\t\t\t\t<tr><td><a href='http://biscicol.org/id/" + rs.getString("BCID") + "'>" +
                     rs.getString("BCID") + "</a></td>" +
@@ -336,6 +371,8 @@ public class projectMinter {
         try {
             // Mint a project
             projectMinter project = new projectMinter();
+            project.attachReferenceToProject("DEMOH", "ark:/21547/Fu2");
+/*
             Integer project_id = project.mint(
                     "DEMOG",
                     "DEMO TITLE",
@@ -348,6 +385,7 @@ public class projectMinter {
 
             //projectMinter p = new projectMinter();
             //System.out.println(p.projectTable("demo"));
+           */
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }

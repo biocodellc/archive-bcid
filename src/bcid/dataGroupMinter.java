@@ -369,7 +369,11 @@ public class dataGroupMinter extends dataGroupEncoder {
                 //sb.append("<td>" + getDOILink(rs.getString("doi")) + " " + getDOIMetadataLink(rs.getString("doi")) + "</td>");
                 //sb.append("<td>" + rs.getString("webaddress") + "</td>");
 
-                sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rts.get(rs.getString("resourceType")).string + "</a></td>");
+                try {
+                    sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rts.get(rs.getString("resourceType")).string + "</a></td>");
+                } catch (Exception e) {
+                    sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a></td>");
+                }
                 sb.append("<td>" + rs.getBoolean("suffixPassthrough") + "</td>");
 
                 sb.append("</tr>\n");
