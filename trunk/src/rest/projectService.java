@@ -74,13 +74,15 @@ public class projectService {
         try {
             // Mint a project
             project = new projectMinter();
+            System.out.println("checking user_id = " + user_id + " & project_code = " + project_code);
             if (project.userOwnsProject(user_id,project_code)) {
                 return Response.status(200).build();
             } else {
                 return Response.status(202).build();
             }
         } catch (Exception e) {
-            return Response.status(202).build();
+            e.printStackTrace();
+            return Response.status(405).build();
         }
 
     }
