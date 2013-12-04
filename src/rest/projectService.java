@@ -58,7 +58,7 @@ public class projectService {
     @GET
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
-    @Path("/validateUser/{project}")
+    @Path("/validateUser/{project_code}")
     public Response mint(@PathParam("project_code") String project_code,
                          @Context HttpServletRequest request) throws Exception {
 
@@ -74,7 +74,7 @@ public class projectService {
         try {
             // Mint a project
             project = new projectMinter();
-            System.out.println("checking user_id = " + user_id + " & project_code = " + project_code);
+            //System.out.println("checking user_id = " + user_id + " & project_code = " + project_code);
             if (project.userOwnsProject(user_id,project_code)) {
                 return Response.status(200).build();
             } else {
