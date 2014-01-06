@@ -75,6 +75,7 @@ DROP TABLE IF EXISTS `projects`;
 
 CREATE TABLE `projects` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
+  `expedition_id` int(11),
   `internalID` char(36) COLLATE utf8_bin NOT NULL DEFAULT '' COMMENT 'The internal ID for this project',
   `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
   `project_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project, will be used to populate group title',
@@ -83,7 +84,8 @@ CREATE TABLE `projects` (
   `users_id` int(10) DEFAULT NULL COMMENT 'who created this data',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   UNIQUE KEY `project_project_id_idx` (`project_id`),
-  UNIQUE KEY `project_projectcode_idx` (`project_code`)
+  UNIQUE KEY `project_projectcode_idx` (`project_code`),
+    UNIQUE KEY `project_expedition_id_idx` (`expedition_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `projectsBCIDs`;
@@ -102,6 +104,16 @@ CREATE TABLE `projectsBCIDs` (
 SET FOREIGN_KEY_CHECKS = 1;
 
 
+DROP TABLE IF EXISTS `expeditions`;
+
+CREATE TABLE `expeditions` (
+  `expedition_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
+  `expedition_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
+  `expedition_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project, will be used to populate group title',
+  `abstract` text COMMENT 'The abstract for this particular project',
+  `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
+  UNIQUE KEY `expeditions_expedition_id_idx` (`expedition_id`),
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
