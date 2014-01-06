@@ -7,6 +7,10 @@ Two primary data elements are required:
   * prefix = a URL prefix which can be an ARK, HTTP URL, or any other string.  There are NO restrictions here but we recommend that URIs are used and to avoid special characters that may be misinterpreted by web clients.
   * concept = a URI describing some concept.  This is typically a URI that describes some owl:Class or rdfs:Class.
 
+= Why Deep Roots? =
+
+Deep roots is a mechanism for expressing prefixes for sets of locally specific identifiers at the point of publication.   Deep roots describes a simple format, distinct from particular implementations, enabling a way to track prefixes in use for distinct datasets.  By recognizing identifier roots as distinct from minted suffixes, we hope to greatly expand the usability, discoverability, and adoption of globally unique identifiers, enabling linking between heterogenous systems on the web.
+  
 = Example Format =
 
 {{{
