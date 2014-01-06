@@ -1,8 +1,8 @@
-#Description of "deep Links" a format for describing prefixes and associated concepts
+#Description of "Deep Roots" a format for describing prefixes and associated concepts
 
 = Introduction =
 
-Deep Links is a format for describing root paths that can be dynamically extended to included multiple child elements, all belonging to a single concept family.  The purpose for Deep Links is to enable the utilization of suffixes when expressing data on the semantic web.  Here we describe a general format using JSON so concepts/and prefixes can be mapped generically, using any type of application.  Typically this will be done in the context of RDF or the semantic web but we are not restricting the usage to that domain.
+Deep Roots is a format for describing root paths that can be dynamically extended to included multiple child elements, all belonging to a single concept family.  The purpose for Deep Roots is to enable the utilization of suffixes when expressing data on the semantic web.  Here we describe a general format using JSON so concepts/and prefixes can be mapped generically, using any type of application.  Typically this will be done in the context of RDF or the semantic web but we are not restricting the usage to that domain.
 
 Two primary data elements are required:
 
@@ -35,3 +35,8 @@ Two primary data elements are required:
     }
 ]
 }}}
+
+= Usage/ Future =
+The BCID application implements a feature for generating Deep Roots files.  Any other application can generate the format simply by following the format in the example above.   Prefixes are not constrained to ARKs, HTTP URIs, or any other scheme.
+
+The BiSciCol triplifier will soon be offering an example for consuming a Deep Roots file in order to generate dynamically assigned identifiers.
