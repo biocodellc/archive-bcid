@@ -11,6 +11,7 @@ Two primary data elements are required:
 
 = Example Format =
 
+{{{
 [
     {
         "metadata": {
@@ -33,3 +34,4 @@ Two primary data elements are required:
         ]
     }
 ]
+}}}
