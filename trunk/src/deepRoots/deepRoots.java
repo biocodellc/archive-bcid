@@ -106,4 +106,20 @@ public class deepRoots {
         }
         return sb.toString();
     }
+
+    /**
+     * Find the appropriate prefix for a concept contained in this file
+     *
+     * @param conceptAlias defines the alias to narrow this,  a one-word reference denoting a BCID
+     * @return returns the identifier for this conceptAlias in this DeepRoots file
+     */
+    public String lookupPrefix(String conceptAlias) throws Exception {
+        Iterator it = data.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pairs = (Map.Entry) it.next();
+            if (pairs.getKey().equals(conceptAlias)) ;
+            return (String) pairs.getValue();
+        }
+        return null;
+    }
 }
