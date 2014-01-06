@@ -1,21 +1,10 @@
 package rest;
 
-import bcid.Renderer.JSONRenderer;
-import bcid.Renderer.Renderer;
-import bcid.Renderer.TextRenderer;
-import bcid.dataGroupMinter;
 import bcid.database;
-import bcid.manageEZID;
-import bcid.GenericIdentifier;
 import bcid.resolver;
-import bcid.bcid;
 import bcid.projectMinter;
 
 
-import com.sun.jersey.server.wadl.WadlGenerator;
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
-import org.springframework.web.client.ResponseErrorHandler;
 import util.SettingsManager;
 import util.sendEmail;
 
@@ -25,7 +14,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.URI;
 
 /**
  * REST interface calls for working with projects.  This includes creating, updating and deleting projects.
@@ -164,6 +152,28 @@ public class projectService {
             return Response.status(204).build();
         } else {
             return Response.ok(r.getArk()).build();
+        }
+    }
+
+       /**
+     * Given a project code and a resource alias, return a BCID
+     *
+     * @param project
+     * @return
+     * @throws Exception
+     */
+    @GET
+    @Path("/deepRoots/{project}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response fetchDeepRoots(@PathParam("project") String project) throws Exception {
+        projectMinter projectMinter = new projectMinter();
+
+        String response = projectMinter.getDeepRoots(project);
+
+        if (response == null) {
+            return Response.status(204).build();
+        } else {
+            return Response.ok(response).build();
         }
     }
 

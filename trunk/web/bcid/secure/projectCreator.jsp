@@ -40,12 +40,6 @@
                     <td align=right>Validation URL</td>
                     <td><input name=biovalidator_Validation_xml id=bioValidator_validation_xml type=textbox size="40"></td>
                 </tr>
-                <!--
-                <tr><td align=right>Agent BCID</td><td><i>Automatically assigned upon creation</i></td></tr>
-                <tr><td align=right>Sample BCID</td><td><i>Automatically assigned upon creation</i></td></tr>
-                <tr><td align=right>Event BCID</td><td><i>Automatically assigned upon creation</i></td></tr>
-                <tr><td align=right>Information Artifact BCID</td><td><i>Automatically assigned upon creation</i></td></tr>
-                -->
                 <tr>
                     <td colspan=2>
                     <input type="hidden" name="username" value="<%= request.getRemoteUser() %>" >

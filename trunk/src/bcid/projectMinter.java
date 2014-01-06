@@ -1,12 +1,13 @@
 package bcid;
 
-import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 
-import java.math.BigInteger;
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 /**
  * Mint new projects.  Includes the automatic creation of a core set of entity types
@@ -206,6 +207,68 @@ public class projectMinter {
             return true;
     }
 
+    /**
+     * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
+     * @param project_code
+     * @return
+     * @throws SQLException
+     */
+    public String getDeepRoots(String project_code) throws SQLException {
+        // Get todays's date
+        DateFormat dateFormat;
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        String project_title = null;
+
+        StringBuilder sb = new StringBuilder();
+
+        // Construct the query
+        Statement stmt = conn.createStatement();
+        String sql =
+                "SELECT " +
+                        " d.prefix as BCID, " +
+                        " d.resourceType as resourceType," +
+                        " a.project_title as project_title " +
+                        "FROM " +
+                        " projects a, projectsBCIDs b, datasets d " +
+                        "WHERE" +
+                        " a.project_id = b.project_id && " +
+                        " b.datasets_id = d.datasets_id && \n" +
+                        " a.project_code = '" + project_code + "'";
+
+        // Write the concept/prefix elements section
+        sb.append("[\n{\n\t\"data\": [\n");
+        ResultSet rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+            // Grap the project_title in the query
+            if (project_title == null & !rs.getString("project_title").equals(""))
+                project_title = rs.getString("project_title");
+
+            // Grap the prefixes and concepts associated with this
+            sb.append("\t\t{\n");
+            sb.append("\t\t\t\"prefix\":\"" + rs.getString("BCID") + "\",\n");
+            sb.append("\t\t\t\"concept\":\"" + rs.getString("resourceType") + "\"\n");
+            sb.append("\t\t}");
+            if (!rs.isLast())
+                sb.append(",");
+
+            sb.append("\n");
+        }
+        sb.append("\t]\n},\n");
+
+        // Write the metadata section
+        sb.append("{\n");
+        sb.append("\t\"metadata\": {\n");
+        sb.append("\t\t\"name\": \" " + project_code + "\",\n");
+        if (project_title != null)
+            sb.append("\t\t\"description\": \"" + project_title + "\",\n");
+        sb.append("\t\t\"date\": \" " + dateFormat.format(date) + "\"\n");
+        sb.append("\t}\n");
+        sb.append("}\n");
+        sb.append("]\n");
+        return sb.toString();
+    }
+
     public String projectTable(String remoteUser) throws SQLException {
 
         StringBuilder sb = new StringBuilder();
@@ -324,8 +387,10 @@ public class projectMinter {
 
     public static void main(String args[]) {
         try {
-           // See if the user owns this project or no
+            // See if the user owns this project or no
             projectMinter project = new projectMinter();
+            System.out.println(project.getDeepRoots("HDIM"));
+
             if (project.userOwnsProject(8, "DEMOG")) {
                 System.out.println("YES the user owns this project");
             } else {
