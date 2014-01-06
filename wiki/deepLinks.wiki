@@ -1,5 +1,3 @@
-#Description of "Deep Roots" a format for describing prefixes and associated concepts
-
 = Introduction =
 
 Deep Roots is a format for describing root paths that can be dynamically extended to included multiple child elements, all belonging to a single concept family.  The purpose for Deep Roots is to enable the utilization of suffixes when expressing data on the semantic web.  Here we describe a general format using JSON so concepts/and prefixes can be mapped generically, using any type of application.  Typically this will be done in the context of RDF or the semantic web but we are not restricting the usage to that domain.
