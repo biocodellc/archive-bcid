@@ -35,6 +35,6 @@ Two primary data elements are required:
 }}}
 
 = Usage/ Future =
-The BCID application implements a feature for generating Deep Roots files.   An example of this service is employed by calling the [http://biscicol.org/id/projectService/deepRoots/HDIM BCID project service for the HDIM project (http://biscicol.org/id/projectService/deepRoots/HDIM)]. Any other application can generate the format simply by following the format in the example above.   Prefixes are not constrained to ARKs, HTTP URIs, or any other scheme.
+The BCID application implements a feature for generating Deep Roots files.   An example of this service is employed by calling the BCID project service for the HDIM project ([http://biscicol.org/id/projectService/deepRoots/HDIM http://biscicol.org/id/projectService/deepRoots/HDIM)]. Any other application can generate the format simply by following the format in the example above.   Prefixes are not constrained to ARKs, HTTP URIs, or any other scheme.
 
 The BiSciCol triplifier will soon be offering an example for consuming a Deep Roots file in order to generate dynamically assigned identifiers.
