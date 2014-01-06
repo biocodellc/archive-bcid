@@ -6,11 +6,11 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- * A class to manage deep Links, storing metadata about the links and information regarding concepts and roots for
- * each deep link specified.  Deep links is not meant to be directly associated with any particular semantic web
+ * A class to manage deep Roots, storing metadata about the links and information regarding concepts and roots for
+ * each deep link specified.  Deep Roots is not meant to be directly associated with any particular semantic web
  * technology.
  */
-public class deepLinks {
+public class deepRoots {
     private HashMap<URI, String> data = new HashMap<URI, String>();
     private String shortName;
     private String description;

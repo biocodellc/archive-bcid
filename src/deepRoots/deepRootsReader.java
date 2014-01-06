@@ -17,13 +17,13 @@ import java.util.*;
  * ezmorph-1.0.6.jar
  * json-lib-2.4-jdk15.jar
  */
-public class deepLinksReader {
+public class deepRootsReader {
 
-    public deepLinks createRootData(String url) throws IOException, URISyntaxException {
+    public deepRoots createRootData(String url) throws IOException, URISyntaxException {
         // Read file into String variable
         String json = readFile(new URL(url));
         // Create the deepLinks.rootData Class
-        deepLinks rootData = new deepLinks();
+        deepRoots rootData = new deepRoots();
         // Create the Hashmap to store in the deepLinks.rootData class
         HashMap<java.net.URI, String> data = new HashMap<java.net.URI, String>();
         // write json String into array
@@ -94,11 +94,11 @@ public class deepLinksReader {
      * @throws URISyntaxException
      */
     public static void main(String[] args) throws IOException, URISyntaxException {
-        deepLinksReader reader = new deepLinksReader();
+        deepRootsReader reader = new deepRootsReader();
         // Some path name to the file
         String filePath = "file:///Users/jdeck/IdeaProjects/deepRoots/sampledata/test.json";
         // Creating the object
-        deepLinks rootData = reader.createRootData(filePath);
+        deepRoots rootData = reader.createRootData(filePath);
         // Output for testing
         System.out.println(rootData.toString());
     }
