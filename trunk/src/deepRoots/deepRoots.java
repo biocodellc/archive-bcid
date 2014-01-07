@@ -64,6 +64,7 @@ public class deepRoots {
 
     /**
      * sets the description for this file
+     *
      * @return
      */
     public void setDescription(String description) {
@@ -88,6 +89,7 @@ public class deepRoots {
 
     /**
      * Converts this object to a string representation for easy viewing
+     *
      * @return
      */
     public String toString() {
@@ -117,8 +119,9 @@ public class deepRoots {
         Iterator it = data.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();
-            if (pairs.getKey().equals(conceptAlias)) ;
-            return (String) pairs.getValue();
+            if (pairs.getKey().equals(conceptAlias)) {
+                return (String) pairs.getValue();
+            }
         }
         return null;
     }
