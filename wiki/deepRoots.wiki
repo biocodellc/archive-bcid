@@ -39,8 +39,8 @@ Deep roots is a mechanism for expressing prefixes for sets of locally specific i
 }}}
 
 = Usage/ Future =
-The BCID application implements a feature for generating Deep Roots files.   An example of this service is employed by calling the BCID project service for the HDIM project ([http://biscicol.org/id/projectService/deepRoots/HDIM http://biscicol.org/id/projectService/deepRoots/HDIM)].  Example code for generating this file can be found in the BCID code repository [https://code.google.com/p/bcid/source/browse/#svn%2Ftrunk%2Fsrc%2FdeepRoots here].
+The BCID application implements a feature for generating Deep Roots files.   An example of this service is employed by calling the BCID project service for a particular project.  An example here is listed for the Hawaii Dimensions project ([http://biscicol.org/id/projectService/deepRoots/HDIM http://biscicol.org/id/projectService/deepRoots/HDIM)].  Example code for generating this file can be found in the BCID code repository [https://code.google.com/p/bcid/source/browse/#svn%2Ftrunk%2Fsrc%2FdeepRoots here].
 
 Any other application can generate the format simply by following the format in the example above.   Prefixes are not constrained to ARKs, HTTP URIs, or any other scheme.
 
-The BiSciCol triplifier will soon be offering an example for consuming a Deep Roots file in order to generate dynamically assigned identifiers.
+The BiSciCol triplifier is also offering the ability for consuming Deep Roots files in helping to generate globally unique identifiers in triplified versions of Darwin Core archives.  An example of how this is called in java code is in the [https://code.google.com/p/triplifier/source/browse/trunk/src/simplifier/plugins/simplifier.java triplifier source code]
