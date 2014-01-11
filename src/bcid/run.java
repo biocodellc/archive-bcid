@@ -229,7 +229,7 @@ public class run {
         System.out.println("\nCreating a new dataset");
         try {
             dataset = new dataGroupMinter(true, true);
-            dataset.mint(NAAN, user_id, ResourceType, doi, webaddress, title);
+            dataset.mint(NAAN, user_id, ResourceType, doi, webaddress, null,title);
         } catch (Exception e) {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.BAD_REQUEST);

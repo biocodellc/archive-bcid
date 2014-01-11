@@ -156,7 +156,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param title
      * @throws Exception
      */
-    public Integer mint(Integer NAAN, Integer who, Integer resourceType, String doi, String webaddress, String title) throws Exception {
+    public Integer mint(Integer NAAN, Integer who, Integer resourceType, String doi, String webaddress, String graph, String title) throws Exception {
 
         database db = new database();
 
@@ -172,8 +172,8 @@ public class dataGroupMinter extends dataGroupEncoder {
         // Insert the values into the database
         try {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
-            String insertString = "INSERT INTO datasets (users_id, resourceType, doi, webaddress, title, internalID, ezidRequest, suffixPassThrough) " +
-                    "values (?,?,?,?,?,?,?,?)";
+            String insertString = "INSERT INTO datasets (users_id, resourceType, doi, webaddress, graph, title, internalID, ezidRequest, suffixPassThrough) " +
+                    "values (?,?,?,?,?,?,?,?,?)";
 
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
@@ -181,10 +181,11 @@ public class dataGroupMinter extends dataGroupEncoder {
             insertStatement.setString(2, new ResourceTypes().get(resourceType).uri);
             insertStatement.setString(3, doi);
             insertStatement.setString(4, webaddress);
-            insertStatement.setString(5, title);
-            insertStatement.setString(6, internalID.toString());
-            insertStatement.setBoolean(7, ezidRequest);
-            insertStatement.setBoolean(8, suffixPassThrough);
+            insertStatement.setString(5, graph);
+            insertStatement.setString(6, title);
+            insertStatement.setString(7, internalID.toString());
+            insertStatement.setBoolean(8, ezidRequest);
+            insertStatement.setBoolean(9, suffixPassThrough);
             insertStatement.execute();
 
             // Get the datasets_id that was assigned

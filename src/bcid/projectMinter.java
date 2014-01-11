@@ -3,6 +3,7 @@ package bcid;
 import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -208,7 +209,57 @@ public class projectMinter {
     }
 
     /**
+     * A utility function to get the very latest graph loads for each project
+     *
+     * @param expedition_id pass in an expedition identifier to limit the set of projects we are looking at
+     * @return
+     */
+    public String getLatestGraphsByProject(int expedition_id) throws SQLException {
+        StringBuilder sb = new StringBuilder();
+
+        // Construct the query
+        Statement stmt = conn.createStatement();
+        // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
+        // maximum timestamp (latest) loaded for a particular project.
+        // Help on solving this problem came from http://jan.kneschke.de/projects/mysql/groupwise-max/
+        String sql = "select p.project_code as project_code,p.project_title,d1.graph as graph,d1.ts as ts \n" +
+                "from datasets as d1, \n" +
+                "(select p.project_code as project_code,d.graph as graph,max(d.ts) as maxts \n" +
+                "    \tfrom datasets d,projects p, projectsBCIDs pB\n" +
+                "    \twhere pB.datasets_id=d.datasets_id\n" +
+                "    \tand pB.project_id=p.project_id\n" +
+                " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                "    and p.expedition_id =1\n" +
+                "    \tgroup by p.project_code) as  d2,\n" +
+                "projects p,  projectsBCIDs pB\n" +
+                "where p.project_code = d2.project_code and d1.ts = d2.maxts\n" +
+                " and pB.datasets_id=d1.datasets_id \n" +
+                " and pB.project_id=p.project_id\n" +
+                " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                "    and p.expedition_id =" + expedition_id;
+
+        sb.append("{\n\t\"data\": [\n");
+        ResultSet rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+            // Grap the prefixes and concepts associated with this
+            sb.append("\t\t{\n");
+            sb.append("\t\t\t\"project_code\":\"" + rs.getString("project_code") + "\",\n");
+            sb.append("\t\t\t\"project_title\":\"" + rs.getString("project_title") + "\",\n");
+            sb.append("\t\t\t\"ts\":\"" + rs.getString("ts") + "\",\n");
+            sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
+            sb.append("\t\t}");
+            if (!rs.isLast())
+                sb.append(",");
+
+            sb.append("\n");
+        }
+        sb.append("\t]\n}\n");
+        return sb.toString();
+    }
+
+    /**
      * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
+     *
      * @param project_code
      * @return
      * @throws SQLException
@@ -385,17 +436,21 @@ public class projectMinter {
         }
     }
 
+
     public static void main(String args[]) {
         try {
             // See if the user owns this project or no
             projectMinter project = new projectMinter();
-            System.out.println(project.getDeepRoots("HDIM"));
+            /*System.out.println(project.getDeepRoots("HDIM"));
 
             if (project.userOwnsProject(8, "DEMOG")) {
                 System.out.println("YES the user owns this project");
             } else {
                 System.out.println("NO the user does not own this project");
             }
+
+*/
+            System.out.println(project.getLatestGraphsByProject(1));
             // Test associating a BCID to a project
             /*
             project.attachReferenceToProject("DEMOH", "ark:/21547/Fu2");
