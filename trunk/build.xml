@@ -211,6 +211,7 @@
 
     <target name="build.modules" depends="init, clean, compile.module.bcid, war" description="build all modules"/>
 
+
     <target name="war" depends="compile.module.bcid.production">
         <war destfile="dist/bcid.war" webxml="web/WEB-INF/web.xml">
             <fileset dir="web"/>

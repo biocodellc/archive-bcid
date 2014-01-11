@@ -156,7 +156,7 @@ public class projectService {
     }
 
        /**
-     * Given a project code and a resource alias, return a BCID
+     * Given a project code return a list of resource Types associated with it
      *
      * @param project
      * @return
@@ -169,6 +169,28 @@ public class projectService {
         projectMinter projectMinter = new projectMinter();
 
         String response = projectMinter.getDeepRoots(project);
+
+        if (response == null) {
+            return Response.status(204).build();
+        } else {
+            return Response.ok(response).build();
+        }
+    }
+
+      /**
+     * Given an expedition identifier, get the latest graphs by project
+     *
+     * @param expedition_id
+     * @return
+     * @throws Exception
+     */
+    @GET
+    @Path("/expedition/{expedition}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getLatestGraphsByProject(@PathParam("expedition") Integer expedition_id) throws Exception {
+        projectMinter projectMinter = new projectMinter();
+
+        String response = projectMinter.getLatestGraphsByProject(expedition_id);
 
         if (response == null) {
             return Response.status(204).build();

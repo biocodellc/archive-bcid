@@ -116,6 +116,7 @@ public class elementService {
                           @FormParam("data") String data,
                           @FormParam("doi") String doi,
                           @FormParam("webaddress") String webaddress,
+                          @FormParam("graph") String graph,
                           @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                           @Context HttpServletRequest request) {
 
@@ -167,7 +168,7 @@ public class elementService {
             try {
                 dataset = new dataGroupMinter(true, suffixPassthrough);
                 // we don't know DOI or webaddress from this call, so we set them to NULL
-                dataset.mint(new Integer(sm.retrieveValue("bcidNAAN")), user_id, resourceType, doi, webaddress, title);
+                dataset.mint(new Integer(sm.retrieveValue("bcidNAAN")), user_id, resourceType, doi, webaddress, graph, title);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new WebApplicationException(Response.Status.BAD_REQUEST);

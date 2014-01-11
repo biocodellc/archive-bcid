@@ -40,6 +40,7 @@ CREATE TABLE `datasets` (
   `doi` char(36) COMMENT 'DOI linked to this dataset identifier',
   `title` text COMMENT 'title for this dataset',
   `webaddress` text COLLATE utf8_bin COMMENT 'the target URL for this dataset',
+  `graph` text  COMMENT 'A reference to a graph, used by the biocode-fims project for storing graph references for a particular dataset',
   `resourceType` text NOT NULL COMMENT 'default resource type for this dataset, stored as a URI',
   `resourceAlias` text NOT NULL COMMENT 'alias to use for the resource Type',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
@@ -85,7 +86,7 @@ CREATE TABLE `projects` (
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   UNIQUE KEY `project_project_id_idx` (`project_id`),
   UNIQUE KEY `project_projectcode_idx` (`project_code`),
-    UNIQUE KEY `project_expedition_id_idx` (`expedition_id`)
+  KEY `project_expedition_id_idx` (`expedition_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `projectsBCIDs`;

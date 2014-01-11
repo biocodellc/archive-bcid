@@ -74,6 +74,7 @@ public class groupService {
     @Produces(MediaType.TEXT_HTML)
     public Response mint(@FormParam("doi") String doi,
                        @FormParam("webaddress") String webaddress,
+                       @FormParam("graph") String graph,
                        @FormParam("title") String title,
                        @FormParam("resourceTypesMinusDataset") Integer resourceType,
                        @FormParam("suffixPassThrough") String stringSuffixPassThrough,
@@ -122,6 +123,7 @@ public class groupService {
                 resourceType,
                 doi,
                 webaddress,
+                graph,
                 title);
         minterDataset.close();
         String datasetPrefix = minterDataset.getPrefix();
