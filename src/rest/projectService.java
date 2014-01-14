@@ -43,11 +43,22 @@ public class projectService {
 
     }
 
+    /**
+     * validateProject service checks the status of a new project code on the server and directing consuming
+     * applications on whether this user owns the project and if it exists within an expedition or not.
+     * Responses are error, update, or insert (first term followed by a colon)
+     * @param project_code
+     * @param expedition_id
+     * @param request
+     * @return
+     * @throws Exception
+     */
     @GET
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
-    @Path("/validateUser/{project_code}")
+    @Path("/validateProject/{expedition_id}/{project_code}")
     public Response mint(@PathParam("project_code") String project_code,
+                         @PathParam("expedition_id") Integer expedition_id,
                          @Context HttpServletRequest request) throws Exception {
 
         // Get the user_id
@@ -55,7 +66,7 @@ public class projectService {
         Integer user_id = db.getUserId(request.getRemoteUser());
 
         if (user_id == null) {
-            return Response.status(401).build();
+            return Response.ok("error: user not validated").build();
         }
          projectMinter project = null;
 
@@ -64,13 +75,17 @@ public class projectService {
             project = new projectMinter();
             //System.out.println("checking user_id = " + user_id + " & project_code = " + project_code);
             if (project.userOwnsProject(user_id,project_code)) {
-                return Response.status(200).build();
+                // If the user already owns the project, then great--- this is an update
+                return Response.ok("update: user owns this project").build();
+                // If the project exists in the expedition but the user does not own the project then this means we can't
+            } else if (project.projectExistsInExpedition(project_code,expedition_id)) {
+                return Response.ok("error: project already exists within this expedition but the user does not own it").build();
             } else {
-                return Response.status(202).build();
+                return Response.ok("insert: the project does not exist with expedition and nobody owns it").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.status(405).build();
+            return Response.status(500).build();
         }
 
     }
@@ -81,7 +96,7 @@ public class projectService {
     public Response mint(@FormParam("project_code") String project_code,
                          @FormParam("project_title") String project_title,
                          @FormParam("abstract") String strAbstract,
-                         @FormParam("biovalidator_Validation_xml") String bioValidator_Validation_xml,
+                         @FormParam("expedition_id") Integer expedition_id,
                          @Context HttpServletRequest request) throws Exception {
 
         // Get the user_id
@@ -101,8 +116,8 @@ public class projectService {
                     project_code,
                     project_title,
                     strAbstract,
-                    bioValidator_Validation_xml,
-                    user_id);
+                    user_id,
+                    expedition_id);
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok("ERROR: " + e.getMessage()).build();
@@ -177,48 +192,6 @@ public class projectService {
         }
     }
 
-      /**
-     * Given an expedition identifier, get the latest graphs by project
-     *
-     * @param expedition_id
-     * @return
-     * @throws Exception
-     */
-    @GET
-    @Path("/expedition/{expedition}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getLatestGraphsByProject(@PathParam("expedition") Integer expedition_id) throws Exception {
-        projectMinter projectMinter = new projectMinter();
 
-        String response = projectMinter.getLatestGraphsByProject(expedition_id);
-
-        if (response == null) {
-            return Response.status(204).build();
-        } else {
-            return Response.ok(response).build();
-        }
-    }
-
-    /**
-     * Given a project code return a validation URL
-     *
-     * @param project
-     * @return
-     * @throws Exception
-     */
-    @GET
-    @Path("/{project}")
-    @Produces(MediaType.TEXT_HTML)
-    public Response fetchAlias(@PathParam("project") String project) throws Exception {
-
-        projectMinter projectMinter = new projectMinter();
-        String response = projectMinter.getValidationXML(project);
-
-        if (response == null) {
-            return Response.status(204).build();
-        } else {
-            return Response.ok(response).build();
-        }
-    }
 }
 

@@ -81,7 +81,6 @@ CREATE TABLE `projects` (
   `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
   `project_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project, will be used to populate group title',
   `abstract` text COMMENT 'The abstract for this particular project',
-  `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
   `users_id` int(10) DEFAULT NULL COMMENT 'who created this data',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   UNIQUE KEY `project_project_id_idx` (`project_id`),
@@ -108,12 +107,13 @@ SET FOREIGN_KEY_CHECKS = 1;
 DROP TABLE IF EXISTS `expeditions`;
 
 CREATE TABLE `expeditions` (
-  `expedition_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
-  `expedition_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
-  `expedition_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project, will be used to populate group title',
-  `abstract` text COMMENT 'The abstract for this particular project',
+  `expedition_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this expeditions',
+  `expedition_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this expedition',
+  `expedition_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this expedition',
+  `abstract` text COMMENT 'The abstract for this particular expecition',
+    `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
-  UNIQUE KEY `expeditions_expedition_id_idx` (`expedition_id`),
+  UNIQUE KEY `expeditions_expedition_id_idx` (`expedition_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
