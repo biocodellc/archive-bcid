@@ -46,7 +46,6 @@ public class projectMinter {
      * @param project_code
      * @param project_title
      * @param strAbstract
-     * @param bioValidator_validation_xml
      * @param users_id
      * @return
      */
@@ -54,8 +53,8 @@ public class projectMinter {
             String project_code,
             String project_title,
             String strAbstract,
-            String bioValidator_validation_xml,
-            Integer users_id) throws Exception {
+            Integer users_id,
+            Integer expedition_id) throws Exception {
 
         Integer project_id = null;
 
@@ -75,8 +74,8 @@ public class projectMinter {
 
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             String insertString = "INSERT INTO projects " +
-                    "(internalID, project_code, project_title, abstract, bioValidator_validation_xml, users_id) " +
-                    "values (?,?,?,?,?,?)";
+                    "(internalID, project_code, project_title, abstract, users_id, expedition_id) " +
+                    "values (?,?,?,?,?,?,?)";
 
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
@@ -84,8 +83,8 @@ public class projectMinter {
             insertStatement.setString(2, project_code);
             insertStatement.setString(3, project_title);
             insertStatement.setString(4, strAbstract);
-            insertStatement.setString(5, bioValidator_validation_xml);
-            insertStatement.setInt(6, users_id);
+            insertStatement.setInt(5, users_id);
+            insertStatement.setInt(6, expedition_id);
             insertStatement.execute();
 
             // Get the datasets_id that was assigned
@@ -132,16 +131,38 @@ public class projectMinter {
         Statement stmt = conn.createStatement();
         String sql = "select project_id from projects where internalID = '" + datasetUUID.toString() + "'";
         ResultSet rs = stmt.executeQuery(sql);
-        rs.next();
-        return rs.getInt("project_id");
+        try {
+            rs.next();
+            return rs.getInt("project_id");
+        } catch (SQLException e) {
+            return null;
+        }
     }
 
     private Integer getProjectIdentifier(String project_code) throws SQLException {
         Statement stmt = conn.createStatement();
         String sql = "select project_id from projects where project_code = '" + project_code + "'";
         ResultSet rs = stmt.executeQuery(sql);
-        rs.next();
-        return rs.getInt("project_id");
+        try {
+            rs.next();
+            return rs.getInt("project_id");
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    public Boolean projectExistsInExpedition(String project_code, Integer ExpeditionId) throws SQLException {
+        Statement stmt = conn.createStatement();
+        String sql = "select project_id from projects " +
+                "where project_code = '" + project_code + "' && " +
+                "expedition_id = " + ExpeditionId;
+        ResultSet rs = stmt.executeQuery(sql);
+        try {
+            if (rs.next()) return true;
+        } catch (SQLException e) {
+            return false;
+        }
+        return false;
     }
 
     public String printMetadata(int id) throws SQLException {
@@ -208,54 +229,7 @@ public class projectMinter {
             return true;
     }
 
-    /**
-     * A utility function to get the very latest graph loads for each project
-     *
-     * @param expedition_id pass in an expedition identifier to limit the set of projects we are looking at
-     * @return
-     */
-    public String getLatestGraphsByProject(int expedition_id) throws SQLException {
-        StringBuilder sb = new StringBuilder();
 
-        // Construct the query
-        Statement stmt = conn.createStatement();
-        // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
-        // maximum timestamp (latest) loaded for a particular project.
-        // Help on solving this problem came from http://jan.kneschke.de/projects/mysql/groupwise-max/
-        String sql = "select p.project_code as project_code,p.project_title,d1.graph as graph,d1.ts as ts \n" +
-                "from datasets as d1, \n" +
-                "(select p.project_code as project_code,d.graph as graph,max(d.ts) as maxts \n" +
-                "    \tfrom datasets d,projects p, projectsBCIDs pB\n" +
-                "    \twhere pB.datasets_id=d.datasets_id\n" +
-                "    \tand pB.project_id=p.project_id\n" +
-                " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                "    and p.expedition_id =1\n" +
-                "    \tgroup by p.project_code) as  d2,\n" +
-                "projects p,  projectsBCIDs pB\n" +
-                "where p.project_code = d2.project_code and d1.ts = d2.maxts\n" +
-                " and pB.datasets_id=d1.datasets_id \n" +
-                " and pB.project_id=p.project_id\n" +
-                " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                "    and p.expedition_id =" + expedition_id;
-
-        sb.append("{\n\t\"data\": [\n");
-        ResultSet rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-            // Grap the prefixes and concepts associated with this
-            sb.append("\t\t{\n");
-            sb.append("\t\t\t\"project_code\":\"" + rs.getString("project_code") + "\",\n");
-            sb.append("\t\t\t\"project_title\":\"" + rs.getString("project_title") + "\",\n");
-            sb.append("\t\t\t\"ts\":\"" + rs.getString("ts") + "\",\n");
-            sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
-            sb.append("\t\t}");
-            if (!rs.isLast())
-                sb.append(",");
-
-            sb.append("\n");
-        }
-        sb.append("\t]\n}\n");
-        return sb.toString();
-    }
 
     /**
      * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
@@ -409,38 +383,20 @@ public class projectMinter {
         return sb.toString();
     }
 
-    /**
-     * Find the BCID that denotes the validation file location for a particular project
-     *
-     * @param project_code defines the BCID project_code to lookup
-     * @return returns the BCID for this project and conceptURI combination
-     */
-    public String getValidationXML(String project_code) throws Exception {
 
-        try {
-            Statement stmt = conn.createStatement();
-
-            String query = "select \n" +
-                    "biovalidator_validation_xml \n" +
-                    "from \n" +
-                    "projects \n" +
-                    "where \n" +
-                    "project_code='" + project_code + "'";
-            ResultSet rs = stmt.executeQuery(query);
-            rs.next();
-            return rs.getString("biovalidator_validation_xml");
-        } catch (SQLException e) {
-            throw new Exception("Trouble getting Validation XML", e);
-        } catch (Exception e) {
-            throw new Exception("Trouble getting Validation XML", e);
-        }
-    }
 
 
     public static void main(String args[]) {
         try {
             // See if the user owns this project or no
             projectMinter project = new projectMinter();
+        //    System.out.println("validation XML for expedition = " +project.getValidationXML(1));
+
+            if (project.projectExistsInExpedition("DEMOK",1)) {
+                System.out.println("project exists in expedition");
+            } else {
+                System.out.println("project does not exist in expedition");
+            }
             /*System.out.println(project.getDeepRoots("HDIM"));
 
             if (project.userOwnsProject(8, "DEMOG")) {
@@ -450,7 +406,7 @@ public class projectMinter {
             }
 
 */
-            System.out.println(project.getLatestGraphsByProject(1));
+            // System.out.println(project.getLatestGraphsByProject(1));
             // Test associating a BCID to a project
             /*
             project.attachReferenceToProject("DEMOH", "ark:/21547/Fu2");
