@@ -75,7 +75,7 @@ public class projectMinter {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             String insertString = "INSERT INTO projects " +
                     "(internalID, project_code, project_title, abstract, users_id, expedition_id) " +
-                    "values (?,?,?,?,?,?,?)";
+                    "values (?,?,?,?,?,?)";
 
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
