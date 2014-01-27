@@ -4,26 +4,32 @@
 </head>
 <body>
 <h1>BiSciCol</h1>
-BiSciCol (Biological Science Collections) Tracker is a funded NSF collaborative project with the goal of building an
+BiSciCol (Biological Science Collections) is an NSF-funded collaborative project with the goal of building an
 infrastructure designed to tag and track scientific collections and all of their derivatives.
 
 <h2>BiSciCol Tools</h2>
-All of the BiSciCol tools are in active development which means that until mid-way through 2013, you will expect to
-see certain broken links and perhaps not complete functionality. We have posted these tools here and make them available
-during our development process so we can get feedback from the community and our testers.
+The following tools from the BiSciCol project are made available to the biodiversity informatics user community to
+promote
+linking collections-based data and are provided "as is" without warranty of any kind, either expressed or implied.
+Questions
+regarding these tools may be directed to the owners and commmitters of the code-base related to each project below.
 
-<p><a href="/bcid/index.jsp">BCID</a> provides identifier tools to create awesome
+<p>Biocode Commons Identifiers, or "<b></b><a href="/bcid/index.jsp">BCID</a></b>" provides tools for creating
     identifiers. These identifiers are useful both globally and
     locally, for individuals and organizations, and will satisfy the most demanding requirements related to resolution
-    and persistance. Developers view the online <a href="/bcid/javadoc/index.html">Javadocs</a>.</p>
+    and persistance. Developers can view the online <a href="/bcid/javadoc/index.html">Javadocs</a>.</p>
 
-<p>The <a href="/triplifier">Triplifier</a> converts Spreadsheets, databases, and Darwin Core
+<p>The <b></b><a href="/triplifier">Triplifier</a></b> converts Spreadsheets, databases, and Darwin Core
     Archives into RDF/N3 files suitable for use in the Semantic Web and ingestion into the BiSciCol system.</p>
 
-<p>The <a href="/biscicol">BiSciCol</a> application lets users visualize graph connections of
-    instances (Identifiers) contained in BiSciCol.</p>
+<p><b><a href="/biocode-fims">Biocode FIMS</a></b> incorporates components of the BCID and triplifier technologies to
+    publish sample-based
+    spreadsheet data to an online graph-based database.</p>
 
-<p><a href="terms/index.html">BiSciCol Terms</a> describe how BiSciCol handles relations between Instances.</p>
+<!-- <p>The <a href="/biscicol">BiSciCol</a> application lets users visualize graph connections of
+    instances (Identifiers) contained in BiSciCol.</p> -->
+
+<p>BiSciCol uses <b><a href="terms/index.html">a set of terms</a></b> for describing relationships and concepts.</p>
 
 <h2>More Information</h2>
 
@@ -31,23 +37,30 @@ during our development process so we can get feedback from the community and our
     BiSciCol
     Project including presentations, news items, and general project information.</p>
 
-<p>All code for the BiSciCol applications are open source and available for use by the community at large and are available at:
+<p>All code for the BiSciCol applications are open source and available for use by the community at large and are
+    available at:
+<ul>
     <li><a href="http://code.google.com/p/triplifier/">Triplifier codebase </a></li>
-    <li><a href="http://code.google.com/p/biscicol/">BiSciCol/Viewer codebase</a></li>
-    <li><a href="http://code.google.com/p/bcid/">BCID, Biocode Commons Identifiers</a></li>
+    <li><a href="http://code.google.com/p/bcid/">BCID codebase</a></li>
+    <li><a href="http://code.google.com/p/biocode-fims/">Biocode FIMS codeabase</a></li>
+    <li><a href="http://code.google.com/p/biscicol/">Original BiSciCol codebase (Deprecated)</a></li>
+</ul>
 
-<p>REST API
-    <br>We maintain an API for each component of our suite of applications. More information on the REST services are
-    at:
+<p>
+
+<h2>REST APIs</h2>
+
+<p>We maintain an API for each component of our suite of applications, which are described in detail at the following
+    locations:
 <ul>
     <li><a href="/id/bcid.wadl">BCID REST Services</a></li>
-    <li><a href="/biscicol/rest/biscicol.wadl">BiSciCol REST Services</a></li>
     <li><a href="/triplifier/rest/triplifier.wadl">Triplifier REST Services</a></li>
-
+    <li><a href="/biocode-fims/query/biocode-fims.wadl">Biocode FIMS REST Services</a></li>
 </ul>
 </p>
 
-<img src='nsf.jpeg' height=50> This material is based upon work supported by the National Science Foundation under Grant Number
+<img src='nsf.jpeg' height=50> This material is based upon work supported by the National Science Foundation under Grant
+Number
 DBI-0956426. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the
 author(s) and do not necessarily reflect the views of the National Science Foundation
 
