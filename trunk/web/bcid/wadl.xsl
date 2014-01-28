@@ -647,7 +647,7 @@
             <xsl:value-of select="wadl:doc/@title"/>
         </xsl:when>
         <xsl:otherwise>
-            Web Application
+            BCID REST Services
         </xsl:otherwise>
     </xsl:choose>
 </xsl:template>
