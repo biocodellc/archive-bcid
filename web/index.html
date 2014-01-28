@@ -11,25 +11,40 @@ infrastructure designed to tag and track scientific collections and all of their
 The following tools from the BiSciCol project are made available to the biodiversity informatics user community to
 promote
 linking collections-based data and are provided "as is" without warranty of any kind, either expressed or implied.
-Questions
-regarding these tools may be directed to the owners and commmitters of the code-base related to each project below.
+BiSciCol tools use a set of common standards-based <a href="terms/index.html">terms</a> for describing relationships and concepts.
+Questions regarding these tools may be directed to the owners and commmitters of the code-base related to each project below.
 
-<p>Biocode Commons Identifiers, or "<b></b><a href="/bcid/index.jsp">BCID</a></b>" provides tools for creating
+<ul>
+<li>Biocode Commons Identifiers (<a href="/bcid/index.jsp">BCID</a>) provides tools for creating
     identifiers. These identifiers are useful both globally and
     locally, for individuals and organizations, and will satisfy the most demanding requirements related to resolution
-    and persistance. Developers can view the online <a href="/bcid/javadoc/index.html">Javadocs</a>.</p>
+    and persistance.
 
-<p>The <b></b><a href="/triplifier">Triplifier</a></b> converts Spreadsheets, databases, and Darwin Core
-    Archives into RDF/N3 files suitable for use in the Semantic Web and ingestion into the BiSciCol system.</p>
+<li>The <a href="/triplifier">Triplifier</a> converts Spreadsheets, databases, and Darwin Core
+    Archives into RDF/N3 files suitable for use on the Semantic Web.</li>
 
-<p><b><a href="/biocode-fims">Biocode FIMS</a></b> incorporates components of the BCID and triplifier technologies to
+<li><a href="/biocode-fims">Biocode FIMS</a> incorporates components of the BCID and triplifier technologies to
     publish sample-based
-    spreadsheet data to an online graph-based database.</p>
+    spreadsheet data.  Biocode FIMS uses XML configuration files to define validation rules, mapping components for conversion
+    to RDF triples, and custom built SPARQL endpoints.</li>
 
+</ul>
 <!-- <p>The <a href="/biscicol">BiSciCol</a> application lets users visualize graph connections of
     instances (Identifiers) contained in BiSciCol.</p> -->
 
-<p>BiSciCol uses <b><a href="terms/index.html">a set of terms</a></b> for describing relationships and concepts.</p>
+<p>
+
+<h2>REST APIs</h2>
+
+<p>We maintain an API for each component of our suite of applications, which are described in detail at the following
+    locations:
+<ul>
+    <li><a href="/id/bcid.wadl">BCID REST Services</a></li>
+    <li><a href="/triplifier/rest/triplifier.wadl">Triplifier REST Services</a></li>
+    <li><a href="/biocode-fims/query/biocode-fims.wadl">Biocode FIMS REST Services</a></li>
+</ul>
+
+<p>
 
 <h2>More Information</h2>
 
@@ -47,18 +62,6 @@ regarding these tools may be directed to the owners and commmitters of the code-
 </ul>
 
 <p>
-
-<h2>REST APIs</h2>
-
-<p>We maintain an API for each component of our suite of applications, which are described in detail at the following
-    locations:
-<ul>
-    <li><a href="/id/bcid.wadl">BCID REST Services</a></li>
-    <li><a href="/triplifier/rest/triplifier.wadl">Triplifier REST Services</a></li>
-    <li><a href="/biocode-fims/query/biocode-fims.wadl">Biocode FIMS REST Services</a></li>
-</ul>
-</p>
-
 <img src='nsf.jpeg' height=50> This material is based upon work supported by the National Science Foundation under Grant
 Number
 DBI-0956426. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the
