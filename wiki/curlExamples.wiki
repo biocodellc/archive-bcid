@@ -14,7 +14,7 @@ Resolve an ARK, returning RDF/XML, for a group + suffix:
 
 First thing is to authenticate and set cookies.  Make sure to do this in a directory where you have write access:
 
-  * curl --data "j_username=USER&j_password=PSWD" http://biscicol.org/bcid/j_spring_security_check --location --cookie-jar cookies.txt
+  * curl --data "username=USER&password=PSWD" http://biscicol.org/id/loginService --location --cookie-jar cookies.txt
 
 Then, call the service in question, for example, to list datasets associated with the account you authenticated as:
  
