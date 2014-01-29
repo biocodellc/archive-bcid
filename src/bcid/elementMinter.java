@@ -119,7 +119,7 @@ public class elementMinter extends dataGroupMinter {
      * Get a UniqueDataSetID to identify the set of elements inserted at one time
      *
      * @return
-     * @throws URISyntaxException
+     * @throws java.net.URISyntaxException
      */
     private String generateUUIDString() throws URISyntaxException {
         return UUID.randomUUID().toString();
@@ -337,8 +337,8 @@ public class elementMinter extends dataGroupMinter {
      *
      * @param numIdentifiers
      * @return An ArrayList of all the GUIDs
-     * @throws SQLException
-     * @throws URISyntaxException
+     * @throws java.sql.SQLException
+     * @throws java.net.URISyntaxException
      */
     public String createBCIDs(int numIdentifiers, URI what) throws SQLException, URISyntaxException {
         String datasetIdentifier = this.generateUUIDString();

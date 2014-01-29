@@ -32,7 +32,7 @@ public class dates {
      * @return
      */
     public String unixToUTC(long timeStamp) {
-        Date date = new java.util.Date(timeStamp * 1000);
+        Date date = new Date(timeStamp * 1000);
         return formatUTC.format(date);
     }
 }

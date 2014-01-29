@@ -30,7 +30,7 @@ public class database {
         try {
             Class.forName(bcidClass);
             conn = DriverManager.getConnection(bcidUrl, bcidUser, bcidPassword);
-        } catch (java.lang.ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
             throw new Exception("Driver issues accessing BCID system");
         } catch (SQLException e) {

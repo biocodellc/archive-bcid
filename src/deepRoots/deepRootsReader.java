@@ -64,7 +64,7 @@ public class deepRootsReader {
      *
      * @param url
      * @return
-     * @throws IOException
+     * @throws java.io.IOException
      */
     protected String readFile(URL url) throws IOException {
         String everything;
@@ -90,8 +90,8 @@ public class deepRootsReader {
      * Main method used for local testing
      *
      * @param args
-     * @throws IOException
-     * @throws URISyntaxException
+     * @throws java.io.IOException
+     * @throws java.net.URISyntaxException
      */
     public static void main(String[] args) throws IOException, URISyntaxException {
         deepRootsReader reader = new deepRootsReader();

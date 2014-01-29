@@ -167,7 +167,7 @@ table.subtable {
 /**
 * A special Div class for toggling content on and off
 **/
-div.toggle-bcid-content, div.toggle-project-content {
+div.toggle-bcid-content, div.toggle-project-content, div.toggle-profile-content {
     display:none;
     margin: 0px 20px;
 }
@@ -176,4 +176,13 @@ div.toggle-bcid-content, div.toggle-project-content {
     vertical-align:middle;
     height:20px;
     border:none;
+}
+
+.error {
+    color: red;
+    font-size: 16px;
+}
+
+#login input {
+    margin: 5px;
 }

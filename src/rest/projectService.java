@@ -10,6 +10,7 @@ import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -63,7 +64,9 @@ public class projectService {
 
         // Get the user_id
         database db = new database();
-        Integer user_id = db.getUserId(request.getRemoteUser());
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+        Integer user_id = db.getUserId(username);
 
         if (user_id == null) {
             return Response.ok("error: user not validated").build();
@@ -101,7 +104,9 @@ public class projectService {
 
         // Get the user_id
         database db = new database();
-        Integer user_id = db.getUserId(request.getRemoteUser());
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+        Integer user_id = db.getUserId(username);
         if (user_id == null) {
             return Response.status(401).build();
         }

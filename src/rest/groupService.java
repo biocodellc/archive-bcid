@@ -10,35 +10,21 @@ import bcid.manageEZID;
 import bcid.GenericIdentifier;
 import bcid.resolver;
 import bcid.bcid;
+import bcid.profileRetriever;
 
 
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.authentication.AuthenticationManagerBeanDefinitionParser;
-import org.springframework.security.config.authentication.AuthenticationManagerFactoryBean;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.GrantedAuthorityImpl;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import util.SettingsManager;
 import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
 
 /**
  * REST interface calls for working with data groups.    This includes creating a group, looking up
@@ -80,6 +66,9 @@ public class groupService {
                        @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                        @Context HttpServletRequest request) throws Exception {
 
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+
         Boolean suffixPassthrough = false;
         // Format Input variables
         try {
@@ -102,7 +91,7 @@ public class groupService {
         // Create a Dataset
         database db = new database();
         // Check for remote-user
-        Integer user_id = db.getUserId(request.getRemoteUser());
+        Integer user_id = db.getUserId(username);
         if (user_id == null) {
             // status=401 means unauthorized user
             return Response.status(401).build();
@@ -111,7 +100,7 @@ public class groupService {
         // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
         // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
         boolean ezidRequest = true;
-        if (request.getRemoteUser().equals("demo")) {
+        if (username.equals("demo")) {
             ezidRequest = false;
         }
 
@@ -186,6 +175,9 @@ public class groupService {
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     public String datasetList(@Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+
         dataGroupMinter d = null;
         try {
             d = new dataGroupMinter();
@@ -193,7 +185,7 @@ public class groupService {
             e.printStackTrace();
         }
 
-        return d.datasetList(request.getRemoteUser());
+        return d.datasetList(username);
     }
 
     /**
@@ -205,6 +197,9 @@ public class groupService {
     @Path("/listUserBCIDsAsTable")
     @Produces(MediaType.TEXT_HTML)
     public String listUserBCIDsAsTable(@Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+
         dataGroupMinter d = null;
         try {
             d = new dataGroupMinter();
@@ -212,7 +207,7 @@ public class groupService {
             e.printStackTrace();
         }
 
-        return d.datasetTable(request.getRemoteUser());
+        return d.datasetTable(username);
     }
 
       /**
@@ -224,14 +219,38 @@ public class groupService {
     @Path("/listUserProjectsAsTable")
     @Produces(MediaType.TEXT_HTML)
     public String listUserProjectsAsTable(@Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+
         projectMinter p = null;
         try {
             p = new projectMinter();
-            return p.projectTable(request.getRemoteUser());
+            return p.projectTable(username);
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         return "Exception encountered attempting to list projects";
+    }
+    /**
+     * Return HTML response showing the user's profile
+     *
+     * @return String with HTML response
+     */
+    @GET
+    @Path("/listUserProfile")
+    @Produces(MediaType.TEXT_HTML)
+    public String listUserProfile(@Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+        profileRetriever p;
+
+        try {
+            p = new profileRetriever();
+            return p.getProfile(username);
+        }   catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "Exception encountered attempting to construct profile";
     }
 
 }

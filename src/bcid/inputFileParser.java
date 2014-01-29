@@ -52,8 +52,8 @@ public class inputFileParser {
      * Parse an input file and turn it into an Iterator containing elements
      *
      * @param inputString
-     * @throws IOException
-     * @throws URISyntaxException
+     * @throws java.io.IOException
+     * @throws java.net.URISyntaxException
      */
     public inputFileParser(String inputString, dataGroupMinter  dataset ) throws IOException, URISyntaxException {
 

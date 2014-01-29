@@ -11,6 +11,7 @@ import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -123,6 +124,8 @@ public class elementService {
         dataGroupMinter dataset = null;
         database db = null;
         Boolean suffixPassthrough = false;
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
 
 
         // Initialize database
@@ -134,7 +137,7 @@ public class elementService {
         }
 
         // Get the user_id
-        Integer user_id = db.getUserId(request.getRemoteUser());
+        Integer user_id = db.getUserId(username);
 
         // Request creation of new dataset
         if (dataset_id == 0) {
@@ -225,7 +228,7 @@ public class elementService {
                 sm.retrieveValue("mailPassword"),
                 sm.retrieveValue("mailFrom"),
                 sm.retrieveValue("mailTo"),
-                "New Elements From " + request.getRemoteUser(),
+                "New Elements From " + username,
                 returnVal);
         sendEmail.start();
 

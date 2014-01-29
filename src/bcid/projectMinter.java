@@ -125,7 +125,7 @@ public class projectMinter {
      *
      * @param datasetUUID
      * @return
-     * @throws SQLException
+     * @throws java.sql.SQLException
      */
     private Integer getProjectIdentifier(UUID datasetUUID) throws SQLException {
         Statement stmt = conn.createStatement();
@@ -236,7 +236,7 @@ public class projectMinter {
      *
      * @param project_code
      * @return
-     * @throws SQLException
+     * @throws java.sql.SQLException
      */
     public String getDeepRoots(String project_code) throws SQLException {
         // Get todays's date

@@ -1,7 +1,5 @@
-<%@ page session="false" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
@@ -22,12 +20,12 @@
         <div style='float:left'><h1>Biocode Commons Identifiers</h1></div>
 
         <div style='float:right' id="loginLink">
-            <sec:authorize ifNotGranted="user">
-                <a href="/bcid/secure/index.jsp">Login</a>
-            </sec:authorize>
-            <sec:authorize access="hasRole('user')">
-                <a href="/bcid/secure/user.jsp"><%= request.getRemoteUser() %></a> | <a href="/bcid/j_spring_security_logout">Logout</a>
-            </sec:authorize>
+            <c:if test="${user == null}">
+                <a href="/bcid/login.jsp">Login</a>
+            </c:if>
+            <c:if test="${user != null}">
+                <a href="/bcid/secure/user.jsp">${user}</a> | <a href="/id/logoutService">Logout</a>
+            </c:if>
             | <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>
             | <a href="https://code.google.com/p/bcid/">Help</a>
         </div>
@@ -38,7 +36,7 @@
             <div class="link"><a href='/bcid/index.jsp'>Lookup</a></div>
             <div class="separator">|</div>
 
-            <sec:authorize access="hasRole('user')">
+            <c:if test="${user != null}">
                 <div class="link"><a href='/bcid/secure/dataGroupCreator.jsp'>BCID Creator</a></div>
 
                 <!--<div class="separator">|</div><div class="link"><a href='/bcid/secure/creator.jsp'>Element Creator</a></div>-->
@@ -50,9 +48,9 @@
                 <div class="separator">|</div>
 
                 <div class="link"><a href='/bcid/secure/user.jsp'>User Tools</a></div>
-            </sec:authorize>
+            </c:if>
 
-            <sec:authorize ifNotGranted="user">
+            <c:if test="${user == null}">
                 <div class="disabledlink">BCID Creator</div>
 
                 <!--<div class="separator">|</div><div class="disabledlink">Element Creator</div>-->
@@ -64,7 +62,7 @@
                 <div class="separator">|</div>
 
                 <div class="disabledlink">User Tools</div>
-            </sec:authorize>
+            </c:if>
 
             <!--<div class="separator">|</div>
             <div class="link"><a href='/bcid/requestEZID.jsp'>Request EZID</a></div>-->

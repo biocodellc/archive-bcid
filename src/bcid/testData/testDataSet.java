@@ -9,8 +9,8 @@ import java.util.ArrayList;
 public class testDataSet extends ArrayList {
     public testDataSet() {
         try {
-            this.add(new bcid.testData.testDataRow("http://biocode.berkeley.edu/specimens/MBIO1000","UMC:Molluscs:9592", bcid.ResourceTypes.PHYSICALOBJECT));
-            this.add(new bcid.testData.testDataRow("http://biocode.berkeley.edu/specimens/MBIO1400","UMC:Molluscs:18544   ", bcid.ResourceTypes.PHYSICALOBJECT));
+            this.add(new testDataRow("http://biocode.berkeley.edu/specimens/MBIO1000","UMC:Molluscs:9592", bcid.ResourceTypes.PHYSICALOBJECT));
+            this.add(new testDataRow("http://biocode.berkeley.edu/specimens/MBIO1400","UMC:Molluscs:18544   ", bcid.ResourceTypes.PHYSICALOBJECT));
 
             //this.add(new testDataRow("http://biocode.berkeley.edu/specimens/MBIO1000","MBIO1000", ResourceTypes.PHYSICALOBJECT));
             //this.add(new testDataRow("http://biocode.berkeley.edu/specimens/MBIO1400","MBIO1400", ResourceTypes.PHYSICALOBJECT));
