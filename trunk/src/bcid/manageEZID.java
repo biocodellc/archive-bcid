@@ -251,7 +251,7 @@ public class manageEZID extends elementMinter {
      * This function works for both Datasets and Identifiers table
      *
      * @param idSuccessList
-     * @throws SQLException
+     * @throws java.sql.SQLException
      */
     private void updateEZIDMadeField(ArrayList idSuccessList, String table) throws SQLException {
 

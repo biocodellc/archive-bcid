@@ -21,7 +21,7 @@ public abstract class GenericIdentifier implements GenericIdentifierInterface {
      * The resolution target for this identifier
      *
      * @return
-     * @throws URISyntaxException
+     * @throws java.net.URISyntaxException
      */
     public URI getResolutionTarget() throws URISyntaxException {
         return new URI(resolverTargetPrefix);
@@ -31,7 +31,7 @@ public abstract class GenericIdentifier implements GenericIdentifierInterface {
      * The metadata target for this identifier
      *
      * @return
-     * @throws URISyntaxException
+     * @throws java.net.URISyntaxException
      */
     public URI getMetadataTarget() throws URISyntaxException {
         return new URI(resolverMetadataPrefix);

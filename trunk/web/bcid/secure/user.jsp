@@ -3,7 +3,7 @@
 <div id="user" class="section">
 
     <div class="sectioncontent">
-        <h2><%= request.getRemoteUser() %> User Tools</h2>
+        <h2>${user} User Tools</h2>
 
         <br>
         <a class="expand-bcid-content" href="#">
@@ -22,6 +22,15 @@
         <div class="toggle-project-content">
             <div id=listUserProjectsAsTable style="overflow:auto;">Loading projects</div>
         </div>
+
+        <br>
+        <a class="expand-profile-content" href="javascript:void(0)">
+            <img src="../images/right-arrow.png" id="profile-arrow" class="img-arrow">User Profile
+        </a>
+
+        <div class="toggle-profile-content">
+            <div id=listUserProfile style="overflow:auto;">Loading profile</div>
+        </div>
     </div>
 </div>
 
@@ -37,6 +46,12 @@
         "/id/groupService/listUserProjectsAsTable",
         "listUserProjectsAsTable",
         "Unable to load this user's projects from Server");
+
+    // Populate User Profile
+    window.onload = populateDivFromService(
+        "/id/groupService/listUserProfile",
+        "listUserProfile",
+        "Unable to load this user's profile from the Server");
 
     // Expand/Collapse BCIDs Section
     $('.expand-bcid-content').click(function(){
@@ -58,6 +73,17 @@
         }
 
         $('.toggle-project-content').slideToggle('slow');
+    });
+
+    // Expand/Collapse Profile Section
+    $('.expand-profile-content').click(function(){
+        if ($('.toggle-profile-content').is(':hidden')) {
+            $('#profile-arrow').attr("src","../images/down-arrow.png");
+        } else {
+            $('#profile-arrow').attr("src","../images/right-arrow.png");
+        }
+
+        $('.toggle-profile-content').slideToggle('slow');
     });
 </script>
 

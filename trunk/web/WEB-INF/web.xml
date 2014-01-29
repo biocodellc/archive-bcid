@@ -30,33 +30,14 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
-    <!--
-     - Location of the XML file that defines the root application context
-     - Applied by ContextLoaderListener.
-    -->
-    <!-- BEGIN SPRING STUFF-->
-    <context-param>
-        <param-name>contextConfigLocation</param-name>
-        <param-value>
-            /WEB-INF/database.xml,
-            /WEB-INF/security-app-context.xml
-        </param-value>
-    </context-param>
     <filter>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <filter-name>secureFilter</filter-name>
+        <filter-class>auth.secureFilter</filter-class>
     </filter>
-
     <filter-mapping>
-        <filter-name>springSecurityFilterChain</filter-name>
-        <url-pattern>/*</url-pattern>
+        <filter-name>secureFilter</filter-name>
+        <url-pattern>/bcid/secure/*</url-pattern>
     </filter-mapping>
-
-    <listener>
-        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-    </listener>
-    <!-- END SPRING STUFF-->
-
 
     <error-page>
         <error-code>500</error-code>

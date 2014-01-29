@@ -10,7 +10,6 @@ To get bcid running on your own server, do the following:
 
 3. Update template files:
     a. Copy bcidsettings.template to bcidsettings.props and change appropriate values
-    b. Copy /web/WEB-INF/database-template.xml to /web/WEB-INF/database.xml
 
 Server Stuff
 enable port 80 requests to forward to 8080 for ALL deployed services on this particular VM:

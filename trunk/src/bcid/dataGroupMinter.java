@@ -216,7 +216,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      *
      * @param datasetUUID
      * @return
-     * @throws SQLException
+     * @throws java.sql.SQLException
      */
     private Integer getDatasetIdentifier(UUID datasetUUID) throws SQLException {
         Statement stmt = conn.createStatement();
@@ -231,7 +231,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      *
      * @param prefix
      * @return An Integer representing a dataset
-     * @throws SQLException
+     * @throws java.sql.SQLException
      */
     public Integer getDatasetId(String prefix) {
         Statement stmt = null;
@@ -255,7 +255,7 @@ public class dataGroupMinter extends dataGroupEncoder {
     /**
      * Close the SQL connection
      *
-     * @throws SQLException
+     * @throws java.sql.SQLException
      */
     public void close() {
         try {
