@@ -1,0 +1,34 @@
+# RDF Terms to use -- Be Careful modifying these terms!
+type = http://www.w3.org/1999/02/22-rdf-syntax-ns#type
+geo = http://www.w3.org/2003/01/geo/wgs84_pos#SpatialThing
+datelastmodified = http://purl.org/dc/terms/modified
+relativeOf = http://biscicol.org/biscicol.rdf#relativeOf
+hasSource = http://www.w3.org/ns/ma-ont#hasSource
+isSourceOf = http://www.w3.org/ns/ma-ont#isSourceOf
+isRelatedTo = http://www.w3.org/ns/ma-ont#isRelatedTo
+
+#EZID credentials under bcid sub-account to UCB Library
+eziduser = user
+ezidpass = pass
+bcidNAAN = 1234
+doiShoulder = doi:10.1234/FK2
+bcidTemporaryNAAN = ark:/99999/fk4
+
+# BCID settings
+bcidUser = user
+bcidPassword = pass
+bcidUrl = jdbc:mysql://host:3306/mydb
+bcidClass = com.mysql.jdbc.Driver
+bcidStartingNumber = 100
+creatorLimit = 50000
+
+# Mail settings
+mailUser = someone@gmail.com
+mailFrom = someone@gmail.com
+mailPassword = mypassword
+mailTo = someone@somedomain.com
+
+# The divider to use that separates the ARK portion and the Suffix Portion
+divider = _
+
+
