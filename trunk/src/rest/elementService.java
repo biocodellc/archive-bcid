@@ -171,7 +171,14 @@ public class elementService {
             try {
                 dataset = new dataGroupMinter(true, suffixPassthrough);
                 // we don't know DOI or webaddress from this call, so we set them to NULL
-                dataset.mint(new Integer(sm.retrieveValue("bcidNAAN")), user_id, resourceType, doi, webaddress, graph, title);
+                dataset.mint(
+                        new Integer(sm.retrieveValue("bcidNAAN")),
+                        user_id,
+                        new ResourceTypes().get(resourceType).uri,
+                        doi,
+                        webaddress,
+                        graph,
+                        title);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new WebApplicationException(Response.Status.BAD_REQUEST);

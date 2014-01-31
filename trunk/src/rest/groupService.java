@@ -11,7 +11,7 @@ import bcid.GenericIdentifier;
 import bcid.resolver;
 import bcid.bcid;
 import bcid.profileRetriever;
-
+import bcid.ResourceTypes;
 
 import edu.ucsb.nceas.ezid.EZIDException;
 import edu.ucsb.nceas.ezid.EZIDService;
@@ -59,12 +59,23 @@ public class groupService {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public Response mint(@FormParam("doi") String doi,
-                       @FormParam("webaddress") String webaddress,
-                       @FormParam("graph") String graph,
-                       @FormParam("title") String title,
-                       @FormParam("resourceTypesMinusDataset") Integer resourceType,
-                       @FormParam("suffixPassThrough") String stringSuffixPassThrough,
-                       @Context HttpServletRequest request) throws Exception {
+                         @FormParam("webaddress") String webaddress,
+                         @FormParam("graph") String graph,
+                         @FormParam("title") String title,
+                         @FormParam("resourceType") String resourceTypeString,
+                         @FormParam("resourceTypesMinusDataset") Integer resourceType,
+                         @FormParam("suffixPassThrough") String stringSuffixPassThrough,
+                         @Context HttpServletRequest request) throws Exception {
+
+        // If resourceType is specified by an integer, then use that to set the String resourceType.
+        // If the user omits
+        try {
+            if (resourceType != null && resourceType > 0) {
+                resourceTypeString = new ResourceTypes().get(resourceType).uri;
+            }
+        } catch (Exception e) {
+            return Response.ok("ERROR: BCID System Unable to set resource type").build();
+        }
 
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
@@ -109,7 +120,7 @@ public class groupService {
         minterDataset.mint(
                 new Integer(sm.retrieveValue("bcidNAAN")),
                 user_id,
-                resourceType,
+                new ResourceTypes().get(resourceType).uri,
                 doi,
                 webaddress,
                 graph,
@@ -210,7 +221,7 @@ public class groupService {
         return d.datasetTable(username);
     }
 
-      /**
+    /**
      * Return HTML response showing a table of groups belonging to this user
      *
      * @return String with HTML response
@@ -231,6 +242,7 @@ public class groupService {
         }
         return "Exception encountered attempting to list projects";
     }
+
     /**
      * Return HTML response showing the user's profile
      *
@@ -247,7 +259,7 @@ public class groupService {
         try {
             p = new profileRetriever();
             return p.getProfileHTML(username);
-        }   catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return "Exception encountered attempting to construct profile";

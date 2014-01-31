@@ -156,7 +156,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param title
      * @throws Exception
      */
-    public Integer mint(Integer NAAN, Integer who, Integer resourceType, String doi, String webaddress, String graph, String title) throws Exception {
+    public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) throws Exception {
 
         database db = new database();
 
@@ -178,7 +178,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
             insertStatement.setInt(1, who);
-            insertStatement.setString(2, new ResourceTypes().get(resourceType).uri);
+            insertStatement.setString(2, resourceType);
             insertStatement.setString(3, doi);
             insertStatement.setString(4, webaddress);
             insertStatement.setString(5, graph);

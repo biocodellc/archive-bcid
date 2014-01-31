@@ -137,7 +137,7 @@ public class expeditionMinter {
                 "    \twhere pB.datasets_id=d.datasets_id\n" +
                 "    \tand pB.project_id=p.project_id\n" +
                 " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                "    and p.expedition_id =1\n" +
+                "    and p.expedition_id = " + expedition_id + "\n" +
                 "    \tgroup by p.project_code) as  d2,\n" +
                 "projects p,  projectsBCIDs pB\n" +
                 "where p.project_code = d2.project_code and d1.ts = d2.maxts\n" +
@@ -146,6 +146,7 @@ public class expeditionMinter {
                 " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
                 "    and p.expedition_id =" + expedition_id;
 
+       // System.out.println(sql);
         sb.append("{\n\t\"data\": [\n");
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
@@ -169,7 +170,7 @@ public class expeditionMinter {
         try {
             // See if the user owns this project or no
             expeditionMinter expedition = new expeditionMinter();
-            System.out.println("results = \n" + expedition.getLatestGraphs(1));
+            System.out.println("results = \n" + expedition.getLatestGraphs(5));
 
         } catch (Exception e) {
             throw new Exception(e);
