@@ -2,19 +2,20 @@ package rest;
 
 import auth.authenticator;
 import bcid.database;
+import bcid.profileRetriever;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 
 /**
@@ -26,6 +27,7 @@ public class profileService {
     protected Connection conn;
 
     @POST
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
     public void updateProfile(@FormParam("name") String fullname,
                               @FormParam("email") String email,
@@ -66,14 +68,21 @@ public class profileService {
         database db;
 
         // Check if any other fields should be updated
-        if (!fullname.isEmpty()) {
-            update.put("fullname", fullname);
-        }
-        if (!email.isEmpty()) {
-            update.put("email", email);
-        }
-        if (!institution.isEmpty()) {
-            update.put("institution", institution);
+        try {
+            profileRetriever p = new profileRetriever();
+
+            if (!fullname.equals(p.getName(username))) {
+                update.put("fullname", fullname);
+            }
+            if (!email.equals(p.getEmail(username))) {
+                update.put("email", email);
+            }
+            if (!institution.equals(p.getInstitution(username))) {
+                update.put("institution", institution);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         if (!update.isEmpty()) {
@@ -136,5 +145,22 @@ public class profileService {
         }
 
         response.sendRedirect("/bcid/secure/profile.jsp?error=" + error);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getProfile(@Context HttpServletRequest request)
+        throws IOException {
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
+        profileRetriever p;
+
+        try {
+            p = new profileRetriever();
+            return p.getProfileJSON(username);
+        }   catch (Exception e) {
+            e.printStackTrace();
+        }
+        return("Error");
     }
 }
