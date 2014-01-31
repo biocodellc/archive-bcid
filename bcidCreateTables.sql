@@ -12,11 +12,14 @@ DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `user_id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `username` varchar(50) not null primary key,
-  `password` varchar(50) not null,
+  `password` varchar(110) not null,
   `enabled` boolean not null,
   `email` char(64) DEFAULT NULL,
   `fullname` char(128) DEFAULT NULL,
+  `institution` char(128) DEFAULT NULL,
   `IDlimit` int(11) DEFAULT NULL,
+  `set_password` boolean not null,
+  `admin` boolean not null,
    KEY (`USER_ID`)
 ) ENGINE=Innodb DEFAULT CHARSET=utf8;
 

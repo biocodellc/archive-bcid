@@ -23,6 +23,7 @@ public class authenticator {
 
     /**
      * Constructor that initializes the class level variables
+     *
      * @param username
      * @param password
      */
@@ -43,6 +44,7 @@ public class authenticator {
 
     /**
      * Public method to verify a users password
+     *
      * @return
      */
     public Boolean login() {
@@ -52,11 +54,9 @@ public class authenticator {
         if (!hashedPass.isEmpty()) {
             try {
                 return passwordHash.validatePassword(password, hashedPass);
-            }
-            catch (InvalidKeySpecException e) {
+            } catch (InvalidKeySpecException e) {
                 e.printStackTrace();
-            }
-            catch (NoSuchAlgorithmException e) {
+            } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
         }
@@ -66,6 +66,7 @@ public class authenticator {
 
     /**
      * retrieve the user's hashed password from the db
+     *
      * @return
      */
     private String getHashedPass() {
@@ -89,6 +90,7 @@ public class authenticator {
 
     /**
      * Takes a new password for a user and stores a hashed version
+     *
      * @param password
      * @return
      */
@@ -99,10 +101,10 @@ public class authenticator {
         // create a hash of the password
         try {
             hashedPass = passwordHash.createHash(password);
-        }   catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return false;
-        }   catch (InvalidKeySpecException e) {
+        } catch (InvalidKeySpecException e) {
             e.printStackTrace();
             return false;
         }
@@ -127,6 +129,7 @@ public class authenticator {
 
     /**
      * Check if the user has set their own password or if they are using a temporary password
+     *
      * @return
      */
     public Boolean userSetPass() {
@@ -153,6 +156,7 @@ public class authenticator {
 
     /**
      * This will update a given users password. Probably not the best way to do this though.
+     *
      * @param args username and password
      */
     public static void main(String args[]) {
@@ -167,10 +171,10 @@ public class authenticator {
 
         try {
             cl = clp.parse(options, args);
-        }   catch (UnrecognizedOptionException e) {
+        } catch (UnrecognizedOptionException e) {
             System.out.println("Error: " + e.getMessage());
             return;
-        }   catch (ParseException e) {
+        } catch (ParseException e) {
             System.out.println("Error: " + e.getMessage());
             return;
         }
@@ -207,4 +211,6 @@ public class authenticator {
 
         System.out.println("Successfully set new password for " + username);
     }
+
+
 }
