@@ -4,16 +4,6 @@
     <div class="sectioncontent" id="login">
         <h2>Edit BCID Profile Information</h2>
 
-        Fill in any information you would like to change.
-
-        <ul>
-            <li><b>Name</b> is optional.
-            <li><b>Email</b> is optional.
-            <li><b>Institution</b> is optional.
-            <li><b>New Password</b> is optional
-            <li><b>Old Password*</b> is required if entering a new password, otherwise new password will not save
-        </ul>
-
         <form method="POST" action="/id/profileService">
             <table>
                 <tr>
@@ -51,3 +41,10 @@
 
     </div>
 </div>
+
+<script>
+    // Populate form data
+    window.onload = populateProfileForm();
+</script>
+
+<%@ include file="../footer.jsp" %>

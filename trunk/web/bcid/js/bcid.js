@@ -150,4 +150,13 @@ function resolverResults() {
     window.location.replace("/id/metadata/" + $("#identifier").val());
 }
 
-
+// Populate the edit profile form
+function populateProfileForm() {
+    // get JSON from server
+    var jqxhr = $.getJSON("/id/profileService", function() {})
+        .done(function(data) {
+            $.each(data, function(key, val) {
+                $('[name=' + key + ']').val(val);
+            });
+        });
+}

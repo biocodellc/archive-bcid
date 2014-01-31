@@ -246,7 +246,7 @@ public class groupService {
 
         try {
             p = new profileRetriever();
-            return p.getProfile(username);
+            return p.getProfileHTML(username);
         }   catch (Exception e) {
             e.printStackTrace();
         }

@@ -19,7 +19,7 @@ public class profileRetriever {
      * @param username
      * @return
      */
-    public String getProfile(String username) {
+    public String getProfileHTML(String username) {
         StringBuilder sb = new StringBuilder();
         String name = getName(username);
         String email = getEmail(username);
@@ -58,11 +58,29 @@ public class profileRetriever {
     }
 
     /**
+     * return JSON on user profile information
+     * @param username
+     * @return
+     */
+    public String getProfileJSON(String username) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\n");
+
+        sb.append("\t\"name\": \"" + getName(username) + "\",\n");
+        sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
+        sb.append("\t\"institution\": \"" + getInstitution(username) + "\"\n");
+
+        sb.append("}");
+
+        return sb.toString();
+    }
+
+    /**
      * lookup the user's institution
      * @param username
      * @return
      */
-    private String getInstitution(String username) {
+    public String getInstitution(String username) {
         PreparedStatement stmt;
         try {
             String selectStatement = "Select institution from users where username = ?";
@@ -86,7 +104,7 @@ public class profileRetriever {
      * @param username
      * @return
      */
-    private String getEmail(String username) {
+    public String getEmail(String username) {
         PreparedStatement stmt;
         try {
             String selectStatement = "Select email from users where username = ?";
@@ -110,7 +128,7 @@ public class profileRetriever {
      * @param username
      * @return
      */
-    private String getName(String username) {
+    public String getName(String username) {
         PreparedStatement stmt;
         try {
             String selectStatement = "Select fullname from users where username = ?";
