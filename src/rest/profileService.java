@@ -6,11 +6,9 @@ import bcid.database;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.sql.Connection;
@@ -28,6 +26,7 @@ public class profileService {
     protected Connection conn;
 
     @POST
+    @Produces(MediaType.TEXT_HTML)
     public void updateProfile(@FormParam("name") String fullname,
                               @FormParam("email") String email,
                               @FormParam("institution") String institution,
@@ -67,17 +66,17 @@ public class profileService {
         database db;
 
         // Check if any other fields should be updated
-        if (!(fullname.isEmpty())) {
+        if (!fullname.isEmpty()) {
             update.put("fullname", fullname);
         }
-        if (!(email.isEmpty())) {
+        if (!email.isEmpty()) {
             update.put("email", email);
         }
-        if (!(institution.isEmpty())) {
+        if (!institution.isEmpty()) {
             update.put("institution", institution);
         }
 
-        if (!(update.isEmpty())) {
+        if (!update.isEmpty()) {
             try {
                 db = new database();
                 conn = db.getConn();

@@ -5,7 +5,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 
 /**
@@ -16,6 +18,7 @@ import java.io.IOException;
 public class logoutService {
 
     @GET
+    @Produces(MediaType.TEXT_HTML)
     public void logout(@Context HttpServletRequest req,
                        @Context HttpServletResponse res)
             throws IOException{
