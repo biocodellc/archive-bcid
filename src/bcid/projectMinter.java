@@ -64,7 +64,7 @@ public class projectMinter {
         try {
             try {
                 checkProjectCodeValid(project_code);
-                checkProjectCodeAvailable(project_code);
+                checkProjectCodeAvailable(project_code, expedition_id);
             } catch (Exception e) {
                 throw new Exception(e);
             }
@@ -230,7 +230,6 @@ public class projectMinter {
     }
 
 
-
     /**
      * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
      *
@@ -384,19 +383,18 @@ public class projectMinter {
     }
 
 
-
-
     public static void main(String args[]) {
         try {
             // See if the user owns this project or no
             projectMinter project = new projectMinter();
-        //    System.out.println("validation XML for expedition = " +project.getValidationXML(1));
-
-            if (project.projectExistsInExpedition("DEMOK",1)) {
+            //    System.out.println("validation XML for expedition = " +project.getValidationXML(1));
+           /*
+            if (project.projectExistsInExpedition("DEMOH", 1)) {
                 System.out.println("project exists in expedition");
             } else {
                 System.out.println("project does not exist in expedition");
             }
+            */
             /*System.out.println(project.getDeepRoots("HDIM"));
 
             if (project.userOwnsProject(8, "DEMOG")) {
@@ -413,16 +411,15 @@ public class projectMinter {
             */
 
             // Test creating a project
-            /*
+
             Integer project_id = project.mint(
-                    "DEMO1",
-                    "DEMO TITLE",
+                    "DEMOH",
+                    "Test creating project under an expedition for which it already exists",
                     null,
-                    null,
-                    8);
+                    8, 4);
 
             System.out.println(project.printMetadata(project_id));
-            */
+
             //System.out.println(p.projectTable("demo"));
 
         } catch (Exception e) {
@@ -452,15 +449,18 @@ public class projectMinter {
      * @param project_code
      * @return
      */
-    private void checkProjectCodeAvailable(String project_code) throws Exception {
+    private void checkProjectCodeAvailable(String project_code, Integer expedition_id) throws Exception {
 
         Statement stmt = conn.createStatement();
-        String sql = "select count(*) as count from projects where project_code = '" + project_code + "'";
+        String sql = "SELECT count(*) as count " +
+                "FROM projects " +
+                "WHERE project_code = '" + project_code + "' AND " +
+                "expedition_id = " + expedition_id;
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         Integer count = rs.getInt("count");
         if (count >= 1) {
-            throw new Exception("Project code " + project_code + " already exists!");
+            throw new Exception("Project code " + project_code + " already exists for this expedition.");
         }
 
     }

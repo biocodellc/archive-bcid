@@ -63,15 +63,15 @@ public class groupService {
                          @FormParam("graph") String graph,
                          @FormParam("title") String title,
                          @FormParam("resourceType") String resourceTypeString,
-                         @FormParam("resourceTypesMinusDataset") Integer resourceType,
+                         @FormParam("resourceTypesMinusDataset") Integer resourceTypesMinusDataset,
                          @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                          @Context HttpServletRequest request) throws Exception {
 
         // If resourceType is specified by an integer, then use that to set the String resourceType.
         // If the user omits
         try {
-            if (resourceType != null && resourceType > 0) {
-                resourceTypeString = new ResourceTypes().get(resourceType).uri;
+            if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
+                resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).uri;
             }
         } catch (Exception e) {
             return Response.ok("ERROR: BCID System Unable to set resource type").build();
@@ -120,7 +120,7 @@ public class groupService {
         minterDataset.mint(
                 new Integer(sm.retrieveValue("bcidNAAN")),
                 user_id,
-                new ResourceTypes().get(resourceType).uri,
+                resourceTypeString,
                 doi,
                 webaddress,
                 graph,

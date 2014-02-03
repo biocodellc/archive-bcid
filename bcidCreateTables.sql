@@ -87,7 +87,7 @@ CREATE TABLE `projects` (
   `users_id` int(10) DEFAULT NULL COMMENT 'who created this data',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   UNIQUE KEY `project_project_id_idx` (`project_id`),
-  UNIQUE KEY `project_projectcode_idx` (`project_code`),
+  UNIQUE KEY `project_projectcode_expedition_idx` (`project_code`,`expedition_id`),
   KEY `project_expedition_id_idx` (`expedition_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
