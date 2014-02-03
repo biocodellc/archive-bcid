@@ -33,7 +33,7 @@
         <p><h2>About</h2><br>
 
         BCIDs are free, persistent, scalable, resolvable identifiers for all biological and biodiversity samples, sub-samples, and processes.
-        They are an extension of the <a href="http://n2t.net/ezid">California Digital Library EZID solution</a> and fall under
+        They are an extension of the <a href="http://ezid.cdlib.org">California Digital Library EZID solution</a> and fall under
         the <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>.  Since they are
         self-describing and require attribution, the only requirement for their use and persistence is that
         they maintain their form in any consuming application.
@@ -72,7 +72,7 @@
                 <td>Resolution service for a group plus suffix identifier, not active yet!</td>
             </tr>
             <tr>
-                <td><a href="http://n2t.net/ezid/id/ark:/21547/R2">http://n2t.net/ezid/id/ark:/21547/R2</a></td>
+                <td><a href="http://ezid.cdlib.org/id/ark:/21547/R2">http://n2t.net/ezid/id/ark:/21547/R2</a></td>
                 <td>EZID</td>
                 <td>Metadata service for a group identifier</td>
             </tr>

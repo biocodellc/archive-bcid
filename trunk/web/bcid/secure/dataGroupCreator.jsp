@@ -8,15 +8,6 @@
 
         Create a group-level identifier that acts as a container for an unlimited number of user-specified elements.
 
-       <!--
-        <ul>
-        <li>BCID (datagroup) = ark:/21547/C2
-        <li>BCID (w/ suffix) = ark:/21547/C2_MyIdentifier1
-        <li>target URL       = http://mytargetservice/specimens/
-        <li>Resolves to      = http://mytargetservice/specimens/MyIdentifier1
-        <li>BCID Metadata    = http://biscicol.org/bcid/rest/ark:/21547/C2_MyIdentifier1
-        <li>EZID Metadata    = http://n2t.net/ezid/ark:/21547/C2_MyIdentifier1#
-        </ul>-->
         View the <a href="http://code.google.com/p/bcid">BCID codesite</a> for more information.
         <ul>
             <li><b>Title*</b> is required.

@@ -410,7 +410,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      */
     public String getEZIDMetadataLink(String pPrefix, String username, String linkText) {
         if (!username.equals("demo")) {
-            return "(<a href='http://n2t.net/ezid/id/" + pPrefix + "'>" + linkText+ "</a>)";
+            return "(<a href='http://ezid.cdlib.org/id/" + pPrefix + "'>" + linkText+ "</a>)";
         } else {
             return "";
             //return "(<a href='" + resolverTargetPrefix + pPrefix + "'>metadata</a>)";
