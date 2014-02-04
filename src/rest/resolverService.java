@@ -2,8 +2,6 @@ package rest;
 
 import bcid.Renderer.RDFRenderer;
 import bcid.resolver;
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 
 import javax.servlet.ServletContext;

@@ -3,8 +3,6 @@ package rest;
 import bcid.Renderer.*;
 import bcid.resolver;
 import com.sun.jersey.api.view.Viewable;
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
 import util.SettingsManager;
 
 import javax.servlet.ServletContext;

@@ -4,8 +4,8 @@ import bcid.*;
 import bcid.Renderer.TextRenderer;
 import net.sf.json.JSONArray;
 import util.SettingsManager;
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
+import ezid.EZIDException;
+import ezid.EZIDService;
 import util.sendEmail;
 
 
