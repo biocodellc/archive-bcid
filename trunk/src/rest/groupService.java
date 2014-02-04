@@ -13,8 +13,8 @@ import bcid.bcid;
 import bcid.profileRetriever;
 import bcid.ResourceTypes;
 
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
+import ezid.EZIDException;
+import ezid.EZIDService;
 import util.SettingsManager;
 import util.sendEmail;
 

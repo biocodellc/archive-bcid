@@ -1,6 +1,6 @@
 package bcid;
 
-import edu.ucsb.nceas.ezid.EZIDService;
+import ezid.EZIDService;
 import util.SettingsManager;
 
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;

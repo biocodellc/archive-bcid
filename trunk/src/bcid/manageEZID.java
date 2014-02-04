@@ -1,7 +1,7 @@
 package bcid;
 
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
+import ezid.EZIDException;
+import ezid.EZIDService;
 
 import java.math.BigInteger;
 import java.net.URI;

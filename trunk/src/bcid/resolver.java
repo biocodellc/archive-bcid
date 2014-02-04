@@ -4,8 +4,8 @@ import bcid.Renderer.HTMLTableRenderer;
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.RDFRenderer;
 import bcid.Renderer.Renderer;
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
+import ezid.EZIDException;
+import ezid.EZIDService;
 import util.SettingsManager;
 import util.timer;
 

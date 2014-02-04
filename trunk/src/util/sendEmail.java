@@ -1,7 +1,7 @@
 package util;
 
-import edu.ucsb.nceas.ezid.EZIDException;
-import edu.ucsb.nceas.ezid.EZIDService;
+import ezid.EZIDException;
+import ezid.EZIDService;
 
 import javax.mail.*;
 import javax.mail.internet.AddressException;
