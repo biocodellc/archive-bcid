@@ -80,7 +80,7 @@ public class resolver extends database {
      * @param conceptAlias defines the alias to narrow this,  a one-word reference denoting a BCID
      * @return returns the BCID for this project and conceptURI combination
      */
-    public resolver(String project_code, String conceptAlias) throws Exception {
+    public resolver(String project_code, Integer expedition_id, String conceptAlias) throws Exception {
         ResourceTypes resourceTypes = new ResourceTypes();
         ResourceType rt = resourceTypes.getByShortName(conceptAlias);
         String uri = rt.uri;
@@ -95,6 +95,7 @@ public class resolver extends database {
                     "d.datasets_id=pb.datasets_id && \n" +
                     "pb.project_id=p.project_id && \n" +
                     "p.project_code='" + project_code + "' && \n" +
+                    "p.expedition_id =" + expedition_id + " && \n" +
                     "d.resourceType='" + uri + "'";
             ResultSet rs = stmt.executeQuery(query);
             rs.next();
@@ -463,7 +464,7 @@ public class resolver extends database {
             //Renderer ren = new RDFRenderer();
             //System.out.println(r.printMetadata(ren));
 
-            r = new resolver("DEMOH", "Sequencing");
+            r = new resolver("DEMOH", 1, "Sequencing");
             System.out.println(r.getArk());
             //System.out.println(r.resolveARK().toString());
         } catch (Exception e) {

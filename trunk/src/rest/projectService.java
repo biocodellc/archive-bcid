@@ -30,11 +30,12 @@ public class projectService {
     @Produces(MediaType.TEXT_HTML)
     @Path("/associate")
     public Response mint(@FormParam("project_code") String project_code,
-                         @FormParam("bcid") String bcid) {
+                         @FormParam("bcid") String bcid,
+                         @FormParam("expedition_id") Integer expedition_id) {
         projectMinter project = null;
         try {
             project = new projectMinter();
-            project.attachReferenceToProject(project_code, bcid);
+            project.attachReferenceToProject(project_code, bcid, expedition_id);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,7 +78,7 @@ public class projectService {
             // Mint a project
             project = new projectMinter();
             //System.out.println("checking user_id = " + user_id + " & project_code = " + project_code);
-            if (project.userOwnsProject(user_id,project_code)) {
+            if (project.userOwnsProject(user_id,project_code, expedition_id)) {
                 // If the user already owns the project, then great--- this is an update
                 return Response.ok("update: user owns this project").build();
                 // If the project exists in the expedition but the user does not own the project then this means we can't
@@ -161,12 +162,13 @@ public class projectService {
      * @throws Exception
      */
     @GET
-    @Path("/{project}/{resourceAlias}")
+    @Path("/{expedition_id}/{project}/{resourceAlias}")
     @Produces(MediaType.TEXT_HTML)
     public Response fetchAlias(@PathParam("project") String project,
+                               @PathParam("expedition_id") Integer expedition_id,
                                @PathParam("resourceAlias") String resourceAlias) throws Exception {
 
-        resolver r = new resolver(project, resourceAlias);
+        resolver r = new resolver(project, expedition_id, resourceAlias);
         String response = r.getArk();
         if (response == null) {
             return Response.status(204).build();
@@ -176,19 +178,20 @@ public class projectService {
     }
 
        /**
-     * Given a project code return a list of resource Types associated with it
+     * Given an expedition and a project code return a list of resource Types associated with it
      *
      * @param project
      * @return
      * @throws Exception
      */
     @GET
-    @Path("/deepRoots/{project}")
+    @Path("/deepRoots/{expedition_id}/{project}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response fetchDeepRoots(@PathParam("project") String project) throws Exception {
+    public Response fetchDeepRoots(@PathParam("project") String project,
+                                   @PathParam("expedition_id") Integer expedition_id) throws Exception {
         projectMinter projectMinter = new projectMinter();
 
-        String response = projectMinter.getDeepRoots(project);
+        String response = projectMinter.getDeepRoots(project, expedition_id);
 
         if (response == null) {
             return Response.status(204).build();
