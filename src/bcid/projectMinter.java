@@ -105,8 +105,8 @@ public class projectMinter {
      * @param bcid
      * @throws Exception
      */
-    public void attachReferenceToProject(String project_code, String bcid) throws Exception {
-        Integer project_id = getProjectIdentifier(project_code);
+    public void attachReferenceToProject(String project_code, String bcid, Integer expedition_id) throws Exception {
+        Integer project_id = getProjectIdentifier(project_code, expedition_id);
         Integer datasetsId = new resolver(bcid).getDataGroupID();
 
         String insertString = "INSERT INTO projectsBCIDs " +
@@ -139,9 +139,12 @@ public class projectMinter {
         }
     }
 
-    private Integer getProjectIdentifier(String project_code) throws SQLException {
+    private Integer getProjectIdentifier(String project_code, Integer expedition_id) throws SQLException {
         Statement stmt = conn.createStatement();
-        String sql = "select project_id from projects where project_code = '" + project_code + "'";
+        String sql = "SELECT project_id " +
+                "FROM projects " +
+                "WHERE project_code = '" + project_code + "' AND " +
+                "expedition_id = " + expedition_id;
         ResultSet rs = stmt.executeQuery(sql);
         try {
             rs.next();
@@ -189,7 +192,10 @@ public class projectMinter {
     public String printMetadataHTML(int id) throws SQLException {
         StringBuilder sb = new StringBuilder();
         Statement stmt = conn.createStatement();
-        String sql = "select project_id,project_code,project_title,username from projects,users where users.user_id = projects.users_id && project_id =" + id;
+        String sql = "SELECT project_id,project_code,project_title,username " +
+                "FROM projects,users " +
+                "WHERE users.user_id = projects.users_id " +
+                "&& project_id = " + id;
         ResultSet rs = stmt.executeQuery(sql);
         sb.append("<table>");
 
@@ -209,7 +215,14 @@ public class projectMinter {
     }
 
 
-    public boolean userOwnsProject(Integer users_id, String project_code) throws SQLException {
+    /**
+     * Discover if a user owns this project or not
+     * @param users_id
+     * @param project_code
+     * @return
+     * @throws SQLException
+     */
+    public boolean userOwnsProject(Integer users_id, String project_code, Integer expedition_id) throws SQLException {
         Statement stmt = conn.createStatement();
         //String sql = "select project_id,project_code,project_title,username from projects,users where users.user_id = projects.users_id && users.username =\"" + remoteUser + "\"";
 
@@ -219,7 +232,8 @@ public class projectMinter {
                 "   projects " +
                 "WHERE " +
                 "   project_code='" + project_code + "' && " +
-                "   users_id = " + users_id;
+                "   users_id = " + users_id + " && " +
+                "   expedition_id = " + expedition_id;
 
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
@@ -237,7 +251,7 @@ public class projectMinter {
      * @return
      * @throws java.sql.SQLException
      */
-    public String getDeepRoots(String project_code) throws SQLException {
+    public String getDeepRoots(String project_code, Integer expedition_id) throws SQLException {
         // Get todays's date
         DateFormat dateFormat;
         dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -258,7 +272,8 @@ public class projectMinter {
                         "WHERE" +
                         " a.project_id = b.project_id && " +
                         " b.datasets_id = d.datasets_id && \n" +
-                        " a.project_code = '" + project_code + "'";
+                        " a.project_code = '" + project_code + "' && \n" +
+                        " a.expedition_id = " + expedition_id;
 
         // Write the concept/prefix elements section
         sb.append("[\n{\n\t\"data\": [\n");
