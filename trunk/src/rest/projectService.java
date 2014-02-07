@@ -66,12 +66,15 @@ public class projectService {
         // Get the user_id
         database db = new database();
         HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
-        Integer user_id = db.getUserId(username);
+        Object username = session.getAttribute("user");
 
-        if (user_id == null) {
+        if (username == null) {
             return Response.ok("error: user not validated").build();
         }
+
+        Integer user_id = db.getUserId(username.toString());
+
+
          projectMinter project = null;
 
         try {
@@ -106,11 +109,13 @@ public class projectService {
         // Get the user_id
         database db = new database();
         HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
-        Integer user_id = db.getUserId(username);
-        if (user_id == null) {
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
             return Response.status(401).build();
         }
+
+        Integer user_id = db.getUserId(username.toString());
 
         Integer project_id = null;
         projectMinter project = null;
