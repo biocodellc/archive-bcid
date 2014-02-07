@@ -78,7 +78,12 @@ public class groupService {
         }
 
         HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).build();
+        }
 
         Boolean suffixPassthrough = false;
         // Format Input variables
@@ -102,11 +107,7 @@ public class groupService {
         // Create a Dataset
         database db = new database();
         // Check for remote-user
-        Integer user_id = db.getUserId(username);
-        if (user_id == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).build();
-        }
+        Integer user_id = db.getUserId(username.toString());
 
         // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
         // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
