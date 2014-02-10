@@ -20,7 +20,7 @@ Deep roots is a mechanism for expressing prefixes for sets of locally specific i
             "name": "a short name describing the dataset for which we are describing root paths",
             "description": "a detailed description of the dataset for which we are describing root paths",
             "guid":"a globally unique identifier for the dataset for which we are describing root paths",
-            "date": "The data this was created"
+            "date": "The date this was created"
         }
     },
     {
