@@ -176,5 +176,33 @@ public class expeditionMinter {
             throw new Exception(e);
         }
     }
+    /**
+     * Return a JSON representation of the expeditions a user is an admin for
+     * @param username
+     * @return
+     */
+    public String listUserAdminExpeditions(String username) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[{");
+
+        try {
+            database db = new database();
+            Integer user_id = db.getUserId(username);
+
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT expedition_id, expedition_title FROM expeditions WHERE users_id = \"" + user_id + "\"";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                sb.append("\"" + rs.getInt("expedition_id") + "\":\"" + rs.getString("expedition_title") + "\",");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sb.deleteCharAt(sb.lastIndexOf(","));
+        sb.append("}]");
+        return sb.toString();
+    }
 }
 

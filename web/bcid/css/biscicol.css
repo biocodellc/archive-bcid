@@ -167,7 +167,7 @@ table.subtable {
 /**
 * A special Div class for toggling content on and off
 **/
-div.toggle-bcid-content, div.toggle-project-content, div.toggle-profile-content {
+div.toggle-bcid-content, div.toggle-project-content, div.toggle-profile-content, div.toggle-manage-expedition-content, div.toggle-expedition-add-user-content, div.toggle-expedition-create-user-content {
     display:none;
     margin: 0px 20px;
 }
