@@ -96,14 +96,14 @@ public class expeditionService {
     public String getUserAdminExpeditions(@Context HttpServletRequest request)
             throws Exception {
         HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
 
-        if (username == null) {
-            // if no username, then we can't get the expeditions that the user is an admin to
+        if (session.getAttribute("expeditionAdmin") == null) {
+            // if not an expedition admin, then return nothing
             return "[{}]";
         }
+        String username = session.getAttribute("user").toString();
 
         expeditionMinter expedition= new expeditionMinter();
-        return expedition.listUserAdminExpeditions(username.toString());
+        return expedition.listUserAdminExpeditions(username);
     }
 }

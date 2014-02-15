@@ -200,7 +200,9 @@ public class expeditionMinter {
             e.printStackTrace();
         }
 
-        sb.deleteCharAt(sb.lastIndexOf(","));
+        if (sb.length() > 2) {
+            sb.deleteCharAt(sb.lastIndexOf(","));
+        }
         sb.append("}]");
         return sb.toString();
     }
