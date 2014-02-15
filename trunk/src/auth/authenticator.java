@@ -139,6 +139,34 @@ public class authenticator {
     }
 
     /**
+     * create a user given a username and password
+     * @param username
+     * @param password
+     * @return
+     */
+    public Boolean createUser(String username, String password) {
+        String hashedPass = createHash(password);
+        PreparedStatement stmt;
+        Boolean success = false;
+
+        if (hashedPass != null) {
+            try {
+                String insertString = "INSERT INTO users username = ?, password = ?";
+                stmt = conn.prepareStatement(insertString);
+
+                stmt.setString(1, username);
+                stmt.setString(2, hashedPass);
+
+                success = stmt.execute();
+            } catch (SQLException e) {
+                e.printStackTrace();;
+            }
+        }
+
+        return success;
+    }
+
+    /**
      * Check if the user has set their own password or if they are using a temporary password
      *
      * @return
