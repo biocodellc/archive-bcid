@@ -58,6 +58,10 @@ public class projectMinter {
 
         Integer project_id = null;
 
+        if (!userExistsInExpedition(users_id, expedition_id)) {
+            throw new Exception("User ID " + users_id + " is not authorized to create projects in this expedition");
+        }
+
         /**
          *  Insert the values into the projects table
          */
@@ -66,7 +70,7 @@ public class projectMinter {
                 checkProjectCodeValid(project_code);
                 checkProjectCodeAvailable(project_code, expedition_id);
             } catch (Exception e) {
-                throw new Exception(e);
+                throw new Exception(e.getMessage(), e);
             }
 
             // Generate an internal ID to track this submission
@@ -243,6 +247,25 @@ public class projectMinter {
             return true;
     }
 
+    /**
+     * Discover if a user belongs to an expedition
+     * @param users_id
+     * @param expedition_id
+     * @return
+     * @throws SQLException
+     */
+    public boolean userExistsInExpedition(Integer users_id, Integer expedition_id) throws SQLException {
+        String selectString = "SELECT count(*) as count FROM usersExpeditions WHERE users_id = ? && expedition_id = ?";
+
+        PreparedStatement stmt = conn.prepareStatement(selectString);
+
+        stmt.setInt(1, users_id);
+        stmt.setInt(2, expedition_id);
+
+        ResultSet rs = stmt.executeQuery();
+        rs.next();
+        return rs.getInt("count") >= 1;
+    }
 
     /**
      * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
