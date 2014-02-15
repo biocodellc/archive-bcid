@@ -126,7 +126,7 @@
 
     // Populate User Profile
     window.onload = populateDivFromService(
-        "/id/groupService/listUserProfile",
+        "/id/profileService/list",
         "listUserProfile",
         "Unable to load this user's profile from the Server");
 

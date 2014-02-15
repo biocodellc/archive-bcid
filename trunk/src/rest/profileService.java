@@ -163,4 +163,30 @@ public class profileService {
         }
         return("Error");
     }
+
+    /**
+     * Return HTML response showing the user's profile
+     *
+     * @return String with HTML response
+     */
+    @GET
+    @Path("/list")
+    @Produces(MediaType.TEXT_HTML)
+    public String listUserProfile(@Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+        profileRetriever p;
+
+        if (username == null) {
+            return "You must be logged in to view your profile.";
+        }
+
+        try {
+            p = new profileRetriever();
+            return p.getProfileHTML(username.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "Exception encountered attempting to construct profile.";
+    }
 }

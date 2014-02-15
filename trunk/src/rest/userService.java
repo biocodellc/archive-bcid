@@ -1,5 +1,6 @@
 package rest;
 
+import bcid.profileRetriever;
 import bcid.userMinter;
 
 import javax.servlet.http.HttpServletRequest;
