@@ -1,6 +1,7 @@
 package rest;
 
 import auth.authenticator;
+import auth.authorizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,6 +39,18 @@ public class loginService {
             if (isAuthenticated) {
                 // Place the user in the session
                 session.setAttribute("user", usr);
+
+                try {
+                    authorizer authorizer = new auth.authorizer();
+
+                    // Check if the user is an admin for any expeditions
+                    if (authorizer.userExpeditionAdmin(usr)) {
+                        session.setAttribute("expeditionAdmin", true);
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
                 if (!authenticator.userSetPass()) {
