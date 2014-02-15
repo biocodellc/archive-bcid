@@ -95,36 +95,47 @@ public class authenticator {
      * @return
      */
     public Boolean setHashedPass(String password) {
-        String hashedPass;
         PreparedStatement stmt;
 
-        // create a hash of the password
+        String hashedPass = createHash(password);
+
+        // Store the hashed password in the db
+        if (hashedPass != null){
+            try {
+                String updateString = "UPDATE users SET password = ? WHERE username = ?";
+                stmt = conn.prepareStatement(updateString);
+
+                stmt.setString(1, hashedPass);
+                stmt.setString(2, username);
+                Integer result = stmt.executeUpdate();
+
+                if (result == 1) {
+                    return true;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * create a hash of a password string
+     * @param password
+     * @return
+     */
+    private String createHash(String password) {
+        String hashedPass = null;
+
         try {
             hashedPass = passwordHash.createHash(password);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
-            return false;
         } catch (InvalidKeySpecException e) {
             e.printStackTrace();
-            return false;
         }
 
-        // Store the hashed password in the db
-        try {
-            String updateString = "UPDATE users SET password = ? WHERE username = ?";
-            stmt = conn.prepareStatement(updateString);
-
-            stmt.setString(1, hashedPass);
-            stmt.setString(2, username);
-            Integer result = stmt.executeUpdate();
-
-            if (result == 1) {
-                return true;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return hashedPass;
     }
 
     /**
