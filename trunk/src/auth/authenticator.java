@@ -16,21 +16,13 @@ import sun.print.resources.serviceui_sv;
  * Created by rjewing on 1/14/14.
  */
 public class authenticator {
-    private String username;
-    private String password;
     private database db;
     protected Connection conn;
 
     /**
      * Constructor that initializes the class level variables
-     *
-     * @param username
-     * @param password
      */
-
-    public authenticator(String username, String password) {
-        this.username = username;
-        this.password = password;
+    public authenticator() {
 
         // Initialize database
         try {
@@ -47,9 +39,9 @@ public class authenticator {
      *
      * @return
      */
-    public Boolean login() {
+    public Boolean login(String username, String password) {
 
-        String hashedPass = getHashedPass();
+        String hashedPass = getHashedPass(username);
 
         if (!hashedPass.isEmpty()) {
             try {
@@ -69,7 +61,7 @@ public class authenticator {
      *
      * @return
      */
-    private String getHashedPass() {
+    private String getHashedPass(String username) {
         PreparedStatement stmt;
         try {
             String selectString = "SELECT password FROM users WHERE username = ?";
@@ -94,7 +86,7 @@ public class authenticator {
      * @param password
      * @return
      */
-    public Boolean setHashedPass(String password) {
+    public Boolean setHashedPass(String username, String password) {
         PreparedStatement stmt;
 
         String hashedPass = createHash(password);
@@ -171,7 +163,7 @@ public class authenticator {
      *
      * @return
      */
-    public Boolean userSetPass() {
+    public Boolean userSetPass(String username) {
         PreparedStatement stmt;
         try {
             String selectString = "SELECT set_password FROM users WHERE username = ?";
@@ -226,9 +218,9 @@ public class authenticator {
         String username = cl.getOptionValue("U");
         String password = cl.getOptionValue("P");
 
-        authenticator authenticator = new authenticator(username, password);
+        authenticator authenticator = new authenticator();
 
-        Boolean success = authenticator.setHashedPass(password);
+        Boolean success = authenticator.setHashedPass(username, password);
 
         if (!success) {
             System.out.println("Error updating password for " + username);
