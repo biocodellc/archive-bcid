@@ -116,9 +116,25 @@ CREATE TABLE `expeditions` (
   `abstract` text COMMENT 'The abstract for this particular expecition',
     `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
-  UNIQUE KEY `expeditions_expedition_id_idx` (`expedition_id`)
+  `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The user_id of the expedition admin',
+  UNIQUE KEY `expeditions_expedition_id_idx` (`expedition_id`),
+  KEY `expeditions_users_id_idx` (`users_id`),
+  CONSTRAINT `FK_expeditions_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+DROP TABLE IF EXISTS `usersExpeditions`;
+
+CREATE TABLE `usersExpeditions` (
+  `usersExpeditions_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique internal key',
+  `expedition_id` int(11) NOT NULL COMMENT 'The expedition Id',
+  `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The users id',
+  UNIQUE KEY `usersExpeditions_usersExpeditions_id` (`usersExpeditions_id`),
+  UNIQUE KEY `usersExpeditions_users_id_expedition_id_idx` (`users_id`, `expedition_id`),
+  KEY `usersExpeditions_expeditions_id` (`expedition_id`),
+  KEY `usersExpeditions_users_id` (`users_id`),
+  CONSTRAINT `FK_usersExpeditions_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
+  CONSTRAINT `FK_usersExpeditions_expedition` FOREIGN KEY(`expedition_id`) REFERENCES `expeditions` (`expedition_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
