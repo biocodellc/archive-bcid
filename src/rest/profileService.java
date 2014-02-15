@@ -45,13 +45,13 @@ public class profileService {
 
         // Only update user's password if both old_password and new_password fields contain values
         if (!old_password.isEmpty() && !new_password.isEmpty()) {
-            authenticator authenticator = new authenticator(username, old_password);
+            authenticator authenticator = new authenticator();
             // Call the login function to verify the user's old_password
-            Boolean valid_pass = authenticator.login();
+            Boolean valid_pass = authenticator.login(username, old_password);
 
             // If user's old_password matches stored pass, then update the user's password to the new value
             if (valid_pass) {
-                Boolean success = authenticator.setHashedPass(new_password);
+                Boolean success = authenticator.setHashedPass(username, new_password);
                 if (!success) {
                     error = "DB Error";
                 }

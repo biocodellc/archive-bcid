@@ -30,9 +30,9 @@ public class loginService {
         throws IOException{
 
         if (!usr.isEmpty() && !pass.isEmpty()) {
-            authenticator authenticator = new auth.authenticator(usr, pass);
+            authenticator authenticator = new auth.authenticator();
             // Verify that the entered and stored passwords match
-            Boolean isAuthenticated = authenticator.login();
+            Boolean isAuthenticated = authenticator.login(usr, pass);
 
             HttpSession session = req.getSession();
 
@@ -53,7 +53,7 @@ public class loginService {
                 }
 
                 // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
-                if (!authenticator.userSetPass()) {
+                if (!authenticator.userSetPass(usr)) {
                     res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password");
                     return;
                 }
