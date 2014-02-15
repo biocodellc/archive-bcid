@@ -46,6 +46,7 @@ public class userService {
 
         if (session.getAttribute("expeditionAdmin") == null) {
             response.sendError(403);
+            return;
         }
 
         try {
@@ -78,6 +79,7 @@ public class userService {
         if (session.getAttribute("expeditionAdmin") == null) {
             // only expedition admins are able to create users
             response.sendError(403);
+            return;
         }
 
         try {
