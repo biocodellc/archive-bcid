@@ -24,7 +24,7 @@
                 <a href="/bcid/login.jsp">Login</a>
             </c:if>
             <c:if test="${user != null}">
-                <a href="/bcid/secure/user.jsp">${user}</a> | <a href="/id/logoutService">Logout</a>
+                <a href="/bcid/secure/user.jsp">${user}</a> | <a href="/id/authenticationService/logout/">Logout</a>
             </c:if>
             | <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>
             | <a href="https://code.google.com/p/bcid/">Help</a>
