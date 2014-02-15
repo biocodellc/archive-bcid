@@ -2,10 +2,13 @@ package rest;
 
 import bcid.expeditionMinter;
 import bcid.projectMinter;
+import bcid.userMinter;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -79,5 +82,28 @@ public class expeditionService {
         } else {
             return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
         }
+    }
+
+    /**
+     * Return a json representation to be used for select options of the expeditions that a user is an admin to
+     * @param request
+     * @return
+     * @throws Exception
+     */
+    @GET
+    @Path("/admin/list")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getUserAdminExpeditions(@Context HttpServletRequest request)
+            throws Exception {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            // if no username, then we can't get the expeditions that the user is an admin to
+            return "[{}]";
+        }
+
+        expeditionMinter expedition= new expeditionMinter();
+        return expedition.listUserAdminExpeditions(username.toString());
     }
 }

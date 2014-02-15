@@ -128,7 +128,12 @@ function populateResourceTypes(a) {
 function populateSelect(a) {
     // Dataset Service Call
     if (a == "datasetList") {
-        var url = "/id/groupService/list";
+        var url = "/id/groupService/list/";
+    // Expedition Service Call
+    } else if (a == "adminExpeditions") {
+        var url = "/id/expeditionService/admin/list/";
+    } else if (a == "userList") {
+        var url = "/id/userService/list/";
     // bcid Service Call
     } else {
         var url = "/id/elementService/select/" + a;
@@ -142,6 +147,9 @@ function populateSelect(a) {
                 options+='<option value="' + key + '">' +val + '</option>';
             });
             $("#" + a).html(options);
+            if (a == "adminExpeditions") {
+                $("." + a).html(options);
+            }
         });
 }
 

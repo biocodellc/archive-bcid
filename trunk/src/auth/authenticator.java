@@ -137,21 +137,23 @@ public class authenticator {
      * @return
      */
     public Boolean createUser(String username, String password) {
-        String hashedPass = createHash(password);
         PreparedStatement stmt;
         Boolean success = false;
+        String hashedPass = createHash(password);
 
         if (hashedPass != null) {
             try {
-                String insertString = "INSERT INTO users username = ?, password = ?";
+                String insertString = "INSERT INTO users (username, password) VALUES(?,?)";
                 stmt = conn.prepareStatement(insertString);
 
                 stmt.setString(1, username);
                 stmt.setString(2, hashedPass);
 
-                success = stmt.execute();
+                stmt.execute();
+                success = true;
             } catch (SQLException e) {
-                e.printStackTrace();;
+                e.printStackTrace();
+                success = false;
             }
         }
 
