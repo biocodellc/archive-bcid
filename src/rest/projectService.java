@@ -81,7 +81,10 @@ public class projectService {
             // Mint a project
             project = new projectMinter();
             //System.out.println("checking user_id = " + user_id + " & project_code = " + project_code);
-            if (project.userOwnsProject(user_id,project_code, expedition_id)) {
+            if (!project.userExistsInExpedition(user_id, expedition_id)) {
+                // If the user isn't in the expedition, then we can't update or create a new project
+                return Response.ok("error: user is not authorized to update/create projects in this expedition").build();
+            } else if (project.userOwnsProject(user_id,project_code, expedition_id)) {
                 // If the user already owns the project, then great--- this is an update
                 return Response.ok("update: user owns this project").build();
                 // If the project exists in the expedition but the user does not own the project then this means we can't
