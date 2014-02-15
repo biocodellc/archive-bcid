@@ -6,10 +6,7 @@ import auth.authorizer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -18,10 +15,11 @@ import java.io.IOException;
  * REST interface to log a user in
  * Created by rjewing on 1/14/14.
  */
-@Path("loginService")
-public class loginService {
+@Path("authenticationService")
+public class authenticationService {
 
     @POST
+    @Path("/login")
     @Produces(MediaType.TEXT_HTML)
     public void login(@FormParam("username") String usr,
                       @FormParam("password") String pass,
@@ -67,5 +65,18 @@ public class loginService {
         }
 
         res.sendRedirect("/bcid/login.jsp?error");
+    }
+
+    @GET
+    @Path("/logout")
+    @Produces(MediaType.TEXT_HTML)
+    public void logout(@Context HttpServletRequest req,
+                       @Context HttpServletResponse res)
+            throws IOException{
+
+        HttpSession session = req.getSession();
+
+        session.invalidate();
+        res.sendRedirect("/bcid/index.jsp");
     }
 }

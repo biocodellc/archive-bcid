@@ -4,7 +4,7 @@
     <div class="sectioncontent" id="login">
         <h2>BCID Login</h2>
 
-        <form method="POST" action="/id/loginService">
+        <form method="POST" action="/id/authenticationService/login/">
             <table>
                 <tr>
                     <td align="right">Username</td>
