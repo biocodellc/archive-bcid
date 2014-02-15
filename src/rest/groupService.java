@@ -243,27 +243,4 @@ public class groupService {
         }
         return "Exception encountered attempting to list projects";
     }
-
-    /**
-     * Return HTML response showing the user's profile
-     *
-     * @return String with HTML response
-     */
-    @GET
-    @Path("/listUserProfile")
-    @Produces(MediaType.TEXT_HTML)
-    public String listUserProfile(@Context HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
-        profileRetriever p;
-
-        try {
-            p = new profileRetriever();
-            return p.getProfileHTML(username);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "Exception encountered attempting to construct profile";
-    }
-
 }
