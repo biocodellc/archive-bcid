@@ -96,7 +96,7 @@ public class deepRootsReader {
     public static void main(String[] args) throws IOException, URISyntaxException {
         deepRootsReader reader = new deepRootsReader();
         // Some path name to the file
-        String filePath = "file:///Users/jdeck/IdeaProjects/bcid/src/deepRoots/test.json";
+        String filePath = "file:///Users/jdeck/IdeaExpeditions/bcid/src/deepRoots/test.json";
         // Creating the object
         deepRoots rootData = reader.createRootData(filePath);
         // Output for testing

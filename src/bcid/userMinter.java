@@ -1,7 +1,6 @@
 package bcid;
 
 import auth.authenticator;
-
 import java.sql.*;
 
 /**
@@ -37,16 +36,16 @@ public class userMinter {
         return sb.toString();
     }
 
-    public Boolean createUser(String username, String password, Integer expeditionId) {
+    public Boolean createUser(String username, String password, Integer projectId) {
         authenticator auth = new authenticator();
         Boolean success = auth.createUser(username, password);
 
-        // if user was created, add user to expedition
+        // if user was created, add user to project
         if (success) {
             try {
                 database db = new database();
                 Integer userId = db.getUserId(username);
-                success = addUserToExpedition(userId, expeditionId);
+                success = addUserToProject(userId, projectId);
             } catch (Exception e) {
                 e.printStackTrace();
                 success = false;
@@ -57,17 +56,17 @@ public class userMinter {
     }
 
 
-    public Boolean addUserToExpedition(Integer userId, Integer expeditionId) {
+    public Boolean addUserToProject(Integer userId, Integer projectId) {
         PreparedStatement stmt;
         Boolean success = false;
 
         try {
             if (userId != null) {
-                String insertStatement = "INSERT INTO usersExpeditions (users_id, expedition_id) VALUES(?,?)";
+                String insertStatement = "INSERT INTO usersProjects (users_id, project_id) VALUES(?,?)";
                 stmt = conn.prepareStatement(insertStatement);
 
                 stmt.setInt(1, userId);
-                stmt.setInt(2, expeditionId);
+                stmt.setInt(2, projectId);
 
                 stmt.execute();
                 success = true;

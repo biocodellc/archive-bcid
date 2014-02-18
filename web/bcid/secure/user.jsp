@@ -15,34 +15,34 @@
         </div>
 
         <br>
-        <a class="expand-project-content" href="#">
-            <img src="../images/right-arrow.png" id="project-arrow" class="img-arrow">Projects
+        <a class="expand-expedition-content" href="#">
+            <img src="../images/right-arrow.png" id="expedition-arrow" class="img-arrow">Expeditions
         </a>
 
-        <div class="toggle-project-content">
-            <div id=listUserProjectsAsTable style="overflow:auto;">Loading projects</div>
+        <div class="toggle-expedition-content">
+            <div id=listUserExpeditionsAsTable style="overflow:auto;">Loading expeditions</div>
         </div>
 
-        <c:if test="${expeditionAdmin != null}">
+        <c:if test="${projectAdmin != null}">
         <br>
-        <a class="expand-manage-expedition-content" href="javascript:void(0)">
-            <img src="../images/right-arrow.png" id="expedition-arrow" class="img-arrow">Manage Expeditions
+        <a class="expand-manage-project-content" href="javascript:void(0)">
+            <img src="../images/right-arrow.png" id="project-arrow" class="img-arrow">Manage Projects
         </a>
 
-        <div class="toggle-manage-expedition-content" style="display:none;">
-            <div id=listUsersExpeditions style="overflow:auto">
+        <div class="toggle-manage-project-content" style="display:none;">
+            <div id=listUsersProjects style="overflow:auto">
 
-                <div class="expand-expedition-add-user-content" >
-                    <a class="expedition-add-user" href="javascript:void(0)"><img src="../images/right-arrow.png" id="add-user-arrow" class="img-arrow">Add User</a>
+                <div class="expand-project-add-user-content" >
+                    <a class="project-add-user" href="javascript:void(0)"><img src="../images/right-arrow.png" id="add-user-arrow" class="img-arrow">Add User</a>
                 </div>
 
-                <div class="toggle-expedition-add-user-content">
+                <div class="toggle-project-add-user-content">
                     <div style="overflow:auto;">
                         <form method="POST" action="/id/userService/add/">
                             <table>
                                 <tr>
-                                    <td align="right">Expedition:</td>
-                                    <td><select name="expeditionId" class="adminExpeditions"></select></td>
+                                    <td align="right">Project:</td>
+                                    <td><select name="projectId" class="adminProjects"></select></td>
                                 </tr>
                                 <tr>
                                     <td align="right">Username:</td>
@@ -50,7 +50,7 @@
                                 </tr>
                                 <c:if test="${param['addError'] != null}">
                                 <tr>
-                                    <td class="error" align="center" colspan="2">"Error occurred adding user to expedition"</td>
+                                    <td class="error" align="center" colspan="2">"Error occurred adding user to project"</td>
                                 </tr>
                                 </c:if>
                                 <tr>
@@ -62,17 +62,17 @@
                     </div>
                 </div>
 
-                <div class="expand-expedition-create-user-content">
-                    <a class="expedition-create-user" href="javascript:void(0)"><img src="../images/right-arrow.png" id="create-user-arrow" class="img-arrow">Create User</a>
+                <div class="expand-project-create-user-content">
+                    <a class="project-create-user" href="javascript:void(0)"><img src="../images/right-arrow.png" id="create-user-arrow" class="img-arrow">Create User</a>
                 </div>
 
-                <div class="toggle-expedition-create-user-content">
+                <div class="toggle-project-create-user-content">
                     <div style="overflow:auto;">
                         <form method="POST" action="/id/userService/create/">
                             <table>
                                 <tr>
-                                    <td align="right">Expedition:</td>
-                                    <td><select name="expeditionId" class="adminExpeditions"></select></td>
+                                    <td align="right">Project:</td>
+                                    <td><select name="projectId" class="adminProjects"></select></td>
                                 </tr>
                                 <tr>
                                     <td align="right">Username:</td>
@@ -118,11 +118,11 @@
         "listUserBCIDsAsTable",
         "Unable to load this user's BCIDs from Server");
 
-    // Populate Projects Table
+    // Populate Expeditions Table
     window.onload = populateDivFromService(
-        "/id/groupService/listUserProjectsAsTable",
-        "listUserProjectsAsTable",
-        "Unable to load this user's projects from Server");
+        "/id/groupService/listUserExpeditionsAsTable",
+        "listUserExpeditionsAsTable",
+        "Unable to load this user's expeditions from Server");
 
     // Populate User Profile
     window.onload = populateDivFromService(
@@ -130,8 +130,8 @@
         "listUserProfile",
         "Unable to load this user's profile from the Server");
 
-    // Populate Expedition Select
-    window.onload = populateSelect("adminExpeditions");
+    // Populate Project Select
+    window.onload = populateSelect("adminProjects");
     window.onload = populateSelect("userList");
 
     // Expand/Collapse BCIDs Section
@@ -145,15 +145,15 @@
         $('.toggle-bcid-content').slideToggle('slow');
     });
 
-    // Expand/Collapse Projects Section
-    $('.expand-project-content').click(function(){
-        if ($('.toggle-project-content').is(':hidden')) {
-            $('#project-arrow').attr("src","../images/down-arrow.png");
+    // Expand/Collapse Expeditions Section
+    $('.expand-expedition-content').click(function(){
+        if ($('.toggle-expedition-content').is(':hidden')) {
+            $('#expedition-arrow').attr("src","../images/down-arrow.png");
         } else {
-            $('#project-arrow').attr("src","../images/right-arrow.png");
+            $('#expedition-arrow').attr("src","../images/right-arrow.png");
         }
 
-        $('.toggle-project-content').slideToggle('slow');
+        $('.toggle-expedition-content').slideToggle('slow');
     });
 
     // Expand/Collapse Profile Section
@@ -166,35 +166,35 @@
 
         $('.toggle-profile-content').slideToggle('slow');
     });
-    // Expand/Collapse Expedition Section
-    $('.expand-manage-expedition-content').click(function(){
-        if ($('.toggle-manage-expedition-content').is(':hidden')) {
-            $('#expedition-arrow').attr("src","../images/down-arrow.png");
+    // Expand/Collapse Project Section
+    $('.expand-manage-project-content').click(function(){
+        if ($('.toggle-manage-project-content').is(':hidden')) {
+            $('#project-arrow').attr("src","../images/down-arrow.png");
         } else {
-            $('#expedition-arrow').attr("src","../images/right-arrow.png");
+            $('#project-arrow').attr("src","../images/right-arrow.png");
         }
 
-        $('.toggle-manage-expedition-content').slideToggle('slow');
+        $('.toggle-manage-project-content').slideToggle('slow');
     });
-    // Expand/Collapse Expedition Section
-    $('.expand-expedition-add-user-content').click(function(){
-        if ($('.toggle-expedition-add-user-content').is(':hidden')) {
+    // Expand/Collapse Project Section
+    $('.expand-project-add-user-content').click(function(){
+        if ($('.toggle-project-add-user-content').is(':hidden')) {
             $('#add-user-arrow').attr("src","../images/down-arrow.png");
         } else {
             $('#add-user-arrow').attr("src","../images/right-arrow.png");
         }
 
-        $('.toggle-expedition-add-user-content').slideToggle('slow');
+        $('.toggle-project-add-user-content').slideToggle('slow');
     });
-    // Expand/Collapse Expedition Section
-    $('.expand-expedition-create-user-content').click(function(){
-        if ($('.toggle-expedition-create-user-content').is(':hidden')) {
+    // Expand/Collapse Project Section
+    $('.expand-project-create-user-content').click(function(){
+        if ($('.toggle-project-create-user-content').is(':hidden')) {
             $('#create-user-arrow').attr("src","../images/down-arrow.png");
         } else {
             $('#create-user-arrow').attr("src","../images/right-arrow.png");
         }
 
-        $('.toggle-expedition-create-user-content').slideToggle('slow');
+        $('.toggle-project-create-user-content').slideToggle('slow');
     });
 </script>
 

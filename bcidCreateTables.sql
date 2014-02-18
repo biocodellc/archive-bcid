@@ -43,7 +43,7 @@ CREATE TABLE `datasets` (
   `doi` char(36) COMMENT 'DOI linked to this dataset identifier',
   `title` text COMMENT 'title for this dataset',
   `webaddress` text COLLATE utf8_bin COMMENT 'the target URL for this dataset',
-  `graph` text  COMMENT 'A reference to a graph, used by the biocode-fims project for storing graph references for a particular dataset',
+  `graph` text  COMMENT 'A reference to a graph, used by the biocode-fims expedition for storing graph references for a particular dataset',
   `resourceType` text NOT NULL COMMENT 'default resource type for this dataset, stored as a URI',
   `resourceAlias` text NOT NULL COMMENT 'alias to use for the resource Type',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
@@ -72,69 +72,67 @@ CREATE TABLE `identifiers` (
 ) ENGINE=Innodb DEFAULT CHARSET=utf8;
 
 
-/**
-* GRM tables
-*/
-DROP TABLE IF EXISTS `projects`;
 
-CREATE TABLE `projects` (
-  `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this project',
-  `expedition_id` int(11),
-  `internalID` char(36) COLLATE utf8_bin NOT NULL DEFAULT '' COMMENT 'The internal ID for this project',
-  `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
-  `project_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project, will be used to populate group title',
-  `abstract` text COMMENT 'The abstract for this particular project',
+DROP TABLE IF EXISTS `expeditions`;
+
+CREATE TABLE `expeditions` (
+  `expedition_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this expedition',
+  `project_id` int(11),
+  `internalID` char(36) COLLATE utf8_bin NOT NULL DEFAULT '' COMMENT 'The internal ID for this expedition',
+  `expedition_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this expedition',
+  `expedition_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this expedition, will be used to populate group title',
+  `abstract` text COMMENT 'The abstract for this particular expedition',
   `users_id` int(10) DEFAULT NULL COMMENT 'who created this data',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
-  UNIQUE KEY `project_project_id_idx` (`project_id`),
-  UNIQUE KEY `project_projectcode_expedition_idx` (`project_code`,`expedition_id`),
-  KEY `project_expedition_id_idx` (`expedition_id`)
+  UNIQUE KEY `expedition_expedition_id_idx` (`expedition_id`),
+  UNIQUE KEY `expedition_expeditioncode_project_idx` (`expedition_code`,`project_id`),
+  KEY `expedition_project_id_idx` (`project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `projectsBCIDs`;
+DROP TABLE IF EXISTS `expeditionsBCIDs`;
 
-CREATE TABLE `projectsBCIDs` (
-  `projectsBCIDs_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this element',
-  `project_id` int(11) NOT NULL COMMENT 'The project_id',
+CREATE TABLE `expeditionsBCIDs` (
+  `expeditionsBCIDs_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this element',
+  `expedition_id` int(11) NOT NULL COMMENT 'The expedition_id',
   `datasets_id` int NOT NULL COMMENT 'The dataset_id',
-  UNIQUE KEY `projectsBCIDs_projectsBCIDs_id` (`projectsBCIDs_id`),
-  KEY `projectsBCIDs_project_id` (`project_id`),
+  UNIQUE KEY `expeditionsBCIDs_expeditionsBCIDs_id` (`expeditionsBCIDs_id`),
+  KEY `expeditionsBCIDs_expedition_id` (`expedition_id`),
   KEY `datasets_id` (`datasets_id`),
-  CONSTRAINT `FK_projectsBCIDs_datasets` FOREIGN KEY(`datasets_id`) REFERENCES `datasets` (`datasets_id`),
-  CONSTRAINT `FK_projectsBCIDs_project` FOREIGN KEY(`project_id`) REFERENCES `projects` (`project_id`)
+  CONSTRAINT `FK_expeditionsBCIDs_datasets` FOREIGN KEY(`datasets_id`) REFERENCES `datasets` (`datasets_id`),
+  CONSTRAINT `FK_expeditionsBCIDs_expedition` FOREIGN KEY(`expedition_id`) REFERENCES `expeditions` (`expedition_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
 
-DROP TABLE IF EXISTS `expeditions`;
+DROP TABLE IF EXISTS `projects`;
 
-CREATE TABLE `expeditions` (
-  `expedition_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this expeditions',
-  `expedition_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this expedition',
-  `expedition_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this expedition',
-  `abstract` text COMMENT 'The abstract for this particular expecition',
+CREATE TABLE `projects` (
+  `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this projects',
+  `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
+  `project_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project',
+  `abstract` text COMMENT 'The abstract for this particular project',
     `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
-  `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The user_id of the expedition admin',
-  UNIQUE KEY `expeditions_expedition_id_idx` (`expedition_id`),
-  KEY `expeditions_users_id_idx` (`users_id`),
-  CONSTRAINT `FK_expeditions_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
+  `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The user_id of the project admin',
+  UNIQUE KEY `projects_project_id_idx` (`project_id`),
+  KEY `projects_users_id_idx` (`users_id`),
+  CONSTRAINT `FK_projects_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-DROP TABLE IF EXISTS `usersExpeditions`;
+DROP TABLE IF EXISTS `usersProjects`;
 
-CREATE TABLE `usersExpeditions` (
-  `usersExpeditions_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique internal key',
-  `expedition_id` int(11) NOT NULL COMMENT 'The expedition Id',
+CREATE TABLE `usersProjects` (
+  `usersProjects_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique internal key',
+  `project_id` int(11) NOT NULL COMMENT 'The project Id',
   `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The users id',
-  UNIQUE KEY `usersExpeditions_usersExpeditions_id` (`usersExpeditions_id`),
-  UNIQUE KEY `usersExpeditions_users_id_expedition_id_idx` (`users_id`, `expedition_id`),
-  KEY `usersExpeditions_expeditions_id` (`expedition_id`),
-  KEY `usersExpeditions_users_id` (`users_id`),
-  CONSTRAINT `FK_usersExpeditions_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
-  CONSTRAINT `FK_usersExpeditions_expedition` FOREIGN KEY(`expedition_id`) REFERENCES `expeditions` (`expedition_id`)
+  UNIQUE KEY `usersProjects_usersProjects_id` (`usersProjects_id`),
+  UNIQUE KEY `usersProjects_users_id_project_id_idx` (`users_id`, `project_id`),
+  KEY `usersProjects_projects_id` (`project_id`),
+  KEY `usersProjects_users_id` (`users_id`),
+  CONSTRAINT `FK_usersProjects_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
+  CONSTRAINT `FK_usersProjects_project` FOREIGN KEY(`project_id`) REFERENCES `projects` (`project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
