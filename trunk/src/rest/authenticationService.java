@@ -41,9 +41,9 @@ public class authenticationService {
                 try {
                     authorizer authorizer = new auth.authorizer();
 
-                    // Check if the user is an admin for any expeditions
-                    if (authorizer.userExpeditionAdmin(usr)) {
-                        session.setAttribute("expeditionAdmin", true);
+                    // Check if the user is an admin for any projects
+                    if (authorizer.userProjectAdmin(usr)) {
+                        session.setAttribute("projectAdmin", true);
                     }
 
                 } catch (Exception e) {

@@ -71,9 +71,9 @@ table {
 }
 
 /**
- * Styles for the project manager UI.
+ * Styles for the expedition manager UI.
  **/
-#projects {
+#expeditions {
 	clear: both;
 	margin: 2px 6px 18px 6px;
 	padding: 8px;
@@ -84,34 +84,34 @@ table {
 	box-shadow: 0px 0px 6px rgba(0, 0, 0, .3);
 }
 
-#projects h3 {
+#expeditions h3 {
 	margin-bottom: 10px;
 }
 
-#projects div.project {
+#expeditions div.expedition {
 	display: inline;
 	margin: 0 8px 0 0;
 }
 
-#projects div.project input:checked + label {
+#expeditions div.expedition input:checked + label {
 	color: crimson;
 	font-weight: bold;
 }
 
-#projects div.functions {
+#expeditions div.functions {
 	float: right;
 	margin: 0 0 8px 16px;
 }
 
-#projects div.functions form {
+#expeditions div.functions form {
 	display: inline;
 }
 
-#projects form.new, #projects input.import {
+#expeditions form.new, #expeditions input.import {
 	margin-right: 24px;
 }
 
-#projects input.importFile {
+#expeditions input.importFile {
 	display: none;
 }
 
@@ -163,7 +163,7 @@ div#helpmsg p {
 }
 
 /**
- * The main project sections.
+ * The main expedition sections.
  **/
 div.link {
     display:inline-block;
@@ -299,7 +299,7 @@ div.sectioncontent.flexTable > table td:nth-child(2) {
 	border-left: none;
 }
 
-div.sectioncontent.flexTable, #systemProjects  {
+div.sectioncontent.flexTable, #systemExpeditions  {
 	/*padding: 10px;*/
 }
 

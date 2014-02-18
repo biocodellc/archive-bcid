@@ -28,7 +28,7 @@ public class SettingsManager {
      * Get a reference to the global util.SettingsManager instance.  If this is the
      * first request for a util.SettingsManager instance, then a new util.SettingsManager
      * object will be created using the default properties file, which is
-     * expected to be located in the "classes" directory of the project build
+     * expected to be located in the "classes" directory of the expedition build
      * directory.
      *
      * @return A reference to the global util.SettingsManager object.

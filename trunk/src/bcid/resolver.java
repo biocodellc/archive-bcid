@@ -73,14 +73,14 @@ public class resolver extends database {
     }
 
     /**
-     * Find the appropriate BCID for this project given an conceptAlias.  This instantiation of the resolver
-     * looks up a project specific BCID given the project code and an concept Alias
+     * Find the appropriate BCID for this expedition given an conceptAlias.  This instantiation of the resolver
+     * looks up a expedition specific BCID given the expedition code and an concept Alias
      *
-     * @param project_code defines the BCID project_code to lookup
+     * @param expedition_code defines the BCID expedition_code to lookup
      * @param conceptAlias defines the alias to narrow this,  a one-word reference denoting a BCID
-     * @return returns the BCID for this project and conceptURI combination
+     * @return returns the BCID for this expedition and conceptURI combination
      */
-    public resolver(String project_code, Integer expedition_id, String conceptAlias) throws Exception {
+    public resolver(String expedition_code, Integer project_id, String conceptAlias) throws Exception {
         ResourceTypes resourceTypes = new ResourceTypes();
         ResourceType rt = resourceTypes.getByShortName(conceptAlias);
         String uri = rt.uri;
@@ -90,12 +90,12 @@ public class resolver extends database {
             String query = "select \n" +
                     "d.prefix as prefix \n" +
                     "from \n" +
-                    "datasets d, projectsBCIDs pb, projects p \n" +
+                    "datasets d, expeditionsBCIDs pb, expeditions p \n" +
                     "where \n" +
                     "d.datasets_id=pb.datasets_id && \n" +
-                    "pb.project_id=p.project_id && \n" +
-                    "p.project_code='" + project_code + "' && \n" +
-                    "p.expedition_id =" + expedition_id + " && \n" +
+                    "pb.expedition_id=p.expedition_id && \n" +
+                    "p.expedition_code='" + expedition_code + "' && \n" +
+                    "p.project_id =" + project_id + " && \n" +
                     "d.resourceType='" + uri + "'";
             ResultSet rs = stmt.executeQuery(query);
             rs.next();

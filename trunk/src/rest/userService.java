@@ -24,8 +24,8 @@ public class userService {
             throws Exception {
         HttpSession session = request.getSession();
 
-        if (session.getAttribute("expeditionAdmin") == null) {
-            // only display system users to expedition admins
+        if (session.getAttribute("projectAdmin") == null) {
+            // only display system users to project admins
             return "[{}]";
         }
 
@@ -35,7 +35,7 @@ public class userService {
 
     @POST
     @Path("/add")
-    public void addUser(@FormParam("expeditionId") Integer expeditionId,
+    public void addUser(@FormParam("projectId") Integer projectId,
                         @FormParam("userId") Integer userId,
                         @Context HttpServletRequest request,
                         @Context HttpServletResponse response)
@@ -44,14 +44,14 @@ public class userService {
         HttpSession session = request.getSession();
         Boolean success = false;
 
-        if (session.getAttribute("expeditionAdmin") == null) {
+        if (session.getAttribute("projectAdmin") == null) {
             response.sendError(403);
             return;
         }
 
         try {
             userMinter u = new userMinter();
-            success = u.addUserToExpedition(userId, expeditionId);
+            success = u.addUserToProject(userId, projectId);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -68,7 +68,7 @@ public class userService {
     @Path("/create")
     public void createUser(@FormParam("username") String username,
                            @FormParam("password") String password,
-                           @FormParam("expeditionId") Integer expeditionId,
+                           @FormParam("projectId") Integer projectId,
                            @Context HttpServletRequest request,
                            @Context HttpServletResponse response)
         throws IOException {
@@ -76,15 +76,15 @@ public class userService {
         HttpSession session = request.getSession();
         Boolean success = false;
 
-        if (session.getAttribute("expeditionAdmin") == null) {
-            // only expedition admins are able to create users
+        if (session.getAttribute("projectAdmin") == null) {
+            // only project admins are able to create users
             response.sendError(403);
             return;
         }
 
         try {
             userMinter u = new userMinter();
-            success = u.createUser(username, password, expeditionId);
+            success = u.createUser(username, password, projectId);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -7,11 +7,11 @@ function dataGroupCreatorSubmit() {
 }
 
 /** Process submit button for Data Group Creator **/
-function projectCreatorSubmit() {
-    $( "#projectCreatorResults" ).html( "Processing ..." );
+function expeditionCreatorSubmit() {
+    $( "#expeditionCreatorResults" ).html( "Processing ..." );
     /* Send the data using post */
-    var posting = $.post( "/id/projectService", $("#projectForm").serialize() );
-    results(posting,"#projectCreatorResults");
+    var posting = $.post( "/id/expeditionService", $("#expeditionForm").serialize() );
+    results(posting,"#expeditionCreatorResults");
 }
 
 /** Process submit button for Creator **/
@@ -129,9 +129,9 @@ function populateSelect(a) {
     // Dataset Service Call
     if (a == "datasetList") {
         var url = "/id/groupService/list/";
-    // Expedition Service Call
-    } else if (a == "adminExpeditions") {
-        var url = "/id/expeditionService/admin/list/";
+    // Project Service Call
+    } else if (a == "adminProjects") {
+        var url = "/id/projectService/admin/list/";
     } else if (a == "userList") {
         var url = "/id/userService/list/";
     // bcid Service Call
@@ -147,7 +147,7 @@ function populateSelect(a) {
                 options+='<option value="' + key + '">' +val + '</option>';
             });
             $("#" + a).html(options);
-            if (a == "adminExpeditions") {
+            if (a == "adminProjects") {
                 $("." + a).html(options);
             }
         });

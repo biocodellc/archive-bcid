@@ -43,7 +43,7 @@
 
                 <div class="separator">|</div>
 
-                <div class="link"><a href='/bcid/secure/projectCreator.jsp'>Project Creator</a></div>
+                <div class="link"><a href='/bcid/secure/expeditionCreator.jsp'>Expedition Creator</a></div>
 
                 <div class="separator">|</div>
 
@@ -57,7 +57,7 @@
 
                 <div class="separator">|</div>
 
-                <div class="disabledlink">Project Creator</div>
+                <div class="disabledlink">Expedition Creator</div>
 
                 <div class="separator">|</div>
 

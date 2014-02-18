@@ -19,11 +19,11 @@ public class authorizer {
         conn = db.getConn();
     }
 
-    public Boolean userExpeditionAdmin(String username) {
+    public Boolean userProjectAdmin(String username) {
         PreparedStatement stmt;
         try {
             Integer users_id = db.getUserId(username);
-            String selectString = "SELECT count(*) as count FROM expeditions WHERE users_id = ?";
+            String selectString = "SELECT count(*) as count FROM projects WHERE users_id = ?";
 
             stmt = conn.prepareStatement(selectString);
             stmt.setInt(1, users_id);

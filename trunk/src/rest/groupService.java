@@ -4,7 +4,7 @@ import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.Renderer;
 import bcid.Renderer.TextRenderer;
 import bcid.dataGroupMinter;
-import bcid.projectMinter;
+import bcid.expeditionMinter;
 import bcid.database;
 import bcid.manageEZID;
 import bcid.GenericIdentifier;
@@ -50,7 +50,6 @@ public class groupService {
      * @param doi
      * @param webaddress
      * @param title
-     * @param resourceType
      * @param request
      * @return
      * @throws Exception
@@ -228,19 +227,19 @@ public class groupService {
      * @return String with HTML response
      */
     @GET
-    @Path("/listUserProjectsAsTable")
+    @Path("/listUserExpeditionsAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String listUserProjectsAsTable(@Context HttpServletRequest request) {
+    public String listUserExpeditionsAsTable(@Context HttpServletRequest request) {
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
 
-        projectMinter p = null;
+        expeditionMinter p = null;
         try {
-            p = new projectMinter();
-            return p.projectTable(username);
+            p = new expeditionMinter();
+            return p.expeditionTable(username);
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        return "Exception encountered attempting to list projects";
+        return "Exception encountered attempting to list expeditions";
     }
 }
