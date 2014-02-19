@@ -54,11 +54,13 @@ public class resolver extends database {
      */
     public resolver(String ark) throws Exception {
         super();
+
         try {
             this.ark = ark;
             // Pull off potential last piece of string which would represent the local Identifier
             // The piece to decode is ark:/NAAN/bcidIdentifer (anything else after a last trailing "/" not decoded)
             StringBuilder stringBuilder = new StringBuilder();
+
             String bits[] = ark.split("/", 3);
             // just want the first chunk between the "/"'s
             naan = bits[1];
@@ -172,7 +174,7 @@ public class resolver extends database {
 
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
-            bcid = new bcid(datagroup_id);
+            bcid = new bcid(blade,datagroup_id);
 
             // Set resolution target to that specified by the datagroup ID webAddress, only if it exists
             // and only if it does not specify suffixPassThrough.  If it specifies suffix passthrough
@@ -454,7 +456,8 @@ public class resolver extends database {
          */
 
         try {
-            //r = new resolver("ark:/21547/P2_JDeck1");
+            r = new resolver("ark:/21547/JJ2f0297774e9a88955493f1af17b1cd7c0");
+            System.out.println(r.resolveARK());
             //r = new resolver("ark:/21547/R2");
 
 
@@ -464,8 +467,8 @@ public class resolver extends database {
             //Renderer ren = new RDFRenderer();
             //System.out.println(r.printMetadata(ren));
 
-            r = new resolver("DEMOH", 1, "Sequencing");
-            System.out.println(r.getArk());
+            //r = new resolver("DEMOH", 1, "Sequencing");
+            //System.out.println(r.getArk());
             //System.out.println(r.resolveARK().toString());
         } catch (Exception e) {
             e.printStackTrace();
