@@ -309,7 +309,8 @@ public class expeditionMinter {
             // Grap the prefixes and concepts associated with this
             sb.append("\t\t{\n");
             sb.append("\t\t\t\"prefix\":\"" + rs.getString("BCID") + "\",\n");
-            sb.append("\t\t\t\"concept\":\"" + rs.getString("resourceType") + "\"\n");
+            sb.append("\t\t\t\"concept\":\"" + rs.getString("resourceType") + "\",\n");
+            sb.append("\t\t\t\"alias\":\"" + rs.getString("expedition_title") + "\"\n");
             sb.append("\t\t}");
             if (!rs.isLast())
                 sb.append(",");

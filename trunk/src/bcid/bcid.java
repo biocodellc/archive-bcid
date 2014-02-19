@@ -261,7 +261,11 @@ public class bcid extends GenericIdentifier {
     }
 
     public URI getMetadataTarget() throws URISyntaxException {
-        return new URI(resolverMetadataPrefix + identifier);
+       // if (sourceID != null)
+       //     return new URI(resolverMetadataPrefix + identifier + sourceID);
+       // else
+            return new URI(resolverMetadataPrefix + identifier);
+
     }
 
     private void put(String key, String val) {
