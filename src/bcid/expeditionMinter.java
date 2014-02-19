@@ -289,6 +289,7 @@ public class expeditionMinter {
                 "SELECT " +
                         " d.prefix as BCID, " +
                         " d.resourceType as resourceType," +
+                        " d.title as alias, " +
                         " a.expedition_title as expedition_title " +
                         "FROM " +
                         " expeditions a, expeditionsBCIDs b, datasets d " +
@@ -310,7 +311,7 @@ public class expeditionMinter {
             sb.append("\t\t{\n");
             sb.append("\t\t\t\"prefix\":\"" + rs.getString("BCID") + "\",\n");
             sb.append("\t\t\t\"concept\":\"" + rs.getString("resourceType") + "\",\n");
-            sb.append("\t\t\t\"alias\":\"" + rs.getString("expedition_title") + "\"\n");
+            sb.append("\t\t\t\"alias\":\"" + rs.getString("alias") + "\"\n");
             sb.append("\t\t}");
             if (!rs.isLast())
                 sb.append(",");
