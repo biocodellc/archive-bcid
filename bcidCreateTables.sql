@@ -153,20 +153,27 @@ CREATE TABLE `oauthNonces` (
   `client_id` char(20) NOT NULL DEFAULT '' COMMENT 'The client_id of the oauth client app',
   `code` char(20) NOT NULL DEFAULT '' COMMENT 'The generated code the client app can exchange for an access token',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of the nonce creation',
+  `user_id` int(11) unsigned NOT NULL COMMENT 'The user_id this Nonce represents',
+  `redirect_uri` varchar(75) NOT NULL DEFAULT '' COMMENT 'The redirect_uri associated with this code',
   PRIMARY KEY (`oauthNonces_id`),
   UNIQUE KEY `oauthNonces_code_client_idx` (`client_id`,`code`),
-  CONSTRAINT `FK_oauthNonces_client_id` FOREIGN KEY (`client_id`) REFERENCES `oauthClients` (`client_id`)
+  KEY `FK_oauthNonces_user_id` (`user_id`),
+  CONSTRAINT `FK_oauthNonces_client_id` FOREIGN KEY (`client_id`) REFERENCES `oauthClients` (`client_id`),
+  CONSTRAINT `FK_oauthNonces_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `oauthTokens`;
 
 CREATE TABLE `oauthTokens` (
   `oauthTokens_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `client_id` char(20) NOT NULL DEFAULT '',
-  `token` char(20) NOT NULL,
-  `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `client_id` char(20) NOT NULL DEFAULT '' COMMENT 'The client_id the token belongs to',
+  `token` char(20) NOT NULL DEFAULT '' COMMENT 'The generated token used by the client app',
+  `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'The ts when the token was issued',
+  `user_id` int(11) unsigned NOT NULL COMMENT 'The user_id that this token represents',
   UNIQUE KEY `oauthTokens_oauthTokens_idx` (`oauthTokens_id`),
-  UNIQUE KEY `oauthTokens_token` (`token`),
+  UNIQUE KEY `oauthTokens_oauthTokenx` (`token`),
   KEY `FK_oauthTokens_client` (`client_id`),
+  KEY `FK_oauthTokens_users_id` (`user_id`),
+  CONSTRAINT `FK_oauthTokens_users_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `FK_oauthTokens_client` FOREIGN KEY (`client_id`) REFERENCES `oauthClients` (`client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
