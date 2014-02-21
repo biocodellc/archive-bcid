@@ -163,7 +163,7 @@ public class profileRetriever {
 
                 sb.append("\t\"name\": \"" + getName(username) + "\",\n");
                 sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
-                sb.append("\t\"institution\": \"" + getInstitution(username) + "\"\n");
+                sb.append("\t\"institution\": \"" + getInstitution(username) + "\",\n");
                 sb.append("\t\"user_id\": " + user_id +"\n");
 
                 sb.append("}");
