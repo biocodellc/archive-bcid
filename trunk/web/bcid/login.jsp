@@ -3,10 +3,10 @@
     <div class="sectioncontent" id="login">
         <h2>BCID Login</h2>
 
-        <c:if test="${param['return_to'] != null}">
-        <form method="POST" action="/id/authenticationService/login?return_to=${param['return_to']}">
+        <c:if test="${pageContext.request.getQueryString() != null}">
+        <form method="POST" action="/id/authenticationService/login?${pageContext.request.getQueryString()}">
         </c:if>
-        <c:if test="${param['return_to'] == null}">
+        <c:if test="${pageContext.request.getQueryString() == null}">
         <form method="POST" action="/id/authenticationService/login/">
         </c:if>
             <table>
