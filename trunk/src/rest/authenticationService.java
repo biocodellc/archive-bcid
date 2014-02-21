@@ -146,4 +146,36 @@ public class authenticationService {
         response.sendError(500);
         return;
     }
+    @POST
+    @Path("/oauth/access_token")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String access_token(@FormParam("code") String code,
+                               @FormParam("client_id") String clientId,
+                               @FormParam("client_secret") String clientSecret,
+                               @FormParam("redirect_uri") String redirectURL,
+                               @Context HttpServletResponse response,
+                               @Context HttpServletResponse request)
+        throws IOException {
+        try {
+            provider p = new provider();
+
+            if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
+                response.setStatus(400);
+                // response.sendRedirect?
+                return "[{\"error\": \"invalid_client\"}]";
+            }
+
+            if (code == null || !p.validateCode(clientId, code)) {
+                response.setStatus(400);
+                return "[{\"error\": \"invalid_grant\"}]";
+            }
+            // TODO if redirect_uri in authorize, then must match here
+
+            return p.generateToken(clientId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        response.setStatus(500);
+        return "[{}]";
+    }
 }
