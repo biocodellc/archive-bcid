@@ -4,10 +4,8 @@ import bcid.database;
 import org.apache.commons.cli.*;
 import util.stringGenerator;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Calendar;
 
 /**
  * Created by rjewing on 2/15/14.
@@ -69,6 +67,63 @@ public class provider {
     public String generateClientSecret() {
         stringGenerator sg = new stringGenerator();
         return sg.generateString(75);
+    }
+
+    public Boolean validateClient(String clientId, String clientSecret) {
+        try {
+            String selectString = "SELECT count(*) as count FROM oauthClients WHERE client_id = ?, client_secret = ?";
+            PreparedStatement stmt = conn.prepareStatement(selectString);
+
+            stmt.setString(1, clientId);
+            stmt.setString(2, clientSecret);
+
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+            return rs.getInt("count") >= 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Boolean validateCode(String clientID, String code) {
+        try {
+            String selectString = "SELECT ts FROM oauthNonces WHERE client_id = ?, code = ?";
+            PreparedStatement stmt = conn.prepareStatement(selectString);
+
+            stmt.setString(1, clientID);
+            stmt.setString(2, code);
+
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+
+            Timestamp ts = rs.getTimestamp("ts");
+            // get a Timestamp instance for 10 mins ago
+            Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 600000);
+            // if ts is older then 10 mins, we can't procede
+            if (ts.before(expiredTs)) {
+                return false;
+            }
+
+            // code's are only good for 1 use, delete entry from db
+            String deleteString = "DELETE FROM oauthNonces WHERE client_id = ?, code = ?";
+            PreparedStatement stmt2 = conn.prepareStatement(deleteString);
+
+            stmt2.setString(1, clientID);
+            stmt2.setString(2, code);
+
+            stmt2.execute();
+
+            return true;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public String generateToken(String clientID) {
+        return null;
     }
 
     /**
