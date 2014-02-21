@@ -157,3 +157,16 @@ CREATE TABLE `oauthNonces` (
   UNIQUE KEY `oauthNonces_code_client_idx` (`client_id`,`code`),
   CONSTRAINT `FK_oauthNonces_client_id` FOREIGN KEY (`client_id`) REFERENCES `oauthClients` (`client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `oauthTokens`;
+
+CREATE TABLE `oauthTokens` (
+  `oauthTokens_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `client_id` char(20) NOT NULL DEFAULT '',
+  `token` char(20) NOT NULL,
+  `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `oauthTokens_oauthTokens_idx` (`oauthTokens_id`),
+  UNIQUE KEY `oauthTokens_token` (`token`),
+  KEY `FK_oauthTokens_client` (`client_id`),
+  CONSTRAINT `FK_oauthTokens_client` FOREIGN KEY (`client_id`) REFERENCES `oauthClients` (`client_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
