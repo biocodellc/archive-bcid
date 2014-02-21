@@ -4,7 +4,12 @@
     <div class="sectioncontent" id="login">
         <h2>Edit BCID Profile Information</h2>
 
+        <c:if test="${pageContext.request.getQueryString() != null}">
+        <form method="POST" action="/id/profileService?${pageContext.request.getQueryString()}">
+        </c:if>
+        <c:if test="${pageContext.request.getQueryString() == null}">
         <form method="POST" action="/id/profileService">
+        </c:if>
             <table>
                 <tr>
                     <td align="right">Name</td>

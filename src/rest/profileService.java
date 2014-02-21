@@ -3,6 +3,7 @@ package rest;
 import auth.authenticator;
 import bcid.database;
 import bcid.profileRetriever;
+import util.queryParams;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,6 +35,7 @@ public class profileService {
                               @FormParam("institution") String institution,
                               @FormParam("old_password") String old_password,
                               @FormParam("new_password") String new_password,
+                              @QueryParam("return_to") String return_to,
                               @Context HttpServletRequest request,
                               @Context HttpServletResponse response)
         throws IOException{
@@ -140,10 +142,18 @@ public class profileService {
 
         // Error occurred somewhere, inform user
         if (error.isEmpty()) {
-            response.sendRedirect("/bcid/secure/user.jsp");
-            return;
+            if (return_to != null) {
+                response.sendRedirect(return_to);
+            } else {
+                response.sendRedirect("/bcid/secure/user.jsp");
+                return;
+            }
         }
 
+        if (return_to != null) {
+            response.sendRedirect("/bcid/secure/profile.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
+            return;
+        }
         response.sendRedirect("/bcid/secure/profile.jsp?error=" + error);
     }
 

@@ -26,8 +26,9 @@ public class provider {
             stmt.setString(1, clientId);
 
             ResultSet rs = stmt.executeQuery();
-            rs.next();
-            return rs.getInt("count") >= 1;
+            if (rs.next()) {
+                return rs.getInt("count") >= 1;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -41,8 +42,10 @@ public class provider {
         stmt.setString(1, clientID);
 
         ResultSet rs = stmt.executeQuery();
-        rs.next();
-        return rs.getString("callback");
+        if (rs.next()) {
+            return rs.getString("callback");
+        }
+        return null;
     }
 
     public String generateCode(String clientID) throws SQLException {
@@ -71,15 +74,16 @@ public class provider {
 
     public Boolean validateClient(String clientId, String clientSecret) {
         try {
-            String selectString = "SELECT count(*) as count FROM oauthClients WHERE client_id = ?, client_secret = ?";
+            String selectString = "SELECT count(*) as count FROM oauthClients WHERE client_id = ? AND client_secret = ?";
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, clientId);
             stmt.setString(2, clientSecret);
 
             ResultSet rs = stmt.executeQuery();
-            rs.next();
-            return rs.getInt("count") >= 1;
+            if (rs.next()) {
+                return rs.getInt("count") >= 1;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -88,42 +92,61 @@ public class provider {
 
     public Boolean validateCode(String clientID, String code) {
         try {
-            String selectString = "SELECT ts FROM oauthNonces WHERE client_id = ?, code = ?";
+            String selectString = "SELECT ts FROM oauthNonces WHERE client_id = ? AND code = ?";
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, clientID);
             stmt.setString(2, code);
 
             ResultSet rs = stmt.executeQuery();
-            rs.next();
 
-            Timestamp ts = rs.getTimestamp("ts");
-            // get a Timestamp instance for 10 mins ago
-            Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 600000);
-            // if ts is older then 10 mins, we can't procede
-            if (ts.before(expiredTs)) {
-                return false;
+            if (rs.next()) {
+                Timestamp ts = rs.getTimestamp("ts");
+                // get a Timestamp instance for 10 mins ago
+                Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 600000);
+                // if ts is older then 10 mins, we can't proceed
+                if (ts == null || ts.before(expiredTs)) {
+                    return false;
+                }
+
+                // code's are only good for 1 use, delete entry from db
+                String deleteString = "DELETE FROM oauthNonces WHERE client_id = ? AND code = ?";
+                PreparedStatement stmt2 = conn.prepareStatement(deleteString);
+
+                stmt2.setString(1, clientID);
+                stmt2.setString(2, code);
+
+                stmt2.execute();
+
+                return true;
             }
-
-            // code's are only good for 1 use, delete entry from db
-            String deleteString = "DELETE FROM oauthNonces WHERE client_id = ?, code = ?";
-            PreparedStatement stmt2 = conn.prepareStatement(deleteString);
-
-            stmt2.setString(1, clientID);
-            stmt2.setString(2, code);
-
-            stmt2.execute();
-
-            return true;
-
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        return false;
     }
 
-    public String generateToken(String clientID) {
-        return null;
+    public String generateToken(String clientID, String state) throws SQLException{
+        stringGenerator sg = new stringGenerator();
+        String token = sg.generateString(20);
+
+        String insertString = "INSERT INTO oauthTokens (client_id, token) VALUE (?, \"" + token +"\")";
+        PreparedStatement stmt = conn.prepareStatement(insertString);
+
+        stmt.setString(1, clientID);
+        stmt.execute();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("[{");
+        sb.append("\"access_token\":\"" + token + "\",\n");
+        sb.append("\"token_type\":\"bearer\",\n");
+        sb.append("\"expires_in\":3600\n");
+        if (state != null) {
+            sb.append(("\"state\":\"" + state + "\""));
+        }
+        sb.append("}]");
+
+        return sb.toString();
     }
 
     /**
