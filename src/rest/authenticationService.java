@@ -107,12 +107,13 @@ public class authenticationService {
     @Path("/oauth/authorize")
     @Produces(MediaType.TEXT_HTML)
     public void authorize(@QueryParam("client_id") String clientId,
-                                         @QueryParam("redirect_uri") String redirectURL,
-                                         @QueryParam("state") String state,
-                                         @Context HttpServletRequest request,
-                                         @Context HttpServletResponse response)
+                          @QueryParam("redirect_uri") String redirectURL,
+                          @QueryParam("state") String state,
+                          @Context HttpServletRequest request,
+                          @Context HttpServletResponse response)
         throws IOException {
         HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
 
         try {
             provider p = new provider();
@@ -134,7 +135,7 @@ public class authenticationService {
                 return;
             }
 
-            if (session.getAttribute("user") == null) {
+            if (username == null) {
                 // need the user to login
                 response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
                                       + request.getQueryString());
@@ -142,7 +143,7 @@ public class authenticationService {
             }
             //TODO ask user if they want to share with request.host
 
-            String code = p.generateCode(clientId);
+            String code = p.generateCode(clientId, redirectURL, username.toString());
 
             redirectURL += "?code=" + code;
 
@@ -186,11 +187,11 @@ public class authenticationService {
                 return Response.status(400).entity("[{\"error\": \"invalid_client\"}]").location(url).build();
             }
 
-            if (code == null || !p.validateCode(clientId, code)) {
+            if (code == null || !p.validateCode(clientId, code, redirectURL)) {
                 return Response.status(400).entity("[{\"error\": \"invalid_grant\"}]").location(url).build();
             }
 
-            return Response.ok(p.generateToken(clientId, state)).location(url).build();
+            return Response.ok(p.generateToken(clientId, state, code)).location(url).build();
         } catch (Exception e) {
             e.printStackTrace();
         }
