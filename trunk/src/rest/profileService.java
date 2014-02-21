@@ -162,12 +162,17 @@ public class profileService {
     public String getProfile(@Context HttpServletRequest request)
         throws IOException {
         HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            return "You must be logged in to view your profile.";
+        }
+
         profileRetriever p;
 
         try {
             p = new profileRetriever();
-            return p.getProfileJSON(username);
+            return p.getProfileJSON(username.toString());
         }   catch (Exception e) {
             e.printStackTrace();
         }
