@@ -110,10 +110,9 @@ public class provider {
                 // get a Timestamp instance for 10 mins ago
                 Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 600000);
                 // if ts is older then 10 mins, we can't proceed
-                if (ts == null || ts.before(expiredTs)) {
-                    return false;
+                if (ts != null && ts.after(expiredTs)) {
+                    return true;
                 }
-                return true;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -205,7 +204,7 @@ public class provider {
                 // get a Timestamp instance for 1 hr ago
                 Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 3600000);
                 // if ts is older then 1 hr, we can't proceed
-                if (ts != null || ts.after(expiredTs)) {
+                if (ts != null && ts.after(expiredTs)) {
                     return rs.getInt("user_id");
                 }
             }
