@@ -1,42 +1,40 @@
 This page explains how to access a users profile details via OAuth2.
 
-= Introduction =
-
 All developers need to register their app. You will be issued a client_id and client_secret. The client_secret should be kept private.
 
 = Authorization =
 
 Client app will make a GET request to /id/authenticationService/oauth/authorize. This request will contain the following QueryParameters:
-    *client_id (Required) - The client_id your app was issued during when registered.
-    *redirect_uri (Required) - The absolute URI you would like the response directed to.
-    *state (Optional) - Will be returned, unmodified, in the response. 
+    * client_id (Required) - The client_id your app was issued during when registered.
+    * redirect_uri (Required) - The absolute URI you would like the response directed to.
+    * state (Optional) - Will be returned, unmodified, in the response. 
 
 The response will contain the following QueryParameters:
-    *code - The random 20 character string used to exchange for an access_token. This code expires in 10 mins and can only be used 1 time.
-    *state - Only if this parameter was included in the request.
+    * code - The random 20 character string used to exchange for an access_token. This code expires in 10 mins and can only be used 1 time.
+    * state - Only if this parameter was included in the request.
 
 = Access Token =
 
 Client app will make a POST request to /id/authenticationService/oauth/access_token. This request will contain the following parameters in the request body:
-    *client_id (Required) - The client_id your app was issued during when registered.
-    *client_secret (Required) - The client_secret your app was issued during when registered.
-    *code (Required) - The authorization code received in the authorization request.
-    *redirect_uri (Required) - The absolute URI you would like the response directed to. Must be identical to the redirect_uri provided in the authorization request.
-    *state (Optional) - Will be returned, unmodified, in the response.
+    * client_id (Required) - The client_id your app was issued during when registered.
+    * client_secret (Required) - The client_secret your app was issued during when registered.
+    * code (Required) - The authorization code received in the authorization request.
+    * redirect_uri (Required) - The absolute URI you would like the response directed to. Must be identical to the redirect_uri provided in the authorization request.
+    * state (Optional) - Will be returned, unmodified, in the response.
 
 The JSON response will contain the following parameters:
-    *access_token - The random 20 character string used to access a user's profile.
-    *token_type - currently we only issue bearer tokens.
-    *expires_in - the number of seconds the token is good for.
-    *state - Only if this parameter was included in the request.
+    * access_token - The random 20 character string used to access a user's profile.
+    * token_type - currently we only issue bearer tokens.
+    * expires_in - the number of seconds the token is good for.
+    * state - Only if this parameter was included in the request.
 
 = API Access =
 
 Currently, we only support access on behalf of the user to the profileService. In order to obtain a user's profile information, make a GET request to /id/profileService/oauth with the access_token as a query parameter.
 
 If the token is still valid, you will receive a JSON response with the following user information:
-    *first_name
-    *last_name
-    *email
-    *institution
-    *user_id
+    * first_name
+    * last_name
+    * email
+    * institution
+    * user_id
