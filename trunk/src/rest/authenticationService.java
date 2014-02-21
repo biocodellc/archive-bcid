@@ -2,6 +2,7 @@ package rest;
 
 import auth.authenticator;
 import auth.authorizer;
+import auth.oauth2.provider;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,6 +11,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.net.URL;
+import java.sql.SQLException;
 
 /**
  * REST interface to log a user in
@@ -23,6 +26,7 @@ public class authenticationService {
     @Produces(MediaType.TEXT_HTML)
     public void login(@FormParam("username") String usr,
                       @FormParam("password") String pass,
+                      @QueryParam("return_to") String return_to,
                       @Context HttpServletRequest req,
                       @Context HttpServletResponse res)
         throws IOException{
@@ -55,8 +59,15 @@ public class authenticationService {
                     res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password");
                     return;
                 }
-                res.sendRedirect("/bcid/index.jsp");
-                return;
+
+                // redirect to return_to uri if provided
+                if (return_to != null) {
+                    res.sendRedirect(return_to);
+                    return;
+                } else {
+                    res.sendRedirect("/bcid/index.jsp");
+                    return;
+                }
             }
             // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
             else {
@@ -78,5 +89,61 @@ public class authenticationService {
 
         session.invalidate();
         res.sendRedirect("/bcid/index.jsp");
+        return;
+    }
+
+    @GET
+    @Path("/oauth/authorize")
+    @Produces(MediaType.TEXT_HTML)
+    public void authorize(@QueryParam("client_id") String clientId,
+                                         @QueryParam("redirect_uri") String redirectURL,
+                                         @QueryParam("state") String state,
+                                         @Context HttpServletRequest request,
+                                         @Context HttpServletResponse response)
+        throws IOException {
+        HttpSession session = request.getSession();
+
+        try {
+            provider p = new provider();
+
+            if (clientId == null || !p.validClientId(clientId)) {
+                if (redirectURL == null) {
+                    response.sendError(401);
+                    return;
+                }
+                redirectURL += "?error=unauthorized_client";
+                response.sendRedirect(redirectURL);
+                return;
+            }
+
+            if (redirectURL == null) {
+                redirectURL = p.getCallback(clientId);
+            }
+
+            if (session.getAttribute("user") == null) {
+                // need the user to login
+                response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
+                                      + request.getQueryString());
+                return;
+            }
+            //TODO ask user if they want to share with request.host
+
+            String code = p.generateCode(clientId);
+
+            redirectURL += "?code=" + code;
+
+            if (state != null) {
+                redirectURL += "&state=" + state;
+            }
+            response.sendRedirect(redirectURL);
+            return;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // If we are here, there was a server error
+        response.sendError(500);
+        return;
     }
 }

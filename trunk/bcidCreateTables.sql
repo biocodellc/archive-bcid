@@ -135,4 +135,25 @@ CREATE TABLE `usersProjects` (
   CONSTRAINT `FK_usersProjects_project` FOREIGN KEY(`project_id`) REFERENCES `projects` (`project_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `oauthClients`;
 
+CREATE TABLE `oauthClients` (
+  `oauthClients_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `client_id` char(20) NOT NULL DEFAULT '' COMMENT 'the public unique client id',
+  `client_secret` char(75) NOT NULL DEFAULT '' COMMENT 'the private shared secret',
+  `callback` text NOT NULL COMMENT 'The callback url of the client app',
+  PRIMARY KEY (`oauthClients_id`),
+  UNIQUE KEY `oauthClients_client_idx` (`client_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `oauthNonces`;
+
+CREATE TABLE `oauthNonces` (
+  `oauthNonces_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `client_id` char(20) NOT NULL DEFAULT '' COMMENT 'The client_id of the oauth client app',
+  `code` char(20) NOT NULL DEFAULT '' COMMENT 'The generated code the client app can exchange for an access token',
+  `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of the nonce creation',
+  PRIMARY KEY (`oauthNonces_id`),
+  UNIQUE KEY `oauthNonces_code_client_idx` (`client_id`,`code`),
+  CONSTRAINT `FK_oauthNonces_client_id` FOREIGN KEY (`client_id`) REFERENCES `oauthClients` (`client_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

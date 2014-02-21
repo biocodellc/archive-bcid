@@ -1,10 +1,14 @@
 <%@ include file="header.jsp" %>
-
 <div class="section">
     <div class="sectioncontent" id="login">
         <h2>BCID Login</h2>
 
+        <c:if test="${param['return_to'] != null}">
+        <form method="POST" action="/id/authenticationService/login?return_to=${param['return_to']}">
+        </c:if>
+        <c:if test="${param['return_to'] == null}">
         <form method="POST" action="/id/authenticationService/login/">
+        </c:if>
             <table>
                 <tr>
                     <td align="right">Username</td>
