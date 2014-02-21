@@ -141,7 +141,7 @@ public class authenticationService {
                                       + request.getQueryString());
                 return;
             }
-            //TODO ask user if they want to share with request.host
+            //TODO ask user if they want to share profile information with requesting party
 
             String code = p.generateCode(clientId, redirectURL, username.toString());
 
@@ -180,7 +180,6 @@ public class authenticationService {
             if (redirectURL == null) {
                 return Response.status(400).entity("[{\"error\": \"invalid_request\"}]").build();
             }
-            // TODO redirect_uri must match redirect_uri in authorize
             URI url = new URI(redirectURL);
 
             if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
@@ -191,7 +190,11 @@ public class authenticationService {
                 return Response.status(400).entity("[{\"error\": \"invalid_grant\"}]").location(url).build();
             }
 
-            return Response.ok(p.generateToken(clientId, state, code)).location(url).build();
+            return Response.ok(p.generateToken(clientId, state, code))
+                    .header("Cache-Control", "no-store")
+                    .header("Pragma", "no-cache")
+                    .location(url)
+                    .build();
         } catch (Exception e) {
             e.printStackTrace();
         }
