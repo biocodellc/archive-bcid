@@ -146,7 +146,7 @@ public class bcid extends GenericIdentifier {
                     "   d.resourceType," +
                     "   i.ts," +
                     //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
-                    "   u.fullname " +
+                    "   CONCAT_WS(' ',u.firstName, u.lastName) " +
                     " FROM datasets d, identifiers i, users u " +
                     " WHERE d.datasets_id = i.datasets_id && " +
                     " d.users_id = u.user_id && " +
@@ -197,7 +197,7 @@ public class bcid extends GenericIdentifier {
                     "   d.doi," +
                     "   d.webAddress," +
                     //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
-                    "   u.fullname " +
+                    "   CONCAT_WS(' ',u.firstName, u.lastName) " +
                     " FROM datasets d, users u " +
                     " WHERE " +
                     " d.datasets_id = " + datasets_id + " && " +

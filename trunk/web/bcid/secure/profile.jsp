@@ -12,8 +12,12 @@
         </c:if>
             <table>
                 <tr>
-                    <td align="right">Name</td>
-                    <td><input type="text" name="name"></td>
+                    <td align="right">First Name</td>
+                    <td><input type="text" name="firstName"></td>
+                </tr>
+                <tr>
+                    <td align="right">Last Name</td>
+                    <td><input type="text" name="lastName"></td>
                 </tr>
                 <tr>
                     <td align="right">Email</td>
