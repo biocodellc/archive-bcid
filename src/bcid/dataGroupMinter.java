@@ -105,7 +105,7 @@ public class dataGroupMinter extends dataGroupEncoder {
                 "d.doi as doi," +
                 "d.title as title," +
                 "d.ts as ts, " +
-                "u.fullname as who" +
+                "CONCAT_WS(' ',u.firstName, u.lastName) as who" +
                 " FROM datasets d, users u " +
                 " WHERE d.datasets_id = '" + datasets_id.toString() + "'" +
                 " AND d.users_id = u.user_id";

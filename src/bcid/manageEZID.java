@@ -55,7 +55,7 @@ public class manageEZID extends elementMinter {
                     "d.prefix as prefix," +
                     "d.ts as ts," +
                     "d.resourceType as what," +
-                    "concat_ws('',u.fullname,' <',u.email,'>') as who " +
+                    "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as who " +
                     "FROM datasets d,users u " +
                     "WHERE ezidMade && d.users_id=u.USER_ID " +
                     "AND d.datasets_id =" + datasets_id + " " +
@@ -110,7 +110,7 @@ public class manageEZID extends elementMinter {
                     "d.prefix as prefix," +
                     "d.ts as ts," +
                     "d.resourceType as what," +
-                    "concat_ws('',u.fullname,' <',u.email,'>') as who " +
+                    "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as who " +
                     "FROM datasets d,users u " +
                     "WHERE !ezidMade && ezidRequest && d.users_id=u.USER_ID && u.username != 'demo'" +
                     "LIMIT 1000");

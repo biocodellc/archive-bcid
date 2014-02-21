@@ -23,15 +23,23 @@ public class profileRetriever {
      */
     public String getProfileHTML(String username) {
         StringBuilder sb = new StringBuilder();
-        String name = getName(username);
+        String firstName = getFirstName(username);
+        String lastName = getLastName(username);
         String email = getEmail(username);
         String institution = getInstitution(username);
 
         sb.append("<table id=\"profile\">\n");
         sb.append("\t<tr>\n");
-        sb.append("\t\t<td>Name:</td>\n");
+        sb.append("\t\t<td>First Name:</td>\n");
         sb.append("\t\t<td>");
-        sb.append(name);
+        sb.append(firstName);
+        sb.append("</td>\n");
+        sb.append("\t</tr>\n");
+
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td>Last Name:</td>\n");
+        sb.append("\t\t<td>");
+        sb.append(lastName);
         sb.append("</td>\n");
         sb.append("\t</tr>\n");
 
@@ -68,7 +76,8 @@ public class profileRetriever {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
 
-        sb.append("\t\"name\": \"" + getName(username) + "\",\n");
+        sb.append("\t\"firstName\": \"" + getFirstName(username) + "\",\n");
+        sb.append("\t\"lastName\": \"" + getLastName(username) + "\",\n");
         sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
         sb.append("\t\"institution\": \"" + getInstitution(username) + "\"\n");
 
@@ -126,21 +135,44 @@ public class profileRetriever {
     }
 
     /**
-     * lookup the user's name
+     * lookup the user's first name
      * @param username
      * @return
      */
-    public String getName(String username) {
+    public String getFirstName(String username) {
         PreparedStatement stmt;
         try {
-            String selectStatement = "Select fullname from users where username = ?";
+            String selectStatement = "Select firstName from users where username = ?";
             stmt = conn.prepareStatement(selectStatement);
 
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                return rs.getString("fullname");
+                return rs.getString("firstName");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * lookup the user's first name
+     * @param username
+     * @return
+     */
+    public String getLastName(String username) {
+        PreparedStatement stmt;
+        try {
+            String selectStatement = "Select lastName from users where username = ?";
+            stmt = conn.prepareStatement(selectStatement);
+
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getString("lastName");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -161,7 +193,8 @@ public class profileRetriever {
                 StringBuilder sb = new StringBuilder();
                 sb.append("{\n");
 
-                sb.append("\t\"name\": \"" + getName(username) + "\",\n");
+                sb.append("\t\"first_name\": \"" + getFirstName(username) + "\",\n");
+                sb.append("\t\"last_name\": \"" + getLastName(username) + "\",\n");
                 sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
                 sb.append("\t\"institution\": \"" + getInstitution(username) + "\",\n");
                 sb.append("\t\"user_id\": " + user_id +"\n");

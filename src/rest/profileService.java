@@ -30,7 +30,8 @@ public class profileService {
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
-    public void updateProfile(@FormParam("name") String fullname,
+    public void updateProfile(@FormParam("firstName") String firstName,
+                              @FormParam("lastName") String lastName,
                               @FormParam("email") String email,
                               @FormParam("institution") String institution,
                               @FormParam("old_password") String old_password,
@@ -73,8 +74,11 @@ public class profileService {
         try {
             profileRetriever p = new profileRetriever();
 
-            if (!fullname.equals(p.getName(username))) {
-                update.put("fullname", fullname);
+            if (!firstName.equals(p.getFirstName(username))) {
+                update.put("firstName", firstName);
+            }
+            if (!lastName.equals(p.getLastName(username))) {
+                update.put("lastName", lastName);
             }
             if (!email.equals(p.getEmail(username))) {
                 update.put("email", email);
