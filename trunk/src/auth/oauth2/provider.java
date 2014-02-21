@@ -48,15 +48,19 @@ public class provider {
         return null;
     }
 
-    public String generateCode(String clientID) throws SQLException {
-        // TODO bound code to redirect_uri?
+    public String generateCode(String clientID, String redirectURL, String username) throws Exception {
         stringGenerator sg = new stringGenerator();
         String code = sg.generateString(20);
 
-        String insertString = "INSERT INTO oauthNonces (client_id, code) VALUES(?, \"" + code + "\")";
+        database db = new database();
+        Integer user_id = db.getUserId(username);
+
+        String insertString = "INSERT INTO oauthNonces (client_id, code, user_id, redirect_uri) VALUES(?, \"" + code + "\",?,?)";
         PreparedStatement stmt = conn.prepareStatement(insertString);
 
         stmt.setString(1, clientID);
+        stmt.setInt(2, user_id);
+        stmt.setString(3, redirectURL);
 
         stmt.execute();
         return code;
@@ -90,13 +94,14 @@ public class provider {
         return false;
     }
 
-    public Boolean validateCode(String clientID, String code) {
+    public Boolean validateCode(String clientID, String code, String redirectURL) {
         try {
-            String selectString = "SELECT ts FROM oauthNonces WHERE client_id = ? AND code = ?";
+            String selectString = "SELECT ts FROM oauthNonces WHERE client_id = ? AND code = ? AND redirect_uri = ?";
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, clientID);
             stmt.setString(2, code);
+            stmt.setString(3, redirectURL);
 
             ResultSet rs = stmt.executeQuery();
 
@@ -108,16 +113,6 @@ public class provider {
                 if (ts == null || ts.before(expiredTs)) {
                     return false;
                 }
-
-                // code's are only good for 1 use, delete entry from db
-                String deleteString = "DELETE FROM oauthNonces WHERE client_id = ? AND code = ?";
-                PreparedStatement stmt2 = conn.prepareStatement(deleteString);
-
-                stmt2.setString(1, clientID);
-                stmt2.setString(2, code);
-
-                stmt2.execute();
-
                 return true;
             }
         } catch (SQLException e) {
@@ -126,14 +121,56 @@ public class provider {
         return false;
     }
 
-    public String generateToken(String clientID, String state) throws SQLException{
+    private Integer getUserId(String clientId, String code) {
+        Integer user_id = null;
+        try {
+            String selectString = "SELECT user_id FROM oauthNonces WHERE client_id=? AND code=?";
+            PreparedStatement stmt = conn.prepareStatement(selectString);
+
+            stmt.setString(1, clientId);
+            stmt.setString(2, code);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                user_id = rs.getInt("user_id");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return user_id;
+    }
+
+    private void deleteNonce(String clientId, String code) {
+        try {
+            // need to do this here instead of
+            String deleteString = "DELETE FROM oauthNonces WHERE client_id = ? AND code = ?";
+            PreparedStatement stmt2 = conn.prepareStatement(deleteString);
+
+            stmt2.setString(1, clientId);
+            stmt2.setString(2, code);
+
+            stmt2.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String generateToken(String clientID, String state, String code) throws SQLException{
         stringGenerator sg = new stringGenerator();
         String token = sg.generateString(20);
 
-        String insertString = "INSERT INTO oauthTokens (client_id, token) VALUE (?, \"" + token +"\")";
+        Integer user_id = getUserId(clientID, code);
+        deleteNonce(clientID, code);
+        if (user_id == null) {
+            return "[{\"error\": \"server_error\"}]";
+        }
+
+        String insertString = "INSERT INTO oauthTokens (client_id, token, user_id) VALUE (?, \"" + token +"\", ?)";
         PreparedStatement stmt = conn.prepareStatement(insertString);
 
         stmt.setString(1, clientID);
+        stmt.setInt(2, user_id);
         stmt.execute();
 
         StringBuilder sb = new StringBuilder();
@@ -147,6 +184,36 @@ public class provider {
         sb.append("}]");
 
         return sb.toString();
+    }
+
+    /**
+     * verify that a token is still valid
+     * @param token the access_token issued to the client
+     * @return user_id the token represents, null if invalid token
+     */
+    public Integer validateToken(String token) {
+        try {
+            String selectString = "SELECT ts, user_id FROM oauthTokens WHERE token=?";
+            PreparedStatement stmt = conn.prepareStatement(selectString);
+
+            stmt.setString(1, token);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+
+                Timestamp ts = rs.getTimestamp("ts");
+                // get a Timestamp instance for 1 hr ago
+                Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 3600000);
+                // if ts is older then 1 hr, we can't proceed
+                if (ts != null || ts.after(expiredTs)) {
+                    return rs.getInt("user_id");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     /**

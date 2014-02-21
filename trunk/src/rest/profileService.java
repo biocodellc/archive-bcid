@@ -204,4 +204,23 @@ public class profileService {
         }
         return "Exception encountered attempting to construct profile.";
     }
+
+    @GET
+    @Path("/oauth")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getUserData(@QueryParam("access_token") String access_token,
+                              @Context HttpServletResponse response) {
+        if (access_token != null) {
+            try {
+                profileRetriever p = new profileRetriever();
+
+                return p.getOauthProfile(access_token);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        response.setStatus(400);
+        return "[{\"error\": \"invalid_grant\"}]";
+    }
 }

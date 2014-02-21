@@ -1,5 +1,7 @@
 package bcid;
 
+import auth.oauth2.provider;
+
 import java.sql.*;
 
 /**
@@ -144,5 +146,34 @@ public class profileRetriever {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public String getOauthProfile(String token) {
+        try {
+            provider p = new provider();
+            database db = new database();
+
+            Integer user_id = p.validateToken(token);
+
+            if (user_id != null) {
+                String username = db.getUserName(user_id);
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("{\n");
+
+                sb.append("\t\"name\": \"" + getName(username) + "\",\n");
+                sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
+                sb.append("\t\"institution\": \"" + getInstitution(username) + "\"\n");
+                sb.append("\t\"user_id\": " + user_id +"\n");
+
+                sb.append("}");
+
+                return sb.toString();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "[{\"error\": \"invalid_grant\"}]";
     }
 }
