@@ -30,7 +30,7 @@ The JSON response will contain the following parameters:
 
 = API Access =
 
-Currently, we only support access on behalf of the user to the profileService endpoint. In order to obtain a user's profile information, make a GET request to /id/profileService/oauth with the access_token as a query parameter.
+Currently, we only support access on behalf of the user to the profileService endpoint. In order to obtain a user's profile information, make a GET request to /id/userService/oauth with the access_token as a query parameter.
 
 If the token is still valid, you will receive a JSON response with the following user information:
     * first_name
