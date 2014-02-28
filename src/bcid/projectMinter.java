@@ -84,8 +84,10 @@ public class projectMinter {
                     "\tproject_code,\n" +
                     "\tproject_title,\n" +
                     "\tbiovalidator_validation_xml\n" +
-                    "FROM \n" +
-                    "\tprojects";
+                    " FROM \n" +
+                    "\tprojects\n" +
+                    " WHERE \n" +
+                    "\tpublic = true\n";
             ResultSet rs = stmt.executeQuery(query);
 
             sb.append("{\n");
@@ -170,7 +172,8 @@ public class projectMinter {
         try {
             // See if the user owns this expedition or no
             projectMinter project = new projectMinter();
-            System.out.println("results = \n" + project.getLatestGraphs(5));
+            System.out.println(project.listProjects());
+            //System.out.println("results = \n" + project.getLatestGraphs(5));
 
         } catch (Exception e) {
             throw new Exception(e);

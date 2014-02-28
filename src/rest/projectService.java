@@ -21,7 +21,7 @@ import javax.ws.rs.core.Response;
 public class projectService {
 
     /**
-     * Given an project_id
+     * Given a project_id, return the validationXML file
      *
      * @param project_id
      * @return
@@ -43,7 +43,7 @@ public class projectService {
     }
 
     /**
-     * Produce a list of all available projects
+     * Produce a list of all publically available projects
      *
      * @return  Generates a JSON listing containing project metadata as an array
      * @throws Exception
