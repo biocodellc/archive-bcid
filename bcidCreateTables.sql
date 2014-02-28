@@ -116,6 +116,7 @@ CREATE TABLE `projects` (
     `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The user_id of the project admin',
+    `public` tinyint(1) DEFAULT '1',
   UNIQUE KEY `projects_project_id_idx` (`project_id`),
   KEY `projects_users_id_idx` (`users_id`),
   CONSTRAINT `FK_projects_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
