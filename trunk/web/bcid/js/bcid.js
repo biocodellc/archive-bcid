@@ -161,9 +161,9 @@ function resolverResults() {
 // Populate the edit profile form
 function populateProfileForm() {
     // get JSON from server
-    var jqxhr = $.getJSON("/id/profileService", function() {})
+    var jqxhr = $.getJSON("/id/userService/profile/list", function() {})
         .done(function(data) {
-            $.each(data, function(key, val) {
+            $.each(data[0], function(key, val) {
                 $('[name=' + key + ']').val(val);
             });
         });

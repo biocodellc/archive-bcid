@@ -10,7 +10,6 @@ import bcid.manageEZID;
 import bcid.GenericIdentifier;
 import bcid.resolver;
 import bcid.bcid;
-import bcid.profileRetriever;
 import bcid.ResourceTypes;
 
 import ezid.EZIDException;
