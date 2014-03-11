@@ -8,7 +8,9 @@
         <br>
 
         <div>
-            <div id=listUserProfile>Loading profile...</div>
+            <form method="POST" action="/id/userService/profile/update">
+                <div id=listUserProfile>Loading profile...</div>
+            </form>
         </div>
     </div>
 </div>
@@ -16,10 +18,32 @@
 <script>
     $(document).ready(function() {
         // Populate User Profile
-        populateDivFromService(
-            "/id/userService/profile/listAsTable",
-            "listUserProfile",
-            "Unable to load this user's profile from the Server");
+        if ("${param.error}" == "") {
+            populateDivFromService(
+                "/id/userService/profile/listAsTable",
+                "listUserProfile",
+                "Unable to load this user's profile from the Server");
+        } else {
+            $(document).ajaxStop(function() {
+                $(".error").text("${param.error}");
+            });
+            populateDivFromService(
+                "/id/userService/profile/listEditorAsTable",
+                "listUserProfile",
+                "Unable to load this user's profile editor from the Server")
+        }
+
+        $(document).ajaxStop(function() {
+            $("a", "#profile").click( function() {
+                populateDivFromService(
+                    "/id/userService/profile/listEditorAsTable",
+                    "listUserProfile",
+                    "Unable to load this user's profile editor from the Server");
+                $(document).ajaxStop(function() {
+                    $(".error").text("${param.error}");
+                });
+            });
+        });
     })
 </script>
 

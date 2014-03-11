@@ -236,13 +236,13 @@ public class userService {
         }
 
         if (return_to != null) {
-            response.sendRedirect("/bcid/secure/profile.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
+            response.sendRedirect("/bcid/secure/user.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
             return;
         }
-        response.sendRedirect("/bcid/secure/profile.jsp?error=" + error);
+        response.sendRedirect("/bcid/secure/user.jsp?error=" + error);
     }
     @GET
-    @Path("/profile/list")
+    @Path("/profile/listEditorAsTable")
     @Produces(MediaType.TEXT_HTML)
     public String getProfile(@Context HttpServletRequest request)
             throws IOException {

@@ -124,7 +124,7 @@ public class userMinter {
 
         sb.append("\t<tr>\n");
         sb.append("\t\t<td></td>\n");
-        sb.append("\t\t<td><a href=\"/bcid/secure/profile.jsp\">Edit Profile</a></td>\n");
+        sb.append("\t\t<td><a href=\"javascript:void(0)\">Edit Profile</a></td>\n");
         sb.append("\t</tr>\n");
 
         sb.append("\t</tr>\n</table>\n");
@@ -143,22 +143,54 @@ public class userMinter {
         String lastName = getLastName(username);
         String email = getEmail(username);
         String institution = getInstitution(username);
-        sb.append("[{\n");
 
         sb.append("<table>\n");
         sb.append("\t<tr>\n");
         sb.append("\t\t<td>First Name</td>\n");
-        sb.append("\t\t<td>");
         sb.append(("\t\t<td><input type=\"text\" name=\"firstName\" value=\""));
         sb.append(firstName);
         sb.append("\"></td>\n\t</tr>");
 
-        sb.append("\t\"firstName\": \"" + getFirstName(username) + "\",\n");
-        sb.append("\t\"lastName\": \"" + getLastName(username) + "\",\n");
-        sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
-        sb.append("\t\"institution\": \"" + getInstitution(username) + "\"\n");
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td>Last Name</td>\n");
+        sb.append(("\t\t<td><input type=\"text\" name=\"lastName\" value=\""));
+        sb.append(lastName);
+        sb.append("\"></td>\n\t</tr>");
 
-        sb.append("}]");
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td>Email</td>\n");
+        sb.append(("\t\t<td><input type=\"text\" name=\"email\" value=\""));
+        sb.append(email);
+        sb.append("\"></td>\n\t</tr>");
+
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td>Institution</td>\n");
+        sb.append(("\t\t<td><input type=\"text\" name=\"institution\" value=\""));
+        sb.append(institution);
+        sb.append("\"></td>\n\t</tr>");
+
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td>New Password</td>\n");
+        sb.append(("\t\t<td><input type=\"password\" name=\"new_password\">"));
+        sb.append("</td>\n\t</tr>");
+
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td>Old Password</td>\n");
+        sb.append(("\t\t<td><input type=\"password\" name=\"old_password\">"));
+        sb.append("</td>\n\t</tr>");
+
+        sb.append("<c:if test=\"${param.error != null}\">");
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td></td>\n");
+        sb.append("<td class=\"error\" align=\"center\">");
+        sb.append("</td>\n\t</tr>");
+        sb.append("</c:if>");
+
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td></td>\n");
+        sb.append(("\t\t<td><input type=\"submit\" value=\"Submit\">"));
+        sb.append("</td>\n\t</tr>");
+        sb.append("</table>\n");
 
         return sb.toString();
     }
