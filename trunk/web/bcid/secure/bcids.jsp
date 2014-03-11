@@ -5,7 +5,7 @@
     <div class="sectioncontent">
 
         <div>
-            <div id=listUserBCIDsAsTable >Loading groups</div>
+            <div id=listUserBCIDsAsTable >Loading groups...</div>
         </div>
     </div>
 </div>

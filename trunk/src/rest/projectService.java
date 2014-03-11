@@ -106,4 +106,23 @@ public class projectService {
         projectMinter project= new projectMinter();
         return project.listUserAdminProjects(username);
     }
+
+    @GET
+    @Path("/config/{project_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getProjectConfig(@PathParam("project_id") Integer project_id,
+                                   @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username != null) {
+            try {
+                projectMinter project = new projectMinter();
+                return project.listProjectConfig(project_id, username.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return "[{\"error\": \"You must be this project's admin in order to view its configuration\"}]";
+    }
 }

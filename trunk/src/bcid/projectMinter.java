@@ -209,5 +209,32 @@ public class projectMinter {
         sb.append("}]");
         return sb.toString();
     }
+
+    public String listProjectConfig(Integer project_id, String username) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[{");
+
+        try {
+            database db = new database();
+            Integer user_id = db.getUserId(username);
+
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT project_title as title, abstract, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
+                         + project_id + "\" AND users_id=\"" + user_id + "\"";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                sb.append("\n\t\"title\": " + "\"" + rs.getString("title") + "\",\n");
+                sb.append("\t\"abstract\": " + "\"" + rs.getString("abstract") + "\",\n");
+                sb.append("\t\"validation_xml\": " + "\"" + rs.getString("validation_xml") + "\"\n");
+            } else {
+                sb.append("\"error\": \"You must be this project's admin in order to view its configuration\"");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        sb.append("}]");
+        return sb.toString();
+    }
 }
 

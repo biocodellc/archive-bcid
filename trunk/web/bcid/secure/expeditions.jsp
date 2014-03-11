@@ -5,7 +5,7 @@
     <div class="sectioncontent">
 
         <div>
-            <div id=listUserExpeditionsAsTable >Loading expeditions</div>
+            <div id=listUserExpeditionsAsTable >Loading expeditions...</div>
         </div>
     </div>
 </div>

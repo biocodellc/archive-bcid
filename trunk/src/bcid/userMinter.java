@@ -137,9 +137,21 @@ public class userMinter {
      * @param username
      * @return
      */
-    public String getProfileJSON(String username) {
+    public String getProfileEditorAsTable(String username) {
         StringBuilder sb = new StringBuilder();
+        String firstName = getFirstName(username);
+        String lastName = getLastName(username);
+        String email = getEmail(username);
+        String institution = getInstitution(username);
         sb.append("[{\n");
+
+        sb.append("<table>\n");
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td>First Name</td>\n");
+        sb.append("\t\t<td>");
+        sb.append(("\t\t<td><input type=\"text\" name=\"firstName\" value=\""));
+        sb.append(firstName);
+        sb.append("\"></td>\n\t</tr>");
 
         sb.append("\t\"firstName\": \"" + getFirstName(username) + "\",\n");
         sb.append("\t\"lastName\": \"" + getLastName(username) + "\",\n");
