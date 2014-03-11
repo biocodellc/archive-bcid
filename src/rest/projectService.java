@@ -2,11 +2,7 @@ package rest;
 
 import bcid.database;
 import bcid.projectMinter;
-import bcid.expeditionMinter;
-import bcid.userMinter;
 
-import javax.management.remote.rmi._RMIConnection_Stub;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -15,6 +11,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Hashtable;
 
 /**
  * REST interface calls for working with projects.  This includes fetching details associated with projects.
@@ -128,6 +125,72 @@ public class projectService {
             }
         }
         return "[{\"error\": \"You must be this project's admin in order to view its configuration\"}]";
+    }
+
+    @GET
+    @Path("/configEditorAsTable/{project_id}")
+    @Produces(MediaType.TEXT_HTML)
+    public String getConfigEditorAsTable(@PathParam("project_id") Integer projectId,
+                                         @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        try {
+            projectMinter project = new projectMinter();
+            return project.getProjectConfigEditorAsTable(projectId, username.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "server error loading project config editor";
+    }
+
+    @POST
+    @Path("/updateConfig/{project_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String updateConfig(@PathParam("project_id") Integer projectID,
+                               @FormParam("title") String title,
+                               @FormParam("abstract") String ab,
+                               @FormParam("validation_xml") String validationXML,
+                               @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username == null){
+            return "[{\"error\": \"You must be logged in to edit a project's config.\"}]";
+        }
+        try {
+            projectMinter p = new projectMinter();
+            database db = new database();
+
+            if (!p.userProjectAdmin(db.getUserId(username.toString()), projectID)) {
+                return "[{\"error\": \"You must be this project's admin in order to edit the config\"}]";
+            }
+
+            Hashtable config = p.getProjectConfig(projectID, username.toString());
+            Hashtable<String, String> update = new Hashtable<String, String>();
+
+            if (!config.get("title").equals(title)) {
+                update.put("title", title);
+            }
+            if (!config.containsKey("ab") || !config.get("ab").equals(ab)) {
+                update.put("abstract", ab);
+            }
+            if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {
+                update.put("validation_xml", validationXML);
+            }
+
+            if (!update.isEmpty()) {
+                if (p.updateConfig(update, projectID)) {
+                    return "[{\"success\": \"Successfully update project config.\"}]";
+                }
+            } else {
+                return "[{\"success\": \"nothing needed to be updated\"}]";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "[{\"error\": \"server error\"}]";
+
     }
 
     @GET

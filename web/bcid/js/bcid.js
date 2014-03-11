@@ -161,18 +161,6 @@ function resolverResults() {
     window.location.replace("/id/metadata/" + $("#identifier").val());
 }
 
-function updateProjectConfig(select) {
-    var val = select.val()
-    $('a', '#projectConfig').attr('href', '/bcid/secure/project.jsp?projectId=' + val);
-
-    var jqxhr = $.getJSON('/id/projectService/config/' + val, function() {})
-        .done(function(data) {
-            $('#projectTitle').text(data[0]['title']);
-            $('#projectAbstract').text(data[0]['abstract']);
-            $('#projectValidationXML').text(data[0]['validation_xml']);
-        });
-}
-
 function getQueryParam(sParam) {
     var sPageURL = window.location.search.substring(1);
     var sURLVariables = sPageURL.split('&');
@@ -224,8 +212,9 @@ function projectToggle(id) {
         $('.img-arrow', '#'+id).attr("src","../images/right-arrow.png");
     }
     // check if we've loaded this section, if not, load from service
-    if ((id.indexOf("config") != -1 || id.indexOf("users") != -1) && $('div#' + id).children().length == 0) {
-        populateConfigOrUsers('div#' + id);
+    var divId = 'div#' + id
+    if ((id.indexOf("config") != -1 || id.indexOf("users") != -1) && ($(divId).children().length == 0 || $('#submitForm', divId).length !== 0)) {
+        populateConfigOrUsers(divId);
     }
     $('.toggle-content#'+id).slideToggle('slow');
 }
@@ -248,6 +237,19 @@ function populateConfigOrUsers(id) {
                     '/id/projectService/configAsTable/' + projectID,
                     id,
                     'Unable to load this project\'s configuration from server.');
+                    $( document ).one("ajaxStop", function() {
+                        $("#edit_config", id).click(function() {
+                            populateDivFromService(
+                                '/id/projectService/configEditorAsTable/' + projectID,
+                                id,
+                                'Unable to load this project\'s configuration editor.');
+                            });
+                            $( document ).one("ajaxStop", function() {
+                                $('#configSubmit', id).click(function() {
+                                    projectConfigSubmit(projectID, id);
+                                 });
+                            });
+                    });
             } else {
                 populateDivFromService(
                     '/id/projectService/listProjectUsersAsTable/' + projectID,
@@ -265,19 +267,20 @@ function projectUserSubmit(project_title) {
             '/id/userService/createFormAsTable',
             divId + '-users',
             'error fetching create user form');
-        $( document ).ajaxComplete(function() {
+        $( document ).one("ajaxStop", function() {
             $("input[name=project_id]", divId).val(project_id);
-            $("input[type=button]", divId).click(function() {
+            $("#createFormButton", divId).click(function() {
                 createUserSubmit(project_id, divId);
             });
         });
     } else {
         var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize())
             .done(function(data) {
+                populateConfigOrUsers(divId + '-users');
                 if (data[0].error != null) {
-                    //error msg
-                } else {
-                    populateConfigOrUsers(divId + '-users');
+                    $( document ).one("ajaxStop", function() {
+                        $(".error", divId + '-users').html(data[0].error);
+                    });
                 }
             });
     }
@@ -286,10 +289,11 @@ function projectUserSubmit(project_title) {
 function createUserSubmit(project_id, divId) {
     var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
         .done(function(data) {
+            populateConfigOrUsers(divId + '-users');
             if (data[0].error != null) {
-                //error msg
-            } else {
-                populateConfigOrUsers(divId + '-users');
+                $( document ).one("ajaxStop", function() {
+                    $(".error", divId + '-users').html(data[0].error);
+                });
             }
         });
 }
@@ -298,10 +302,22 @@ function projectRemoveUser(userId, projectId, projectTitle) {
     var divId = 'div#' + projectTitle.replace(' ', '_');
     var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId)
         .done (function(data) {
+            populateConfigOrUsers(divId + '-users');
             if (data[0].error != null) {
-                //error msg
+                $( document ).one("ajaxStop", function() {
+                    $(".error", divId + '-users').html(data[0].error);
+                });
+            }
+        });
+}
+
+function projectConfigSubmit(project_id, divId) {
+    var jqxhr = $.post("/id/projectService/updateConfig/" + project_id, $('form', divId).serialize())
+        .done(function(data) {
+            if (data[0].error != null) {
+                $(".error", divId).html(data[0].error);
             } else {
-                populateConfigOrUsers(divId + '-users');
+                populateConfigOrUsers(divId);
             }
         });
 }
