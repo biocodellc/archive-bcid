@@ -47,7 +47,12 @@
 
                 <div class="separator">|</div>
 
-                <div class="link"><a href='/bcid/secure/projects.jsp'>Manage Projects</a></div>
+                <c:if test="${projectAdmin != null}">
+                    <div class="link"><a href='/bcid/secure/projects.jsp'>Manage Projects</a></div>
+                </c:if>
+                <c:if test="${projectAdmin == null}">
+                    <div class="disabledlink">Manage Projects</div>
+                </c:if>
 
                 <div class="separator">|</div>
 

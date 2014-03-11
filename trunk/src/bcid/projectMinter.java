@@ -210,9 +210,11 @@ public class projectMinter {
         return sb.toString();
     }
 
-    public String listProjectConfig(Integer project_id, String username) {
+    public String getProjectConfigAsTable(Integer project_id, String username) {
         StringBuilder sb = new StringBuilder();
-        sb.append("[{");
+        String title = null;
+        String ab= null;
+        String validation_xml = null;
 
         try {
             database db = new database();
@@ -220,20 +222,53 @@ public class projectMinter {
 
             Statement stmt = conn.createStatement();
             String sql = "SELECT project_title as title, abstract, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
-                         + project_id + "\" AND users_id=\"" + user_id + "\"";
+                    + project_id + "\" AND users_id=\"" + user_id + "\"";
 
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) {
-                sb.append("\n\t\"title\": " + "\"" + rs.getString("title") + "\",\n");
-                sb.append("\t\"abstract\": " + "\"" + rs.getString("abstract") + "\",\n");
-                sb.append("\t\"validation_xml\": " + "\"" + rs.getString("validation_xml") + "\"\n");
+                title = rs.getString("title");
+                ab = rs.getString("abstract");
+                validation_xml = rs.getString("validation_xml");
             } else {
-                sb.append("\"error\": \"You must be this project's admin in order to view its configuration\"");
+                sb.append("[{\"error\": \"You must be this project's admin in order to view its configuration\"}]");
+                return sb.toString();
             }
         } catch (Exception e) {
             e.printStackTrace();
+            sb.append("[{\"error\": \"Server error\"}]");
+            return sb.toString();
         }
-        sb.append("}]");
+
+        sb.append("<table>\n");
+        sb.append("\t<tbody>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Title:</td>\n");
+        sb.append("\t\t\t<td>");
+        sb.append(title);
+        sb.append("\t\t\t</td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Abstract:</td>\n");
+        sb.append("\t\t\t<td>");
+        sb.append(ab);
+        sb.append("\t\t\t</td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Validation XML:</td>\n");
+        sb.append("\t\t\t<td>");
+        sb.append(validation_xml);
+        sb.append("\t\t\t</td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td><a href=\"javascript:void(0)\">Edit Configuration</a></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t</tbody>\n</table>\n");
+
         return sb.toString();
     }
 }

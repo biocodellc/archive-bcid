@@ -1,11 +1,11 @@
 <%@ include file="../header.jsp" %>
 
-<div id="user" class="section">
+<div class="section">
 
     <div class="sectioncontent">
-        <h2>${user}s Projects</h2>
+    <!--     <h2>${user}s Projects</h2>
 
-        <c:if test="${projectAdmin != null}">
+       <c:if test="${projectAdmin != null}">
         <br>
         <a class="expand-manage-project-content" href="javascript:void(0)">
             <img src="../images/right-arrow.png" id="project-arrow" class="img-arrow">Manage Projects
@@ -112,21 +112,19 @@
             </div>
         </div>
         </c:if>
+        --!>
     </div>
 </div>
 
 <script>
-    var projectConfigSelect = $('.adminProjects', '#projectConfig')
+ //   var projectConfigSelect = $('.adminProjects', '#projectConfig')
 
     $(document).ready(function() {
-        // Populate User Profile
-        populateDivFromService(
-            "/id/userService/profile/listAsTable",
-            "listUserProfile",
-            "Unable to load this user's profile from the Server");
+
+        populateProjectPage("${user}");
 
         // Populate Project Select
-        populateSelect("adminProjects");
+ /*       populateSelect("adminProjects");
         populateSelect("userList");
 
         projectConfigSelect.change(function() {
@@ -134,8 +132,9 @@
         });
         alert(projectConfigSelect.val());
         updateProjectConfig(projectConfigSelect);
+        */
     })
-
+ /*
     // Expand/Collapse Project Section
     $('.expand-manage-project-content').click(function(){
         if ($('.toggle-manage-project-content').is(':hidden')) {
@@ -176,6 +175,7 @@
 
         $('.toggle-project-config-content').slideToggle('slow');
     });
+*/
 </script>
 
 <%@ include file="../footer.jsp" %>

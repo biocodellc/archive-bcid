@@ -108,8 +108,8 @@ public class projectService {
     }
 
     @GET
-    @Path("/config/{project_id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/configAsTable/{project_id}")
+    @Produces(MediaType.TEXT_HTML)
     public String getProjectConfig(@PathParam("project_id") Integer project_id,
                                    @Context HttpServletRequest request) {
         HttpSession session = request.getSession();
@@ -118,7 +118,7 @@ public class projectService {
         if (username != null) {
             try {
                 projectMinter project = new projectMinter();
-                return project.listProjectConfig(project_id, username.toString());
+                return project.getProjectConfigAsTable(project_id, username.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }

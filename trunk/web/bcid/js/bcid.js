@@ -103,12 +103,15 @@ function creatorDefaults() {
 
 // Populate Div element from a REST service with HTML
 function populateDivFromService(url,elementID,failMessage)  {
+    if (!elementID.contains('#')) {
+        elementID = '#' + elementID
+    }
     var jqxhr = $.ajax(url, function() {})
         .done(function(data) {
-           $("#" + elementID).html(data);
+           $(elementID).html(data);
         })
         .fail(function() {
-            $("#" + elementID).html(failMessage);
+            $(elementID).html(failMessage);
         });
 }
 
@@ -158,17 +161,6 @@ function resolverResults() {
     window.location.replace("/id/metadata/" + $("#identifier").val());
 }
 
-// Populate the edit profile form
-function populateProfileForm() {
-    // get JSON from server
-    var jqxhr = $.getJSON("/id/userService/profile/list", function() {})
-        .done(function(data) {
-            $.each(data[0], function(key, val) {
-                $('[name=' + key + ']').val(val);
-            });
-        });
-}
-
 function updateProjectConfig(select) {
     var val = select.val()
     $('a', '#projectConfig').attr('href', '/bcid/secure/project.jsp?projectId=' + val);
@@ -190,4 +182,77 @@ function getQueryParam(sParam) {
             return sParameterName[1];
         }
     }
+}
+
+function populateProjectPage(username) {
+    var jqxhr = $.getJSON('/id/projectService/admin/list')
+        .done(function(data) {
+            var html = '<h2>' + username + 's Projects</h2>\n';
+            var expandTemplate = '<br>\n<a class="expand-content" id="{project}-{section}" href="javascript:void(0);">\n'
+                                + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
+                                + '</a>\n';
+            $.each(data[0], function(key, val) {
+                var project = val.replace(' ', '_', 'g')
+
+                html += expandTemplate.replace('{text}', val).replace('-{section}', '');
+                html += '<div id="{project}" class="toggle-content">';
+                html += expandTemplate.replace('{text}', 'Configuration').replace('{section}', 'config').replace('<br>\n', '');
+                html += '<div id="{project}-config" class="toggle-content">Loading Project Configuration...</div>';
+                html +=  expandTemplate.replace('{text}', 'Users').replace('{section}', 'users');
+                html += '<div id="{project}-users" class="toggle-content">Loading Users...</div>';
+                html += '</div>\n';
+
+                // add current project to element id
+                html = html.replace('{project}', project, 'g');
+            });
+            if (!html.contains("expand-content")) {
+                html += 'You are not an admin for any project.';
+            }
+            $(".sectioncontent").html(html);
+
+            // attach toggle function to each project
+            $(".expand-content").click(function() {
+                projectToggle(this.id)
+            });
+        });
+}
+
+function projectToggle(id) {
+    if ($('.toggle-content#'+id).is(':hidden')) {
+        $('.img-arrow', '#'+id).attr("src","../images/down-arrow.png");
+    } else {
+        $('.img-arrow', '#'+id).attr("src","../images/right-arrow.png");
+    }
+    // check if we've loaded this section, if not, load from service
+    if ((id.contains("config") || id.contains("users")) && $('div#' + id).children().length == 0) {
+        populateConfigOrUsers(id);
+    }
+    $('.toggle-content#'+id).slideToggle('slow');
+}
+
+function populateConfigOrUsers(id) {
+    // load config table from REST service
+    var title = id.replace('_', ' ', 'g').split('-')[0];
+    $.getJSON('/id/projectService/list')
+        .done(function(data) {
+            var projectID = null;
+            $.each(data['projects'], function(key, project) {
+                if (project['project_title'] == title) {
+                     projectID = project['project_id'];
+                     return false;
+                }
+            });
+
+            if (id.contains("config")) {
+                populateDivFromService(
+                    '/id/projectService/configAsTable/' + projectID,
+                    'div#' + id,
+                    'Unable to load this project\'s configuration from server.');
+            } else {
+                populateDivFromService(
+                    '/id/userService/listProjectUsersAsTable/' + projectID,
+                    'div#' + id,
+                    'Unable to load this project\'s users from server.')
+            }
+        });
 }
