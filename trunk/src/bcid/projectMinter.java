@@ -493,7 +493,7 @@ public class projectMinter {
             sb.append("\t</tr>\n");
             sb.append("\t<tr>\n");
             sb.append("\t\t<td><input type=\"hidden\" name=\"project_id\" value=\"" + projectId + "\"></td>\n");
-            sb.append("\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"projectUserSubmit(\'" + project_title + "\')\"></td>\n");
+            sb.append("\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"projectUserSubmit(\'" + project_title.replaceAll(" ", "_") + '_' + projectId + "\')\"></td>\n");
             sb.append("\t</tr>\n");
             sb.append("\t</form>\n");
 
