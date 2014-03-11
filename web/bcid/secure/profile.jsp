@@ -5,10 +5,10 @@
         <h2>Edit BCID Profile Information</h2>
 
         <c:if test="${pageContext.request.getQueryString() != null}">
-        <form method="POST" action="/id/profileService?${pageContext.request.getQueryString()}">
+        <form method="POST" action="/id/userService/profile/update?${pageContext.request.getQueryString()}">
         </c:if>
         <c:if test="${pageContext.request.getQueryString() == null}">
-        <form method="POST" action="/id/profileService">
+        <form method="POST" action="/id/userService/profile/update">
         </c:if>
             <table>
                 <tr>
