@@ -271,5 +271,118 @@ public class projectMinter {
 
         return sb.toString();
     }
+
+    public Boolean userProjectAdmin(Integer userId, Integer projectId) {
+        try {
+            String sql = "SELECT count(*) as count FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
+            Statement stmt = conn.createStatement();
+
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+
+            return rs.getInt("count") >= 1;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Boolean removeUser(Integer userId, Integer projectId) {
+        try {
+            String sql = "DELETE FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
+            Statement stmt = conn.createStatement();
+
+            stmt.executeUpdate(sql);
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Boolean addUserToProject(Integer userId, Integer projectId) {
+        PreparedStatement stmt;
+        Boolean success;
+
+        try {
+            String insertStatement = "INSERT INTO usersProjects (users_id, project_id) VALUES(?,?)";
+            stmt = conn.prepareStatement(insertStatement);
+
+            stmt.setInt(1, userId);
+            stmt.setInt(2, projectId);
+
+            stmt.execute();
+            success = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            success = false;
+        }
+
+        return success;
+    }
+
+    public String listProjectUsersAsTable(Integer projectId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table>\n");
+        sb.append("\t<tr>\n");
+
+        try {
+            String userProjectSql = "SELECT users_id FROM usersProjects WHERE project_id = \"" + projectId + "\"";
+            String userSql = "SELECT username, user_id FROM users";
+            String projectSql = "SELECT project_title FROM projects WHERE project_id = \"" + projectId + "\"";
+            List projectUsers = new ArrayList();
+            Statement stmt = conn.createStatement();
+            database db = new database();
+
+            ResultSet rs3 = stmt.executeQuery(projectSql);
+            rs3.next();
+            String project_title = rs3.getString("project_title");
+
+            ResultSet rs = stmt.executeQuery(userProjectSql);
+
+            while (rs.next()) {
+                Integer userId = rs.getInt("users_id");
+                projectUsers.add(userId);
+                sb.append("\t<tr>\n");
+                sb.append("\t\t<td>");
+                sb.append(db.getUserName(userId));
+                sb.append("</td>\n");
+                sb.append("\t\t<td><a href=\"javascript:projectRemoveUser(\'" + userId + "\',\'" + projectId +"\',\'" + project_title + "\')\">(remove)</a></td>\n");
+                sb.append("\t</tr>\n");
+            }
+
+            sb.append("\t<form method=\"POST\">\n");
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td>Add User:</td>\n");
+            sb.append("\t\t<td>");
+            sb.append("<select name=user_id>\n");
+            sb.append("\t\t\t<option value=\"0\">Create New User</option>\n");
+
+            ResultSet rs2 = stmt.executeQuery(userSql);
+
+            while (rs2.next()) {
+                Integer userId = rs2.getInt("user_id");
+                if (!projectUsers.contains(userId)) {
+                    sb.append("\t\t\t<option value=\"" + userId + "\">" + db.getUserName(userId) +"</option>\n");
+                }
+            }
+
+
+
+            sb.append("\t\t</select></td>\n");
+            sb.append("\t</tr>\n");
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td><input type=\"hidden\" name=\"project_id\" value=\"" + projectId + "\"></td>\n");
+            sb.append("\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"projectUserSubmit(\'" + project_title + "\')\"></td>\n");
+            sb.append("\t</tr>\n");
+            sb.append("\t</form>\n");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sb.append("</table>\n");
+        return sb.toString();
+    }
 }
 

@@ -25,84 +25,45 @@ import java.util.Hashtable;
 @Path("userService")
 public class userService {
 
-    @GET
-    @Path("/list")
-    @Produces(MediaType.APPLICATION_JSON)
-    public String getSystemUsers(@Context HttpServletRequest request)
-            throws Exception {
-        HttpSession session = request.getSession();
-
-        if (session.getAttribute("projectAdmin") == null) {
-            // only display system users to project admins
-            return "[{}]";
-        }
-
-        userMinter u = new userMinter();
-        return u.listSystemUsers();
-    }
-
-    @POST
-    @Path("/add")
-    public void addUser(@FormParam("projectId") Integer projectId,
-                        @FormParam("userId") Integer userId,
-                        @Context HttpServletRequest request,
-                        @Context HttpServletResponse response)
-        throws IOException {
-
-        HttpSession session = request.getSession();
-        Boolean success = false;
-
-        if (session.getAttribute("projectAdmin") == null) {
-            response.sendError(403);
-            return;
-        }
-
-        try {
-            userMinter u = new userMinter();
-            success = u.addUserToProject(userId, projectId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (success) {
-            response.sendRedirect("/bcid/secure/user.jsp");
-            return;
-        }
-
-        response.sendRedirect("/bcid/secure/user.jsp?addError");
-    }
-
     @POST
     @Path("/create")
-    public void createUser(@FormParam("username") String username,
-                           @FormParam("password") String password,
-                           @FormParam("projectId") Integer projectId,
-                           @Context HttpServletRequest request,
-                           @Context HttpServletResponse response)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String createUser(@FormParam("username") String username,
+                             @FormParam("password") String password,
+                             @FormParam("project_id") Integer projectId,
+                             @Context HttpServletRequest request,
+                             @Context HttpServletResponse response)
         throws IOException {
 
         HttpSession session = request.getSession();
-        Boolean success = false;
 
         if (session.getAttribute("projectAdmin") == null) {
             // only project admins are able to create users
-            response.sendError(403);
-            return;
+            return "[{\"error\": \"only project admins are able to create users\"}]";
         }
 
         try {
             userMinter u = new userMinter();
-            success = u.createUser(username, password, projectId);
+            String admin = session.getAttribute("user").toString();
+            database db = new database();
+
+            return u.createUser(username, password, projectId, db.getUserId(admin));
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return "[{\"error\": \"server error creating user\"}]";
+    }
 
-        if (success) {
-            response.sendRedirect("/bcid/secure/user.jsp");
-            return;
+    @GET
+    @Path("/createFormAsTable")
+    public String createFormAsTable() {
+        try {
+            userMinter u = new userMinter();
+            return u.getCreateForm();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error loading create user form";
         }
-
-        response.sendRedirect("/bcid/secure/user.jsp?createError");
     }
 
     @POST
@@ -230,16 +191,16 @@ public class userService {
             if (return_to != null) {
                 response.sendRedirect(return_to);
             } else {
-                response.sendRedirect("/bcid/secure/user.jsp");
+                response.sendRedirect("/bcid/secure/profile.jsp");
                 return;
             }
         }
 
         if (return_to != null) {
-            response.sendRedirect("/bcid/secure/user.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
+            response.sendRedirect("/bcid/secure/profile.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
             return;
         }
-        response.sendRedirect("/bcid/secure/user.jsp?error=" + error);
+        response.sendRedirect("/bcid/secure/profile.jsp?error=" + error);
     }
     @GET
     @Path("/profile/listEditorAsTable")
