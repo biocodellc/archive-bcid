@@ -43,11 +43,19 @@
 
                 <div class="separator">|</div>
 
-                <div class="link"><a href='/bcid/secure/expeditionCreator.jsp'>Expedition Creator</a></div>
+                <div class="link"><a href='/bcid/secure/bcids.jsp'>Manage BCIDs</a></div>
 
                 <div class="separator">|</div>
 
-                <div class="link"><a href='/bcid/secure/user.jsp'>User Tools</a></div>
+                <div class="link"><a href='/bcid/secure/projects.jsp'>Manage Projects</a></div>
+
+                <div class="separator">|</div>
+
+                <div class="link"><a href='/bcid/secure/expeditions.jsp'>Manage Expeditions</a></div>
+
+                <div class="separator">|</div>
+
+                <div class="link"><a href='/bcid/secure/user.jsp'>User Profile</a></div>
             </c:if>
 
             <c:if test="${user == null}">
@@ -57,11 +65,19 @@
 
                 <div class="separator">|</div>
 
-                <div class="disabledlink">Expedition Creator</div>
+                <div class="disabledlink">Manage BCIDs</div>
 
                 <div class="separator">|</div>
 
-                <div class="disabledlink">User Tools</div>
+                <div class="disabledlink">Manage Projects</div>
+
+                <div class="separator">|</div>
+
+                <div class="disabledlink">Manage Expeditions</div>
+
+                <div class="separator">|</div>
+
+                <div class="disabledlink">User Profile</div>
             </c:if>
 
             <!--<div class="separator">|</div>
