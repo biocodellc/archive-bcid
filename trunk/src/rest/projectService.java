@@ -1,16 +1,20 @@
 package rest;
 
+import bcid.database;
 import bcid.projectMinter;
 import bcid.expeditionMinter;
 import bcid.userMinter;
 
+import javax.management.remote.rmi._RMIConnection_Stub;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 
 /**
  * REST interface calls for working with projects.  This includes fetching details associated with projects.
@@ -124,5 +128,87 @@ public class projectService {
             }
         }
         return "[{\"error\": \"You must be this project's admin in order to view its configuration\"}]";
+    }
+
+    @GET
+    @Path("/removeUser/{project_id}/{user_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String removeUser(@PathParam("project_id") Integer projectId,
+                             @PathParam("user_id") Integer userId,
+                             @Context HttpServletResponse response,
+                             @Context HttpServletRequest request)
+        throws IOException {
+        HttpSession session = request.getSession();
+        Boolean success = false;
+
+        try {
+            projectMinter p = new projectMinter();
+
+            if (!p.userProjectAdmin(userId, projectId)) {
+                return "[{\"error\": \"You are not this project's admin\"}]";
+            }
+
+            success = p.removeUser(userId, projectId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (success) {
+            return "[{\"success\": \"User has been successfully removed\"}]";
+        }
+
+        return "[{\"error\": \"server error\"}]";
+
+    }
+    @POST
+    @Path("/addUser")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String addUser(@FormParam("project_id") Integer projectId,
+                          @FormParam("user_id") Integer userId,
+                          @Context HttpServletRequest request)
+            throws IOException {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+        Boolean success = false;
+
+        // userId of 0 means create new user, using ajax to create user, shouldn't ever receive userId of 0
+        if (userId == 0) {
+            return "[{\"error\": \"error creating user\"}]";
+        }
+
+        try {
+            projectMinter p = new projectMinter();
+            database db = new database();
+
+            if (username == null || !p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
+                return "[{\"error\": \"You are not this project's admin\"}]";
+            }
+            success = p.addUserToProject(userId, projectId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (success) {
+            return "[{\"success\": \"User has been successfully added to this project\"}]";
+        }
+
+        return "[{\"error\": \"server error\"}]";
+    }
+
+    @GET
+    @Path("/listProjectUsersAsTable/{project_id}")
+    @Produces(MediaType.TEXT_HTML)
+    public String getSystemUsers(@PathParam("project_id") Integer projectId,
+                                 @Context HttpServletRequest request)
+            throws Exception {
+        HttpSession session = request.getSession();
+
+        if (session.getAttribute("projectAdmin") == null) {
+            // only display system users to project admins
+            return "[{\"error\": \"You are not an admin to this project\"}]";
+        }
+
+        projectMinter p = new projectMinter();
+        return p.listProjectUsersAsTable(projectId);
     }
 }

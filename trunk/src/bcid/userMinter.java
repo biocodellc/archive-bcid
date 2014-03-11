@@ -4,6 +4,8 @@ import auth.authenticator;
 import auth.oauth2.provider;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by rjewing on 2/11/14.
@@ -16,29 +18,7 @@ public class userMinter {
         conn = db.getConn();
     }
 
-    public String listSystemUsers() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[{");
-
-        try {
-            String sql = "SELECT username, user_id FROM users";
-            Statement stmt = conn.createStatement();
-
-            ResultSet rs = stmt.executeQuery(sql);
-
-            while (rs.next()) {
-                sb.append("\"" + rs.getInt("user_id") + "\":\"" + rs.getString("username") + "\",");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        sb.deleteCharAt(sb.lastIndexOf(","));
-        sb.append("}]");
-        return sb.toString();
-    }
-
-    public Boolean createUser(String username, String password, Integer projectId) {
+    public String createUser(String username, String password, Integer projectId, Integer adminId) {
         authenticator auth = new authenticator();
         Boolean success = auth.createUser(username, password);
 
@@ -47,40 +27,51 @@ public class userMinter {
             try {
                 database db = new database();
                 Integer userId = db.getUserId(username);
-                success = addUserToProject(userId, projectId);
+                projectMinter p = new projectMinter();
+
+                if (!p.userProjectAdmin(adminId, projectId)) {
+                    return "[{\"error\": \"you can't add a user to a project that you're not an admin\"}]";
+                }
+
+                if (p.addUserToProject(userId, projectId)) {
+                    return "[{\"success\": \"successfully created new user\"}]";
+                } else {
+                    return "[{\"error\": \"error adding user to project\"}]";
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                success = false;
+                return "[{\"error\": \"error adding user to project\"}]";
             }
         }
-
-        return success;
+        return "[{\"error\": \"error creating new user\"}]";
     }
 
+    public String getCreateForm() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table>\n");
+        sb.append("\t<form method=\"POST\">\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Username:</td>\n");
+        sb.append("\t\t\t<td><input type=\"text\" name=\"username\"></td>\n");
+        sb.append("\t\t</tr>\n");
 
-    public Boolean addUserToProject(Integer userId, Integer projectId) {
-        PreparedStatement stmt;
-        Boolean success = false;
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Password:</td>\n");
+        sb.append("\t\t\t<td><input type=\"passoword\" name=\"password\"></td>\n");
+        sb.append("\t\t</tr>\n");
 
-        try {
-            if (userId != null) {
-                String insertStatement = "INSERT INTO usersProjects (users_id, project_id) VALUES(?,?)";
-                stmt = conn.prepareStatement(insertStatement);
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td><input type=\"button\" value=\"Submit\"></td>\n");
+        sb.append("\t\t</tr>\n");
+        sb.append("\t\t<input type=\"hidden\" name=\"project_id\">\n");
 
-                stmt.setInt(1, userId);
-                stmt.setInt(2, projectId);
+        sb.append("\t</form>\n");
+        sb.append("</table>\n");
 
-                stmt.execute();
-                success = true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            success = false;
-        }
-
-        System.out.println(success.toString());
-        return success;
+        return sb.toString();
     }
+
     /**
      * return a HTML table of the user's profile
      * @param username

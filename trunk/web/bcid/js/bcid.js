@@ -103,7 +103,7 @@ function creatorDefaults() {
 
 // Populate Div element from a REST service with HTML
 function populateDivFromService(url,elementID,failMessage)  {
-    if (!elementID.contains('#')) {
+    if (elementID.indexOf('#') == -1) {
         elementID = '#' + elementID
     }
     var jqxhr = $.ajax(url, function() {})
@@ -192,7 +192,7 @@ function populateProjectPage(username) {
                                 + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
                                 + '</a>\n';
             $.each(data[0], function(key, val) {
-                var project = val.replace(' ', '_', 'g')
+                var project = val.replace(new RegExp(' ', 'g'), '_');
 
                 html += expandTemplate.replace('{text}', val).replace('-{section}', '');
                 html += '<div id="{project}" class="toggle-content">';
@@ -203,9 +203,9 @@ function populateProjectPage(username) {
                 html += '</div>\n';
 
                 // add current project to element id
-                html = html.replace('{project}', project, 'g');
+                html = html.replace(new RegExp('{project}', 'g'), project);
             });
-            if (!html.contains("expand-content")) {
+            if (html.indexOf("expand-content") == -1) {
                 html += 'You are not an admin for any project.';
             }
             $(".sectioncontent").html(html);
@@ -224,15 +224,15 @@ function projectToggle(id) {
         $('.img-arrow', '#'+id).attr("src","../images/right-arrow.png");
     }
     // check if we've loaded this section, if not, load from service
-    if ((id.contains("config") || id.contains("users")) && $('div#' + id).children().length == 0) {
-        populateConfigOrUsers(id);
+    if ((id.indexOf("config") != -1 || id.indexOf("users") != -1) && $('div#' + id).children().length == 0) {
+        populateConfigOrUsers('div#' + id);
     }
     $('.toggle-content#'+id).slideToggle('slow');
 }
 
 function populateConfigOrUsers(id) {
     // load config table from REST service
-    var title = id.replace('_', ' ', 'g').split('-')[0];
+    var title = id.replace('div#', '').replace(new RegExp('_', 'g'), ' ').split('-')[0];
     $.getJSON('/id/projectService/list')
         .done(function(data) {
             var projectID = null;
@@ -243,16 +243,65 @@ function populateConfigOrUsers(id) {
                 }
             });
 
-            if (id.contains("config")) {
+            if (id.indexOf("config") != -1) {
                 populateDivFromService(
                     '/id/projectService/configAsTable/' + projectID,
-                    'div#' + id,
+                    id,
                     'Unable to load this project\'s configuration from server.');
             } else {
                 populateDivFromService(
-                    '/id/userService/listProjectUsersAsTable/' + projectID,
-                    'div#' + id,
+                    '/id/projectService/listProjectUsersAsTable/' + projectID,
+                    id,
                     'Unable to load this project\'s users from server.')
+            }
+        });
+}
+
+function projectUserSubmit(project_title) {
+    var divId = 'div#' + project_title.replace(' ', '_');
+    if ($('select option:selected', divId).val() == 0) {
+        var project_id = $("input[name='project_id']", divId).val()
+        populateDivFromService(
+            '/id/userService/createFormAsTable',
+            divId + '-users',
+            'error fetching create user form');
+        $( document ).ajaxComplete(function() {
+            $("input[name=project_id]", divId).val(project_id);
+            $("input[type=button]", divId).click(function() {
+                createUserSubmit(project_id, divId);
+            });
+        });
+    } else {
+        var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize())
+            .done(function(data) {
+                if (data[0].error != null) {
+                    //error msg
+                } else {
+                    populateConfigOrUsers(divId + '-users');
+                }
+            });
+    }
+}
+
+function createUserSubmit(project_id, divId) {
+    var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
+        .done(function(data) {
+            if (data[0].error != null) {
+                //error msg
+            } else {
+                populateConfigOrUsers(divId + '-users');
+            }
+        });
+}
+
+function projectRemoveUser(userId, projectId, projectTitle) {
+    var divId = 'div#' + projectTitle.replace(' ', '_');
+    var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId)
+        .done (function(data) {
+            if (data[0].error != null) {
+                //error msg
+            } else {
+                populateConfigOrUsers(divId + '-users');
             }
         });
 }
