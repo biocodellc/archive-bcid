@@ -393,6 +393,8 @@ public class projectMinter {
             String sql = "SELECT count(*) as count FROM projects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
             Statement stmt = conn.createStatement();
 
+            System.out.print(sql);
+
             ResultSet rs = stmt.executeQuery(sql);
             rs.next();
 
