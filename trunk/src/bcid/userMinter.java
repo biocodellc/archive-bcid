@@ -4,8 +4,6 @@ import auth.authenticator;
 import auth.oauth2.provider;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by rjewing on 2/11/14.
@@ -49,7 +47,7 @@ public class userMinter {
     public String getCreateForm() {
         StringBuilder sb = new StringBuilder();
         sb.append("<table>\n");
-        sb.append("\t<form method=\"POST\">\n");
+        sb.append("\t<form id=\"submitForm\" method=\"POST\">\n");
         sb.append("\t\t<tr>\n");
         sb.append("\t\t\t<td>Username:</td>\n");
         sb.append("\t\t\t<td><input type=\"text\" name=\"username\"></td>\n");
@@ -62,7 +60,7 @@ public class userMinter {
 
         sb.append("\t\t<tr>\n");
         sb.append("\t\t\t<td></td>\n");
-        sb.append("\t\t\t<td><input type=\"button\" value=\"Submit\"></td>\n");
+        sb.append("\t\t\t<td><input type=\"button\" id=\"createFormButton\" value=\"Submit\"></td>\n");
         sb.append("\t\t</tr>\n");
         sb.append("\t\t<input type=\"hidden\" name=\"project_id\">\n");
 

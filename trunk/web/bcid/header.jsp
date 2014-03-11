@@ -60,7 +60,7 @@
 
                 <div class="separator">|</div>
 
-                <div class="link"><a href='/bcid/secure/user.jsp'>User Profile</a></div>
+                <div class="link"><a href='/bcid/secure/profile.jsp'>User Profile</a></div>
             </c:if>
 
             <c:if test="${user == null}">

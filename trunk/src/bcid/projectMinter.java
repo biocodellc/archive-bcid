@@ -2,12 +2,9 @@ package bcid;
 
 import util.SettingsManager;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import java.sql.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Date;
+import java.util.Hashtable;
 
 /**
  * Mint new expeditions.  Includes the automatic creation of a core set of entity types
@@ -212,66 +209,159 @@ public class projectMinter {
 
     public String getProjectConfigAsTable(Integer project_id, String username) {
         StringBuilder sb = new StringBuilder();
-        String title = null;
-        String ab= null;
-        String validation_xml = null;
+        Hashtable<String, String> config = getProjectConfig(project_id, username);
 
+        if (config.contains("error")) {
+            return "You must be this project's admin in order to view its configuration.";
+        } else {
+            sb.append("<table>\n");
+            sb.append("\t<tbody>\n");
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Title:</td>\n");
+            sb.append("\t\t\t<td>");
+            sb.append(config.get("title"));
+            sb.append("\t\t\t</td>\n");
+            sb.append("\t\t</tr>\n");
+
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Abstract:</td>\n");
+            sb.append("\t\t\t<td>");
+            sb.append(config.get("ab"));
+            sb.append("\t\t\t</td>\n");
+            sb.append("\t\t</tr>\n");
+
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Validation XML:</td>\n");
+            sb.append("\t\t\t<td>");
+            sb.append(config.get("validation_xml"));
+            sb.append("\t\t\t</td>\n");
+            sb.append("\t\t</tr>\n");
+
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td></td>\n");
+            sb.append("\t\t\t<td><a href=\"javascript:void()\" id=\"edit_config\">Edit Configuration</a></td>\n");
+            sb.append("\t\t</tr>\n");
+
+            sb.append("\t</tbody>\n</table>\n");
+
+            return sb.toString();
+        }
+    }
+
+    public String getProjectConfigEditorAsTable(Integer projectId, String username) {
+        StringBuilder sb = new StringBuilder();
+        Hashtable<String, String> config = getProjectConfig(projectId, username);
+
+        if (config.contains("error")) {
+            return "You must me this project's admin in order to edit its configuration.";
+        } else {
+            sb.append("<table>\n");
+            sb.append("<form id=\"submitForm\" method=\"POST\"");
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td>Title:</td>\n");
+            sb.append(("\t\t<td><input type=\"text\" name=\"title\" value=\""));
+            sb.append(config.get("title"));
+            sb.append("\"></td>\n\t</tr>");
+
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td>Abstract:</td>\n");
+            sb.append(("\t\t<td><input type=\"text\" name=\"abstract\" value=\""));
+            sb.append(config.get("ab"));
+            sb.append("\"></td>\n\t</tr>");
+
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td>Validation XML</td>\n");
+            sb.append(("\t\t<td><input type=\"text\" name=\"validation_xml\" value=\""));
+            sb.append(config.get("validation_xml"));
+            sb.append("\"></td>\n\t</tr>");
+
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td></td>\n");
+            sb.append("<td class=\"error\" align=\"center\">");
+            sb.append("</td>\n\t</tr>");
+
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td></td>\n");
+            sb.append(("\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
+            sb.append("</td>\n\t</tr>");
+            sb.append("</form>");
+            sb.append("</table>\n");
+
+            return sb.toString();
+        }
+    }
+
+    public Boolean updateConfig(Hashtable<String, String> updateTable, Integer projectId) {
+        try {
+            database db = new database();
+            Connection conn = db.getConn();
+
+            String updateString = "UPDATE projects SET ";
+
+            // Dynamically create our UPDATE statement depending on which fields the user wants to update
+            for (Enumeration e = updateTable.keys(); e.hasMoreElements();){
+                String key = e.nextElement().toString();
+                updateString += key + " = ?";
+
+                if (e.hasMoreElements()) {
+                    updateString += ", ";
+                } else {
+                    updateString += " WHERE project_id =\"" + projectId + "\";";
+                }
+            }
+
+            PreparedStatement stmt = conn.prepareStatement(updateString);
+
+            // place the parametrized values into the SQL statement
+            {
+                int i = 1;
+                for (Enumeration e = updateTable.keys(); e.hasMoreElements();) {
+                    String key = e.nextElement().toString();
+                    stmt.setString(i, updateTable.get(key));
+                    i++;
+                }
+            }
+
+            Integer result = stmt.executeUpdate();
+
+            // result should be '1', if not, an error occurred during the UPDATE statement
+            if (result == 1) {
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public Hashtable<String, String> getProjectConfig(Integer projectId, String username) {
+        Hashtable<String, String> config = new Hashtable<String, String>();
         try {
             database db = new database();
             Integer user_id = db.getUserId(username);
 
             Statement stmt = conn.createStatement();
             String sql = "SELECT project_title as title, abstract, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
-                    + project_id + "\" AND users_id=\"" + user_id + "\"";
+                    + projectId + "\" AND users_id=\"" + user_id + "\"";
 
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) {
-                title = rs.getString("title");
-                ab = rs.getString("abstract");
-                validation_xml = rs.getString("validation_xml");
+                config.put("title", rs.getString("title"));
+                if (rs.getString("abstract") != null) {
+                    config.put("ab", rs.getString("abstract"));
+                }
+                if (rs.getString("validation_xml") != null) {
+                    config.put("validation_xml", rs.getString("validation_xml"));
+                }
             } else {
-                sb.append("[{\"error\": \"You must be this project's admin in order to view its configuration\"}]");
-                return sb.toString();
+                config.put("error", "true");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            sb.append("[{\"error\": \"Server error\"}]");
-            return sb.toString();
+            config.put("error", "true");
         }
-
-        sb.append("<table>\n");
-        sb.append("\t<tbody>\n");
-        sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td>Title:</td>\n");
-        sb.append("\t\t\t<td>");
-        sb.append(title);
-        sb.append("\t\t\t</td>\n");
-        sb.append("\t\t</tr>\n");
-
-        sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td>Abstract:</td>\n");
-        sb.append("\t\t\t<td>");
-        sb.append(ab);
-        sb.append("\t\t\t</td>\n");
-        sb.append("\t\t</tr>\n");
-
-        sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td>Validation XML:</td>\n");
-        sb.append("\t\t\t<td>");
-        sb.append(validation_xml);
-        sb.append("\t\t\t</td>\n");
-        sb.append("\t\t</tr>\n");
-
-        sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td></td>\n");
-        sb.append("\t\t\t<td><a href=\"javascript:void(0)\">Edit Configuration</a></td>\n");
-        sb.append("\t\t</tr>\n");
-
-        sb.append("\t</tbody>\n</table>\n");
-
-        return sb.toString();
+        return config;
     }
-
     public Boolean userProjectAdmin(Integer userId, Integer projectId) {
         try {
             String sql = "SELECT count(*) as count FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
@@ -367,9 +457,11 @@ public class projectMinter {
                 }
             }
 
-
-
             sb.append("\t\t</select></td>\n");
+            sb.append("\t</tr>\n");
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td></td>\n");
+            sb.append("\t\t<td><div class=\"error\" align=\"center\"></div></td>\n");
             sb.append("\t</tr>\n");
             sb.append("\t<tr>\n");
             sb.append("\t\t<td><input type=\"hidden\" name=\"project_id\" value=\"" + projectId + "\"></td>\n");
