@@ -198,16 +198,17 @@ public class projectService {
     @Produces(MediaType.APPLICATION_JSON)
     public String removeUser(@PathParam("project_id") Integer projectId,
                              @PathParam("user_id") Integer userId,
-                             @Context HttpServletResponse response,
                              @Context HttpServletRequest request)
         throws IOException {
         HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
         Boolean success = false;
 
         try {
             projectMinter p = new projectMinter();
+            database db = new database();
 
-            if (!p.userProjectAdmin(userId, projectId)) {
+            if (username == null || !p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
                 return "[{\"error\": \"You are not this project's admin\"}]";
             }
 
