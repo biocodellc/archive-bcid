@@ -1,7 +1,7 @@
 <%@ include file="../header.jsp" %>
 
 <div class="section">
-    <div class="sectioncontent"></div>
+    <div class="sectioncontent">Loading Projects...</div>
 </div>
 
 <script>

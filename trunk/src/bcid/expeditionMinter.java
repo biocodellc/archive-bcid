@@ -504,4 +504,139 @@ public class expeditionMinter {
         }
 
     }
+
+    public String listExpeditions(Integer projectId, String username) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[{");
+
+        try {
+            database db = new database();
+            Integer userId = db.getUserId(username);
+
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT expedition_id, expedition_title FROM expeditions WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                sb.append("\"" + rs.getInt("expedition_id") + "\":\"" + rs.getString("expedition_title") + "\",");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (sb.length() > 2) {
+            sb.deleteCharAt(sb.lastIndexOf(","));
+        }
+        sb.append("}]");
+        return sb.toString();
+    }
+
+    public String listExpeditionResourcesAsTable(Integer expeditionId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table>\n");
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<th>BCID</th>\n");
+        sb.append("\t\t<th>Resource Type</th>\n");
+        sb.append("\t</tr>\n");
+
+        try {
+            String sql = "SELECT d.prefix, d.resourceType " +
+                "FROM datasets d, expeditionsBCIDS e " +
+                "WHERE d.datasets_id = e.datasets_id && e.expedition_id = \"" + expeditionId + "\"";
+            Statement stmt = conn.createStatement();
+
+            System.out.print(sql);
+            ResourceTypes rt = new ResourceTypes();
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                String rtString;
+                try {
+                    rtString = rt.get(rs.getString("d.resourceType")).string;
+                } catch (Exception e) {
+                    rtString = rs.getString("d.resourceType");
+                }
+
+                // if the resourceType is a dataset, don't add to table
+                if (rtString.toLowerCase().contains("dataset")) {
+                    continue;
+                }
+
+                sb.append("\t<tr>\n");
+                sb.append("\t\t<td>");
+                sb.append(rs.getString("d.prefix"));
+                sb.append("</td>\n");
+                sb.append("\t\t<td><a href=\"");
+                sb.append(rs.getString("d.resourceType"));
+                sb.append("\">");
+                sb.append(rtString);
+                sb.append("</a></td>\n");
+                sb.append("\t</tr>\n");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td class=\"error\" colspan=\"2\">Server Error</td>\n");
+            sb.append("\t</tr>\n");
+        }
+
+        sb.append("</table>\n");
+        return sb.toString();
+    }
+
+    public String listExpeditionDatasetsAsTable(Integer expeditionId) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table>\n");
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<th>Web Address</th>\n");
+        sb.append("\t\t<th>Timestamp</th>\n");
+        sb.append("\t</tr>\n");
+
+        try {
+            String sql = "SELECT d.ts, d.webaddress, d.resourceType " +
+                    "FROM datasets d, expeditionsBCIDS e " +
+                    "WHERE d.datasets_id = e.datasets_id && e.expedition_id = \"" + expeditionId + "\" " +
+                    "ORDER BY d.ts DESC";
+            Statement stmt = conn.createStatement();
+
+            System.out.print(sql);
+            ResourceTypes rt = new ResourceTypes();
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                String rtString;
+                try {
+                    rtString = rt.get(rs.getString("d.resourceType")).string;
+                } catch (Exception e) {
+                    rtString = rs.getString("d.resourceType");
+                }
+
+                // if the resourceType is a dataset, add it to the table
+                if (rtString.toLowerCase().contains("dataset")) {
+
+                    String webaddress = rs.getString("d.webaddress");
+
+                    sb.append("\t<tr>\n");
+                    sb.append("\t\t<td><a href=\"");
+                    sb.append(webaddress);
+                    sb.append("\">");
+                    sb.append(webaddress);
+                    sb.append("</a></td>\n");
+                    sb.append("</td>\n");
+                    sb.append("\t\t<td>");
+                    sb.append(rs.getTimestamp("d.ts").toString());
+                    sb.append("\t</tr>\n");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td class=\"error\" colspan=\"2\">Server Error</td>\n");
+            sb.append("\t</tr>\n");
+        }
+
+        sb.append("</table>\n");
+        return sb.toString();
+    }
+
 }

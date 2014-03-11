@@ -207,6 +207,32 @@ public class projectMinter {
         return sb.toString();
     }
 
+    public String listUsersProjects(String username) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[{");
+
+        try {
+            database db = new database();
+            Integer userId = db.getUserId(username);
+
+            Statement stmt = conn.createStatement();
+            String sql = "SELECT p.project_id, p.project_title FROM projects p, usersProjects u WHERE p.project_id = u.project_id && u.users_id = \"" + userId + "\"";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                sb.append("\"" + rs.getInt("p.project_id") + "\":\"" + rs.getString("p.project_title") + "\",");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (sb.length() > 2) {
+            sb.deleteCharAt(sb.lastIndexOf(","));
+        }
+        sb.append("}]");
+        return sb.toString();
+    }
+
     public String getProjectConfigAsTable(Integer project_id, String username) {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getProjectConfig(project_id, username);
@@ -364,7 +390,7 @@ public class projectMinter {
     }
     public Boolean userProjectAdmin(Integer userId, Integer projectId) {
         try {
-            String sql = "SELECT count(*) as count FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
+            String sql = "SELECT count(*) as count FROM projects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
             Statement stmt = conn.createStatement();
 
             ResultSet rs = stmt.executeQuery(sql);

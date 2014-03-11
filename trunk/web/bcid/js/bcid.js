@@ -173,36 +173,67 @@ function getQueryParam(sParam) {
 }
 
 function populateProjectPage(username) {
-    var jqxhr = $.getJSON('/id/projectService/admin/list')
-        .done(function(data) {
-            var html = '<h2>' + username + 's Projects</h2>\n';
-            var expandTemplate = '<br>\n<a class="expand-content" id="{project}-{section}" href="javascript:void(0);">\n'
-                                + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
-                                + '</a>\n';
-            $.each(data[0], function(key, val) {
-                var project = val.replace(new RegExp(' ', 'g'), '_');
-
-                html += expandTemplate.replace('{text}', val).replace('-{section}', '');
-                html += '<div id="{project}" class="toggle-content">';
-                html += expandTemplate.replace('{text}', 'Configuration').replace('{section}', 'config').replace('<br>\n', '');
-                html += '<div id="{project}-config" class="toggle-content">Loading Project Configuration...</div>';
-                html +=  expandTemplate.replace('{text}', 'Users').replace('{section}', 'users');
-                html += '<div id="{project}-users" class="toggle-content">Loading Users...</div>';
-                html += '</div>\n';
-
-                // add current project to element id
-                html = html.replace(new RegExp('{project}', 'g'), project);
-            });
-            if (html.indexOf("expand-content") == -1) {
-                html += 'You are not an admin for any project.';
-            }
-            $(".sectioncontent").html(html);
-
+    var jqxhr = listProjects(username, '/id/projectService/admin/list', false);
+    jqxhr.done(function() {
             // attach toggle function to each project
             $(".expand-content").click(function() {
                 projectToggle(this.id)
             });
         });
+}
+
+function listProjects(username, url, expedition) {
+    var jqxhr = $.getJSON(url)
+            .done(function(data) {
+                if (!expedition) {
+                    var html = '<h2>' + username + 's Projects</h2>\n';
+                } else {
+                    var html = '<h2>' + username + 's Expeditions</h2>\n';
+                }
+                var expandTemplate = '<br>\n<a class="expand-content" id="{project}-{section}" href="javascript:void(0);">\n'
+                                    + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
+                                    + '</a>\n';
+                $.each(data[0], function(key, val) {
+                    var project = val.replace(new RegExp('[#. ]', 'g'), '_');
+
+                    html += expandTemplate.replace('{text}', val).replace('-{section}', '');
+                    html += '<div id="{project}" class="toggle-content">';
+                    if (!expedition) {
+                        html += expandTemplate.replace('{text}', 'Configuration').replace('{section}', 'config').replace('<br>\n', '');
+                        html += '<div id="{project}-config" class="toggle-content">Loading Project Configuration...</div>';
+                        html +=  expandTemplate.replace('{text}', 'Users').replace('{section}', 'users');
+                        html += '<div id="{project}-users" class="toggle-content">Loading Users...</div>';
+                    } else {
+                        html += 'Loading...';
+                    }
+                    html += '</div>\n';
+
+                    // add current project to element id
+                    html = html.replace(new RegExp('{project}', 'g'), project);
+                });
+                if (html.indexOf("expand-content") == -1) {
+                    if (!expedition) {
+                        html += 'You are not an admin for any project.';
+                    } else {
+                        html += 'You do not belong to any projects.'
+                    }
+                }
+                $(".sectioncontent").html(html);
+
+                // store project id with element, so we don't have to retrieve project id later with an ajax call
+                $.each(data[0], function(key, val) {
+                    var project = val.replace(new RegExp('[#. ]', 'g'), '_');
+
+                    if (!expedition) {
+                        $('div#' + project +'-config').data('project_id', key);
+                        $('div#' + project +'-users').data('project_id', key);
+                    } else {
+                        $('div#' + project).data('project_id', key);
+                    }
+                });
+            });
+    return jqxhr;
+
 }
 
 function projectToggle(id) {
@@ -221,42 +252,31 @@ function projectToggle(id) {
 
 function populateConfigOrUsers(id) {
     // load config table from REST service
-    var title = id.replace('div#', '').replace(new RegExp('_', 'g'), ' ').split('-')[0];
-    $.getJSON('/id/projectService/list')
-        .done(function(data) {
-            var projectID = null;
-            $.each(data['projects'], function(key, project) {
-                if (project['project_title'] == title) {
-                     projectID = project['project_id'];
-                     return false;
-                }
-            });
-
-            if (id.indexOf("config") != -1) {
+    var projectID = $(id).data('project_id');
+    if (id.indexOf("config") != -1) {
+        populateDivFromService(
+            '/id/projectService/configAsTable/' + projectID,
+            id,
+            'Unable to load this project\'s configuration from server.');
+        $( document ).one("ajaxStop", function() {
+            $("#edit_config", id).click(function() {
                 populateDivFromService(
-                    '/id/projectService/configAsTable/' + projectID,
+                    '/id/projectService/configEditorAsTable/' + projectID,
                     id,
-                    'Unable to load this project\'s configuration from server.');
-                    $( document ).one("ajaxStop", function() {
-                        $("#edit_config", id).click(function() {
-                            populateDivFromService(
-                                '/id/projectService/configEditorAsTable/' + projectID,
-                                id,
-                                'Unable to load this project\'s configuration editor.');
-                            });
-                            $( document ).one("ajaxStop", function() {
-                                $('#configSubmit', id).click(function() {
-                                    projectConfigSubmit(projectID, id);
-                                 });
-                            });
-                    });
-            } else {
-                populateDivFromService(
-                    '/id/projectService/listProjectUsersAsTable/' + projectID,
-                    id,
-                    'Unable to load this project\'s users from server.')
-            }
+                    'Unable to load this project\'s configuration editor.');
+                });
+                $( document ).one("ajaxStop", function() {
+                    $('#configSubmit', id).click(function() {
+                        projectConfigSubmit(projectID, id);
+                     });
+                });
         });
+    } else {
+        populateDivFromService(
+            '/id/projectService/listProjectUsersAsTable/' + projectID,
+            id,
+            'Unable to load this project\'s users from server.')
+    }
 }
 
 function projectUserSubmit(project_title) {
@@ -320,4 +340,88 @@ function projectConfigSubmit(project_id, divId) {
                 populateConfigOrUsers(divId);
             }
         });
+}
+
+function populateExpeditionPage(username) {
+    var jqxhr = listProjects(username, '/id/projectService/listUserProjects', true);
+    jqxhr.done(function() {
+            // attach toggle function to each project
+            $(".expand-content").click(function() {
+                loadExpeditions(this.id)
+            });
+        });
+}
+
+function loadExpeditions(id) {
+    if ($('.toggle-content#'+id).is(':hidden')) {
+        $('.img-arrow', '#'+id).attr("src","../images/down-arrow.png");
+    } else {
+        $('.img-arrow', '#'+id).attr("src","../images/right-arrow.png");
+    }
+    // check if we've loaded this section, if not, load from service
+    var divId = 'div#' + id
+    if ((id.indexOf("resources") != -1 || id.indexOf("datasets") != -1) && ($(divId).children().length == 0)) {
+        populateResourcesOrDatasets(divId);
+    } else if ($(divId).children().length == 0) {
+        listExpeditions(divId);
+    }
+    $('.toggle-content#'+id).slideToggle('slow');
+}
+
+function listExpeditions(divId) {
+    var projectID = $(divId).data('project_id');
+    var jqxhr = $.getJSON('/id/expeditionService/list/' + projectID)
+        .done(function(data) {
+            var html = '';
+            var expandTemplate = '<br>\n<a class="expand-content" id="{expedition}-{section}" href="javascript:void(0);">\n'
+                                + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
+                                + '</a>\n';
+            $.each(data[0], function(key, val) {
+                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_');
+
+                html += expandTemplate.replace('{text}', val).replace('-{section}', '');
+                html += '<div id="{expedition}" class="toggle-content">';
+                html += expandTemplate.replace('{text}', 'Resources').replace('{section}', 'resources').replace('<br>\n', '');
+                html += '<div id="{expedition}-resources" class="toggle-content">Loading Expedition Resources...</div>';
+                html +=  expandTemplate.replace('{text}', 'Datasets').replace('{section}', 'datasets');
+                html += '<div id="{expedition}-datasets" class="toggle-content">Loading Expedition Datasets...</div>';
+                html += '</div>\n';
+
+                // add current project to element id
+                html = html.replace(new RegExp('{expedition}', 'g'), expedition);
+            });
+            html = html.replace('<br>\n', '');
+            if (html.indexOf("expand-content") == -1) {
+                html += 'You have no expeditions in this project.';
+            }
+            $(divId).html(html);
+            $.each(data[0], function(key, val) {
+                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_');
+
+                $('div#' + expedition +'-resources').data('expedition_id', key);
+                $('div#' + expedition +'-datasets').data('expedition_id', key);
+            });
+
+            // remove previous click event and attach toggle function to each project
+            $(".expand-content").off("click");
+            $(".expand-content").click(function() {
+                loadExpeditions(this.id)
+            });
+        });
+}
+
+function populateResourcesOrDatasets(divId) {
+    // load config table from REST service
+    var expeditionId= $(divId).data('expedition_id');
+    if (divId.indexOf("resources") != -1) {
+        populateDivFromService(
+            '/id/expeditionService/resourcesAsTable/' + expeditionId,
+            divId,
+            'Unable to load this expedition\'s resources from server.');
+    } else {
+        populateDivFromService(
+            '/id/expeditionService/datasetsAsTable/' + expeditionId,
+            divId,
+            'Unable to load this expedition\'s datasets from server.')
+    }
 }

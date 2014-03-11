@@ -274,4 +274,25 @@ public class projectService {
         projectMinter p = new projectMinter();
         return p.listProjectUsersAsTable(projectId);
     }
+
+    @GET
+    @Path("/listUserProjects")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String getUserProjects(@Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            return "[{\"error\": \"You must be logged in to view your projects\"}]";
+        }
+
+        try {
+            projectMinter p = new projectMinter();
+            return p.listUsersProjects(username.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "[{\"error\": \"server_error\"}]";
+    }
 }

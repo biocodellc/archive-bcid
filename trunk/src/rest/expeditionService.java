@@ -208,6 +208,72 @@ public class expeditionService {
         }
     }
 
+    @GET
+    @Path("/list/{project_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String listExpeditions(@PathParam("project_id") Integer projectId,
+                                  @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            return "[{\"error\": \"You must be logged in to view your expeditions.\"}]";
+        }
+
+        try {
+            expeditionMinter e = new expeditionMinter();
+            return e.listExpeditions(projectId, username.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "[{\"error\": \"server error\"}]";
+    }
+
+    @GET
+    @Path("resourcesAsTable/{expedition_id}")
+    @Produces(MediaType.TEXT_HTML)
+    public String listResourcesAsTable(@PathParam("expedition_id") Integer expeditionId,
+                                       @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            return "You must be logged in to view this expeditions resources.";
+        }
+
+        try {
+            expeditionMinter e = new expeditionMinter();
+            return e.listExpeditionResourcesAsTable(expeditionId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "Server Error";
+
+    }
+
+    @GET
+    @Path("datasetsAsTable/{expedition_id}")
+    @Produces(MediaType.TEXT_HTML)
+    public String listDatasetsAsTable(@PathParam("expedition_id") Integer expeditionId,
+                                      @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            return "You must be logged in to view this expeditions datasets.";
+        }
+
+        try {
+            expeditionMinter e = new expeditionMinter();
+            return e.listExpeditionDatasetsAsTable(expeditionId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "Server Error";
+    }
 
 }
 
