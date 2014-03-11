@@ -168,3 +168,15 @@ function populateProfileForm() {
             });
         });
 }
+
+function updateProjectConfig(select) {
+    var val = select.val()
+    $('a', '#projectConfig').attr('href', '/bcid/secure/project.jsp?projectId=' + val);
+
+    var jqxhr = $.getJSON('/id/projectService/config/' + val, function() {})
+        .done(function(data) {
+            $('#projectTitle').text(data[0]['title']);
+            $('#projectAbstract').text(data[0]['abstract']);
+            $('#projectValidationXML').text(data[0]['validation_xml']);
+        });
+}

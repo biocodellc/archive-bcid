@@ -243,25 +243,25 @@ public class userService {
     }
     @GET
     @Path("/profile/list")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_HTML)
     public String getProfile(@Context HttpServletRequest request)
             throws IOException {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
         if (username == null) {
-            return "[{\"error\": \"You must be logged in to view your profile.\"}]";
+            return "You must be logged in to view your profile.";
         }
 
         userMinter u;
 
         try {
             u = new userMinter();
-            return u.getProfileJSON(username.toString());
+            return u.getProfileEditorAsTable(username.toString());
         }   catch (Exception e) {
             e.printStackTrace();
         }
-        return("[{\"Error\": \"Server Error\"}]");
+        return "Error loading profile editor";
     }
 
     /**
