@@ -194,7 +194,7 @@ function listProjects(username, url, expedition) {
                                     + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
                                     + '</a>\n';
                 $.each(data[0], function(key, val) {
-                    var project = val.replace(new RegExp('[#. ]', 'g'), '_');
+                    var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                     html += expandTemplate.replace('{text}', val).replace('-{section}', '');
                     html += '<div id="{project}" class="toggle-content">';
@@ -222,7 +222,7 @@ function listProjects(username, url, expedition) {
 
                 // store project id with element, so we don't have to retrieve project id later with an ajax call
                 $.each(data[0], function(key, val) {
-                    var project = val.replace(new RegExp('[#. ]', 'g'), '_');
+                    var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                     if (!expedition) {
                         $('div#' + project +'-config').data('project_id', key);
@@ -279,8 +279,8 @@ function populateConfigOrUsers(id) {
     }
 }
 
-function projectUserSubmit(project_title) {
-    var divId = 'div#' + project_title.replace(' ', '_');
+function projectUserSubmit(id) {
+    var divId = 'div#' + id;
     if ($('select option:selected', divId).val() == 0) {
         var project_id = $("input[name='project_id']", divId).val()
         populateDivFromService(
@@ -319,7 +319,7 @@ function createUserSubmit(project_id, divId) {
 }
 
 function projectRemoveUser(userId, projectId, projectTitle) {
-    var divId = 'div#' + projectTitle.replace(' ', '_');
+    var divId = 'div#' + projectTitle.replace(' ', '_') + '_' + projectId;
     var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId)
         .done (function(data) {
             populateConfigOrUsers(divId + '-users');
@@ -377,7 +377,7 @@ function listExpeditions(divId) {
                                 + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
                                 + '</a>\n';
             $.each(data[0], function(key, val) {
-                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_');
+                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                 html += expandTemplate.replace('{text}', val).replace('-{section}', '');
                 html += '<div id="{expedition}" class="toggle-content">';
@@ -396,7 +396,7 @@ function listExpeditions(divId) {
             }
             $(divId).html(html);
             $.each(data[0], function(key, val) {
-                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_');
+                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                 $('div#' + expedition +'-resources').data('expedition_id', key);
                 $('div#' + expedition +'-datasets').data('expedition_id', key);
