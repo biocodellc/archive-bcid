@@ -39,8 +39,6 @@
             <c:if test="${user != null}">
                 <div class="link"><a href='/bcid/secure/dataGroupCreator.jsp'>BCID Creator</a></div>
 
-                <!--<div class="separator">|</div><div class="link"><a href='/bcid/secure/creator.jsp'>Element Creator</a></div>-->
-
                 <div class="separator">|</div>
 
                 <div class="link"><a href='/bcid/secure/bcids.jsp'>Manage BCIDs</a></div>
@@ -65,8 +63,6 @@
 
             <c:if test="${user == null}">
                 <div class="disabledlink">BCID Creator</div>
-
-                <!--<div class="separator">|</div><div class="disabledlink">Element Creator</div>-->
 
                 <div class="separator">|</div>
 
