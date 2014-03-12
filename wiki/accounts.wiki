@@ -2,7 +2,7 @@
 
 = Introduction =
 
-Here we describe how to obtain a user account for BCIDs.
+User accounts are not required to lookup/resolve BCIDs.  However, they are required to work with projects, expeditions, or create new BCIDs.  Here we describe how to obtain a user account for BCIDs.
 
 = Details =
 
