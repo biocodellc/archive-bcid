@@ -1,0 +1,11 @@
+#Information about user accounts
+
+= Introduction =
+
+Here we describe how to obtain a user account for BCIDs.
+
+= Details =
+
+User accounts can be created by either by the superuser or by project administrators. Project administrators can add any existing user in the BCID system as an authorized expedition creator.  Talk to your project administrator to be added to a particular project.
+
+[https://code.google.com/p/bcid/wiki/oauth Information about Open Authorization]
