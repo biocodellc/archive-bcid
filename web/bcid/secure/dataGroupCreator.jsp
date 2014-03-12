@@ -3,8 +3,7 @@
 <div id="doiMinter" class="section">
 
     <div class="sectioncontent">
-        <h2>BCID Creator</h2>
-
+        <h2>BCID Creator (${user})</h2>
 
         Create a group-level identifier that acts as a container for an unlimited number of user-specified elements.
 
