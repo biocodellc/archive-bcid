@@ -186,3 +186,49 @@ div.toggle-content {
 #login input {
     margin: 5px;
 }
+
+.menu {
+    display:inline-block;
+    margin:4px;
+    -webkit-padding-start: 0px;
+}
+li {
+    list-style:none;
+}
+.menu li {list-style:none;}
+.menu ul { display: none; list-style-type: none;} /* Hide before plugin loads */
+.menu ul.dropit-submenu {
+    position:absolute;
+    width: 200px;
+    background-color: #fff;
+    border: 1px solid #b2b2b2;
+    padding: 6px 0;
+    margin: 3px 0 0 1px;
+    -webkit-border-radius: 3px;
+       -moz-border-radius: 3px;
+            border-radius: 3px;
+    -webkit-box-shadow: 0px 1px 3px rgba(0,0,0,0.15);
+       -moz-box-shadow: 0px 1px 3px rgba(0,0,0,0.15);
+            box-shadow: 0px 1px 3px rgba(0,0,0,0.15);
+}
+.menu ul.dropit-submenu a.enabled {
+    display: block;
+    font-size: 14px;
+    line-height: 20px;
+    color: #000000;
+    padding: 0 10px;
+}
+
+.menu ul.dropit-submenu a.disabled {
+    display: block;
+    font-size: 14px;
+    line-height: 20px;
+    color: #7a868e;
+    padding: 0 10px;
+}
+
+.menu ul.dropit-submenu a:hover {
+    background: #248fc1;
+    color: #fff;
+    text-decoration: none;
+}
