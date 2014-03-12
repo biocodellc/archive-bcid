@@ -3,7 +3,7 @@
 <div id="user" class="section">
 
     <div class="sectioncontent">
-        <h2>Manage BCIDs</h2>
+        <h2>Manage BCIDs (${user})</h2>
 
         <div>
             <div id=listUserBCIDsAsTable >Loading groups...</div>

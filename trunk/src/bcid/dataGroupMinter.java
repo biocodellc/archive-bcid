@@ -360,11 +360,10 @@ public class dataGroupMinter extends dataGroupEncoder {
                 //sb.append("<td>" + getEZIDLink(rs.getString("prefix"), username) + " " + getEZIDMetadataLink(rs.getString("prefix"), username) + "</td>");
                 sb.append("<td>" +
                         rs.getString("prefix") +
-                        // Removed edit functionality here
-                        //" " +
+                        " " +
                         // Normally we would use resolverMetadataPrefix here but i'm stripping the host so this
                         // can be more easily tested on localhost
-                        //"(<a href='/bcid/secure/dataGroupEditor.jsp?ark=" + rs.getString("prefix") + "'>edit</a>)" +
+                        "(<a href='/bcid/secure/dataGroupEditor.jsp?ark=" + rs.getString("prefix") + "'>edit</a>)" +
                         "</td>");
 
                 sb.append("<td>" + rs.getString("title") + "</td>");
