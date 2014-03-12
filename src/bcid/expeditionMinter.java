@@ -541,7 +541,7 @@ public class expeditionMinter {
 
         try {
             String sql = "SELECT d.prefix, d.resourceType " +
-                "FROM datasets d, expeditionsBCIDS e " +
+                "FROM datasets d, expeditionsBCIDs e " +
                 "WHERE d.datasets_id = e.datasets_id && e.expedition_id = \"" + expeditionId + "\"";
             Statement stmt = conn.createStatement();
 
@@ -594,7 +594,7 @@ public class expeditionMinter {
 
         try {
             String sql = "SELECT d.ts, d.webaddress, d.resourceType " +
-                    "FROM datasets d, expeditionsBCIDS e " +
+                    "FROM datasets d, expeditionsBCIDs e " +
                     "WHERE d.datasets_id = e.datasets_id && e.expedition_id = \"" + expeditionId + "\" " +
                     "ORDER BY d.ts DESC";
             Statement stmt = conn.createStatement();
