@@ -63,6 +63,6 @@ Calling the Metadata or Resolution targets using the BCID resolver will return R
 You can also try it out using [http://linkeddata.informatik.hu-berlin.de/uridbg/index.php?url=http%3A%2F%2Fbiscicol.org%2Fbcid%2Fid%2Fark%3A%2F21547%2FR2&useragentheader=&acceptheader=application%2Frdf%2Bxml an online tool using and the "ark:/21547/R2" BCID]. 
 
 === Developer Information ===
-  * View the list of [http://biscicol.org/bcid/bcid.wadl BCID REST services]
+  * View the list of [http://biscicol.org/id/bcid.wadl BCID REST services]
   * [http://biscicol.org/bcid/javadoc/index.html JavaDocs] are available
   * This is an open source project, please contact the owner to contribute!
