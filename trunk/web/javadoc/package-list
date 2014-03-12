@@ -1,0 +1,11 @@
+auth
+auth.oauth2
+bcid
+bcid.Renderer
+bcid.TestingRenderer
+bcid.TestingRenderer.Renderer
+bcid.testData
+deepRoots
+ezid
+rest
+util

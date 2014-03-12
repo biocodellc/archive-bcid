@@ -9,6 +9,8 @@
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script type="text/javascript" src="/bcid/js/bcid.js"></script>
+    <script type="text/javascript" src="/bcid/js/dropit.js"></script>
+    <script>$(document).ready(function() {$('.menu').dropit();});</script>
 </head>
 
 <body>
@@ -26,7 +28,7 @@
             <c:if test="${user != null}">
                 <a href="/bcid/secure/user.jsp">${user}</a> | <a href="/id/authenticationService/logout/">Logout</a>
             </c:if>
-            | <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>
+            <!--| <div class="link"><a href='/bcid/concepts.jsp'>Concepts</a></div>-->
             | <a href="https://code.google.com/p/bcid/">Help</a>
         </div>
 
@@ -34,52 +36,40 @@
 
         <div style="overflow: auto;width: 100%;">
             <div class="link"><a href='/bcid/index.jsp'>Lookup</a></div>
+
             <div class="separator">|</div>
 
-            <c:if test="${user != null}">
-                <div class="link"><a href='/bcid/secure/dataGroupCreator.jsp'>BCID Creator</a></div>
+            <ul id="menu2" class="menu">
+                <li><a href="#" class="btn">User Tools</a>
 
-                <div class="separator">|</div>
+                    <c:if test="${user != null}">
+                        <ul>
+                            <li><a href='/bcid/concepts.jsp' class='enabled'>Lookup Concepts</a></li>
+                            <li><a href='/bcid/secure/dataGroupCreator.jsp' class='enabled'>BCID Creator</a></li>
+                            <li><a href='/bcid/secure/bcids.jsp' class='enabled'>Manage BCIDs</a></li>
+                            <c:if test="${projectAdmin != null}">
+                                <li><a href='/bcid/secure/projects.jsp' class='enabled'>Manage Projects</a></li>
+                            </c:if>
+                            <c:if test="${projectAdmin == null}">
+                                <li><a href='/bcid/secure/projects.jsp' class='disabled'>Manage Projects</a></li>
+                            </c:if>
+                            <li><a href='/bcid/secure/expeditions.jsp' class='enabled'>Manage Expeditions</a></li>
+                            <li><a href='/bcid/secure/user.jsp' class='enabled'>User Profile</a></li>
+                        </ul>
+                    </c:if>
 
-                <div class="link"><a href='/bcid/secure/bcids.jsp'>Manage BCIDs</a></div>
-
-                <div class="separator">|</div>
-
-                <c:if test="${projectAdmin != null}">
-                    <div class="link"><a href='/bcid/secure/projects.jsp'>Manage Projects</a></div>
-                </c:if>
-                <c:if test="${projectAdmin == null}">
-                    <div class="disabledlink">Manage Projects</div>
-                </c:if>
-
-                <div class="separator">|</div>
-
-                <div class="link"><a href='/bcid/secure/expeditions.jsp'>Manage Expeditions</a></div>
-
-                <div class="separator">|</div>
-
-                <div class="link"><a href='/bcid/secure/profile.jsp'>User Profile</a></div>
-            </c:if>
-
-            <c:if test="${user == null}">
-                <div class="disabledlink">BCID Creator</div>
-
-                <div class="separator">|</div>
-
-                <div class="disabledlink">Manage BCIDs</div>
-
-                <div class="separator">|</div>
-
-                <div class="disabledlink">Manage Projects</div>
-
-                <div class="separator">|</div>
-
-                <div class="disabledlink">Manage Expeditions</div>
-
-                <div class="separator">|</div>
-
-                <div class="disabledlink">User Profile</div>
-            </c:if>
+                    <c:if test="${user == null}">
+                        <ul>
+                            <li><a href='/bcid/concepts.jsp' class='enabled'>Lookup Concepts</a></li>
+                            <li><a href='#' class='disabled'>BCID Creator</a></li>
+                            <li><a href='#' class='disabled'>Manage BCIDs</a></li>
+                            <li><a href='#' class='disabled'>Manage Projects</a></li>
+                            <li><a href='#' class='disabled'>Manage Expeditions</a></li>
+                            <li><a href='#' class='disabled'>User Profile</a></li>
+                         </ul>
+                    </c:if>
+                </li>
+            </ul>
 
             <!--<div class="separator">|</div>
             <div class="link"><a href='/bcid/requestEZID.jsp'>Request EZID</a></div>-->
