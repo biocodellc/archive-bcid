@@ -1,5 +1,7 @@
 #Working with Projects and Expeditions
 
+NOTE: I STILL NEED TO ADD SPECIFIC INSTRUCTIONS ON THE UI FEATURES OF THE PROJECT/EXPEDITION SYSTEM.
+
 = Introduction =
 
 Recognizing the importance of linking identifiers to the source from which they came, the BCID system tracks projects and expeditions.  Multiple expeditions are contained with a single project.  
