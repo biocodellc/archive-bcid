@@ -221,6 +221,7 @@ public class expeditionMinter {
 
     /**
      * Discover if a user owns this expedition or not
+     *
      * @param users_id
      * @param expedition_code
      * @return
@@ -249,6 +250,7 @@ public class expeditionMinter {
 
     /**
      * Discover if a user belongs to an project
+     *
      * @param users_id
      * @param project_id
      * @return
@@ -428,7 +430,7 @@ public class expeditionMinter {
             // See if the user owns this expedition or no
             expeditionMinter expedition = new expeditionMinter();
             //    System.out.println("validation XML for project = " +expedition.getValidationXML(1));
-           /*
+            /*
             if (expedition.expeditionExistsInProject("DEMOH", 1)) {
                 System.out.println("expedition exists in project");
             } else {
@@ -541,8 +543,8 @@ public class expeditionMinter {
 
         try {
             String sql = "SELECT d.prefix, d.resourceType " +
-                "FROM datasets d, expeditionsBCIDs e " +
-                "WHERE d.datasets_id = e.datasets_id && e.expedition_id = \"" + expeditionId + "\"";
+                    "FROM datasets d, expeditionsBCIDs e " +
+                    "WHERE d.datasets_id = e.datasets_id && e.expedition_id = \"" + expeditionId + "\"";
             Statement stmt = conn.createStatement();
 
             System.out.print(sql);
@@ -566,11 +568,14 @@ public class expeditionMinter {
                 sb.append("\t\t<td>");
                 sb.append(rs.getString("d.prefix"));
                 sb.append("</td>\n");
-                sb.append("\t\t<td><a href=\"");
-                sb.append(rs.getString("d.resourceType"));
-                sb.append("\">");
-                sb.append(rtString);
-                sb.append("</a></td>\n");
+                sb.append("\t\t<td>");
+                // only display a hyperlink if http: is specified under resource type
+                if (rs.getString("d.resourceType").contains("http:")) {
+                    sb.append("<a href=\"" + rs.getString("d.resourceType") + "\">" +  rtString + "</a>");
+                } else {
+                    sb.append(rtString);
+                }
+                sb.append("</td>\n");
                 sb.append("\t</tr>\n");
             }
         } catch (Exception e) {
