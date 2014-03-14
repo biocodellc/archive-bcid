@@ -275,7 +275,36 @@ function populateConfigOrUsers(id) {
         populateDivFromService(
             '/id/projectService/listProjectUsersAsTable/' + projectID,
             id,
-            'Unable to load this project\'s users from server.')
+            'Unable to load this project\'s users from server.');
+        $( document ).one("ajaxStop", function() {
+            $.each($('a', id), function(key, e) {
+                $(e).click(function() {
+                    var username = $(e).data('username');
+                    $('#confirm').html($('#confirm').html().replace('{user}', username));
+                    $('#confirm').dialog({
+                        modal: true,
+                        autoOpen: true,
+                        title: "Remove User",
+                        resizable: false,
+                        width: 'auto',
+                        draggable: false,
+                        buttons:{ "Yes": function() {
+                                                        projectRemoveUser(e);
+                                                        $(this).dialog("close");
+                                                        $(this).dialog("destroy");
+                                                        $('#confirm').html("Are you sure you wish to remove {user}?");
+                                                    },
+                                  "Cancel": function(){
+                                                        $(this).dialog("close");
+                                                        $('#confirm').html("Are you sure you wish to remove {user}?");
+                                                        $(this).dialog("destroy");
+                                                      }
+                                }
+                        });
+
+                });
+            });
+        });
     }
 }
 
@@ -291,6 +320,10 @@ function projectUserSubmit(id) {
             $("input[name=project_id]", divId).val(project_id);
             $("#createFormButton", divId).click(function() {
                 createUserSubmit(project_id, divId);
+            });
+            $("#createFormCancelButton", divId).click(function() {
+                $(divId).data('project_id', $("input[name='project_id']", divId).val())
+                populateConfigOrUsers(divId);
             });
         });
     } else {
@@ -318,14 +351,18 @@ function createUserSubmit(project_id, divId) {
         });
 }
 
-function projectRemoveUser(userId, projectId, projectTitle) {
-    var divId = 'div#' + projectTitle.replace(' ', '_') + '_' + projectId;
+function projectRemoveUser(e) {
+    var userId = $(e).data('user_id');
+    var projectId = $(e).closest('table').data('project_id');
+    var projectTitle = $(e).closest('table').data('project_title');
+    var divId = 'div#' + $(e).closest('div').attr('id');
+
     var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId)
         .done (function(data) {
-            populateConfigOrUsers(divId + '-users');
+            populateConfigOrUsers(divId);
             if (data[0].error != null) {
                 $( document ).one("ajaxStop", function() {
-                    $(".error", divId + '-users').html(data[0].error);
+                    $(".error", divId).html(data[0].error);
                 });
             }
         });

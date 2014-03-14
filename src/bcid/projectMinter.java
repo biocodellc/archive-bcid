@@ -469,8 +469,6 @@ public class projectMinter {
 
     public String listProjectUsersAsTable(Integer projectId) {
         StringBuilder sb = new StringBuilder();
-        sb.append("<table>\n");
-        sb.append("\t<tr>\n");
 
         try {
             String userProjectSql = "SELECT users_id FROM usersProjects WHERE project_id = \"" + projectId + "\"";
@@ -484,16 +482,19 @@ public class projectMinter {
             rs3.next();
             String project_title = rs3.getString("project_title");
 
+            sb.append("<table data-project_id=\"" + projectId + "\" data-project_title=\"" + project_title + "\">\n");
+            sb.append("\t<tr>\n");
             ResultSet rs = stmt.executeQuery(userProjectSql);
 
             while (rs.next()) {
                 Integer userId = rs.getInt("users_id");
+                String username = db.getUserName(userId);
                 projectUsers.add(userId);
                 sb.append("\t<tr>\n");
                 sb.append("\t\t<td>");
-                sb.append(db.getUserName(userId));
+                sb.append(username);
                 sb.append("</td>\n");
-                sb.append("\t\t<td><a href=\"javascript:projectRemoveUser(\'" + userId + "\',\'" + projectId +"\',\'" + project_title + "\')\">(remove)</a></td>\n");
+                sb.append("\t\t<td><a data-user_id=\"" + userId + "\" data-username=\"" + username + "\" href=\"javascript:void();\">(remove)</a></td>\n");
                 sb.append("\t</tr>\n");
             }
 
@@ -527,6 +528,7 @@ public class projectMinter {
 
         } catch (Exception e) {
             e.printStackTrace();
+            sb.append("<table>\n");
         }
 
         sb.append("</table>\n");
