@@ -405,7 +405,7 @@ function listExpeditions(divId) {
             // remove previous click event and attach toggle function to each project
             $(".expand-content").off("click");
             $(".expand-content").click(function() {
-                loadExpeditions(this.id)
+                loadExpeditions(this.id);
             });
         });
 }
@@ -422,6 +422,6 @@ function populateResourcesOrDatasets(divId) {
         populateDivFromService(
             '/id/expeditionService/datasetsAsTable/' + expeditionId,
             divId,
-            'Unable to load this expedition\'s datasets from server.')
+            'Unable to load this expedition\'s datasets from server.');
     }
 }

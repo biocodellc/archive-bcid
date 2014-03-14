@@ -232,3 +232,11 @@ li {
     color: #fff;
     text-decoration: none;
 }
+
+#abstract_box {
+    resize: none;
+}
+
+.project_config {
+    width: 443px;
+}
