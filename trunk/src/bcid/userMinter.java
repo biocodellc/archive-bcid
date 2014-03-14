@@ -60,7 +60,7 @@ public class userMinter {
 
         sb.append("\t\t<tr>\n");
         sb.append("\t\t\t<td></td>\n");
-        sb.append("\t\t\t<td><input type=\"button\" id=\"createFormCancelButton\" value=\"Cancel\"><input type=\"button\" id=\"createFormButton\" value=\"Submit\"></td>\n");
+        sb.append("\t\t\t<td><input type=\"button\" id=\"createFormButton\" value=\"Submit\"><input type=\"button\" id=\"createFormCancelButton\" value=\"Cancel\"></td>\n");
         sb.append("\t\t</tr>\n");
         sb.append("\t\t<input type=\"hidden\" name=\"project_id\">\n");
 
