@@ -6,11 +6,13 @@
 <html>
 <head>
     <title>BiSciCol Identifier Tools</title>
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/flick/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
     <script type="text/javascript" src="/bcid/js/bcid.js"></script>
     <script type="text/javascript" src="/bcid/js/dropit.js"></script>
     <script>$(document).ready(function() {$('.menu').dropit();});</script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 </head>
 
 <body>
