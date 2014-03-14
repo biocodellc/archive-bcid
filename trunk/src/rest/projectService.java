@@ -151,6 +151,7 @@ public class projectService {
                                @FormParam("title") String title,
                                @FormParam("abstract") String ab,
                                @FormParam("validation_xml") String validationXML,
+                               @FormParam("public") String publicProject,
                                @Context HttpServletRequest request) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
@@ -177,6 +178,14 @@ public class projectService {
             }
             if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {
                 update.put("validation_xml", validationXML);
+            }
+            if ((publicProject != null && (publicProject.equals("on") || publicProject.equals("true")) && config.get("public").equals("false")) ||
+                (publicProject == null && config.get("public").equals("true"))) {
+                if (publicProject != null && (publicProject.equals("on") || publicProject.equals("true"))) {
+                    update.put("public", "true");
+                } else {
+                    update.put("public", "false");
+                }
             }
 
             if (!update.isEmpty()) {

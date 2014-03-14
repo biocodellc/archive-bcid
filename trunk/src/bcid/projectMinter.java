@@ -246,21 +246,28 @@ public class projectMinter {
             sb.append("\t\t\t<td>Title:</td>\n");
             sb.append("\t\t\t<td>");
             sb.append(config.get("title"));
-            sb.append("\t\t\t</td>\n");
+            sb.append("</td>\n");
             sb.append("\t\t</tr>\n");
 
             sb.append("\t\t<tr>\n");
             sb.append("\t\t\t<td>Abstract:</td>\n");
             sb.append("\t\t\t<td>");
             sb.append(config.get("ab"));
-            sb.append("\t\t\t</td>\n");
+            sb.append("</td>\n");
             sb.append("\t\t</tr>\n");
 
             sb.append("\t\t<tr>\n");
             sb.append("\t\t\t<td>Validation XML:</td>\n");
             sb.append("\t\t\t<td>");
             sb.append(config.get("validation_xml"));
-            sb.append("\t\t\t</td>\n");
+            sb.append("</td>\n");
+            sb.append("\t\t</tr>\n");
+
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Public Project</td>\n");
+            sb.append("\t\t\t<td>\n");
+            sb.append(config.get("public"));
+            sb.append("</td>\n");
             sb.append("\t\t</tr>\n");
 
             sb.append("\t\t<tr>\n");
@@ -282,35 +289,45 @@ public class projectMinter {
             return "You must me this project's admin in order to edit its configuration.";
         } else {
             sb.append("<table>\n");
-            sb.append("<form id=\"submitForm\" method=\"POST\"");
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td>Title:</td>\n");
-            sb.append(("\t\t<td><input type=\"text\" name=\"title\" value=\""));
+            sb.append("<form id=\"submitForm\" method=\"POST\">\n");
+            sb.append("\t<tbody>\n");
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Title</td>\n");
+            sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"title\" value=\""));
             sb.append(config.get("title"));
-            sb.append("\"></td>\n\t</tr>");
+            sb.append("\"></td>\n\t\t</tr>\n");
 
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td>Abstract:</td>\n");
-            sb.append(("\t\t<td><input type=\"text\" name=\"abstract\" value=\""));
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Abstract</td>\n");
+            sb.append(("\t\t\t<td><textarea id=\"abstract_box\" name=\"abstract\" rows=\"10\" cols=\"60\">"));
             sb.append(config.get("ab"));
-            sb.append("\"></td>\n\t</tr>");
+            sb.append("</textarea></td>\n\t\t</tr>\n");
 
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td>Validation XML</td>\n");
-            sb.append(("\t\t<td><input type=\"text\" name=\"validation_xml\" value=\""));
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Validation XML</td>\n");
+            sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"validation_xml\" value=\""));
             sb.append(config.get("validation_xml"));
-            sb.append("\"></td>\n\t</tr>");
+            sb.append("\"></td>\n\t\t</tr>\n");
 
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td></td>\n");
-            sb.append("<td class=\"error\" align=\"center\">");
-            sb.append("</td>\n\t</tr>");
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td>Public Project</td>\n");
+            sb.append("\t\t\t<td><input type=\"checkbox\" name=\"public\"");
+            if (config.get("public").equalsIgnoreCase("true")) {
+                sb.append(" checked=\"checked\"");
+            }
+            sb.append("></td>\n\t\t</tr>\n");
 
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td></td>\n");
-            sb.append(("\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
-            sb.append("</td>\n\t</tr>");
-            sb.append("</form>");
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td></td>\n");
+            sb.append("\t\t\t<td class=\"error\" align=\"center\">");
+            sb.append("</td>\n\t\t</tr>\n");
+
+            sb.append("\t\t<tr>\n");
+            sb.append("\t\t\t<td></td>\n");
+            sb.append(("\t\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
+            sb.append("</td>\n\t\t</tr>\n");
+            sb.append("\t</tbody>\n");
+            sb.append("</form>\n");
             sb.append("</table>\n");
 
             return sb.toString();
@@ -343,7 +360,17 @@ public class projectMinter {
                 int i = 1;
                 for (Enumeration e = updateTable.keys(); e.hasMoreElements();) {
                     String key = e.nextElement().toString();
-                    stmt.setString(i, updateTable.get(key));
+                    if (key.equals("public")) {
+                        if (updateTable.get(key).equalsIgnoreCase("true")) {
+                            stmt.setBoolean(i, true);
+                        } else {
+                            stmt.setBoolean(i, false);
+                        }
+                    } else if (updateTable.get(key).equals("")) {
+                        stmt.setString(i, null);
+                    } else {
+                        stmt.setString(i, updateTable.get(key));
+                    }
                     i++;
                 }
             }
@@ -367,12 +394,13 @@ public class projectMinter {
             Integer user_id = db.getUserId(username);
 
             Statement stmt = conn.createStatement();
-            String sql = "SELECT project_title as title, abstract, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
+            String sql = "SELECT project_title as title, abstract, public, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
                     + projectId + "\" AND users_id=\"" + user_id + "\"";
 
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) {
                 config.put("title", rs.getString("title"));
+                config.put("public", String.valueOf(rs.getBoolean("public")));
                 if (rs.getString("abstract") != null) {
                     config.put("ab", rs.getString("abstract"));
                 }
