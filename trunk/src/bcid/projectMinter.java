@@ -250,13 +250,6 @@ public class projectMinter {
             sb.append("\t\t</tr>\n");
 
             sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Abstract:</td>\n");
-            sb.append("\t\t\t<td>");
-            sb.append(config.get("ab"));
-            sb.append("</td>\n");
-            sb.append("\t\t</tr>\n");
-
-            sb.append("\t\t<tr>\n");
             sb.append("\t\t\t<td>Validation XML:</td>\n");
             sb.append("\t\t\t<td>");
             sb.append(config.get("validation_xml"));
@@ -296,12 +289,6 @@ public class projectMinter {
             sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"title\" value=\""));
             sb.append(config.get("title"));
             sb.append("\"></td>\n\t\t</tr>\n");
-
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Abstract</td>\n");
-            sb.append(("\t\t\t<td><textarea id=\"abstract_box\" name=\"abstract\" rows=\"10\" cols=\"60\">"));
-            sb.append(config.get("ab"));
-            sb.append("</textarea></td>\n\t\t</tr>\n");
 
             sb.append("\t\t<tr>\n");
             sb.append("\t\t\t<td>Validation XML</td>\n");
@@ -394,16 +381,13 @@ public class projectMinter {
             Integer user_id = db.getUserId(username);
 
             Statement stmt = conn.createStatement();
-            String sql = "SELECT project_title as title, abstract, public, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
+            String sql = "SELECT project_title as title, public, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
                     + projectId + "\" AND users_id=\"" + user_id + "\"";
 
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) {
                 config.put("title", rs.getString("title"));
                 config.put("public", String.valueOf(rs.getBoolean("public")));
-                if (rs.getString("abstract") != null) {
-                    config.put("ab", rs.getString("abstract"));
-                }
                 if (rs.getString("validation_xml") != null) {
                     config.put("validation_xml", rs.getString("validation_xml"));
                 }

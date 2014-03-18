@@ -112,7 +112,6 @@ CREATE TABLE `projects` (
   `project_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this projects',
   `project_code` varchar(6) NOT NULL DEFAULT '' COMMENT 'The short name for this project',
   `project_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this project',
-  `abstract` text COMMENT 'The abstract for this particular project',
     `bioValidator_validation_xml` text COMMENT 'The bioValidator XML Validation Specification, published under the id/schemas webservice',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The user_id of the project admin',

@@ -45,14 +45,12 @@ public class expeditionMinter {
      *
      * @param expedition_code
      * @param expedition_title
-     * @param strAbstract
      * @param users_id
      * @return
      */
     public Integer mint(
             String expedition_code,
             String expedition_title,
-            String strAbstract,
             Integer users_id,
             Integer project_id) throws Exception {
 
@@ -78,7 +76,7 @@ public class expeditionMinter {
 
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             String insertString = "INSERT INTO expeditions " +
-                    "(internalID, expedition_code, expedition_title, abstract, users_id, project_id) " +
+                    "(internalID, expedition_code, expedition_title, users_id, project_id) " +
                     "values (?,?,?,?,?,?)";
 
             PreparedStatement insertStatement = null;
@@ -86,7 +84,6 @@ public class expeditionMinter {
             insertStatement.setString(1, internalID.toString());
             insertStatement.setString(2, expedition_code);
             insertStatement.setString(3, expedition_title);
-            insertStatement.setString(4, strAbstract);
             insertStatement.setInt(5, users_id);
             insertStatement.setInt(6, project_id);
             insertStatement.execute();
@@ -457,7 +454,6 @@ public class expeditionMinter {
             Integer expedition_id = expedition.mint(
                     "DEMOH",
                     "Test creating expedition under an project for which it already exists",
-                    null,
                     8, 4);
 
             System.out.println(expedition.printMetadata(expedition_id));

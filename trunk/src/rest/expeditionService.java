@@ -105,7 +105,6 @@ public class expeditionService {
     @Produces(MediaType.TEXT_HTML)
     public Response mint(@FormParam("expedition_code") String expedition_code,
                          @FormParam("expedition_title") String expedition_title,
-                         @FormParam("abstract") String strAbstract,
                          @FormParam("project_id") Integer project_id,
                          @Context HttpServletRequest request) throws Exception {
 
@@ -129,7 +128,6 @@ public class expeditionService {
             expedition_id = expedition.mint(
                     expedition_code,
                     expedition_title,
-                    strAbstract,
                     user_id,
                     project_id);
         } catch (Exception e) {

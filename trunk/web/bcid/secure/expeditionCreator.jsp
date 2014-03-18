@@ -12,7 +12,6 @@
             <li><b>Expedition Code*</b> A 4-6 letter code for your expedition.</li>
             <li><b>Expedition Title*</b> A brief title for this expedition.</li>
             <li><b>Resolver Web Address</b> The web root for resolving child BCIDs (e.g. http://example.com/ will construct http://example.com/Agent/, http://example.com/Occurrence/, etc..)</li>
-            <li><b>Abstract</b> is an abstract for this expedition.</li>
             <li><b>Validation URL</b> is a URL pointer to the Validation XML file as specified by <a href="http://code.google.com/p/biocode-fims/">biocode-fims</a></li>
         </ul>
 
@@ -31,10 +30,6 @@
                 <tr>
                     <td align=right>Resolver Web Address</td>
                     <td><input id=resolverWebAddress name=resolverWebAddress type=textbox size="40"></td>
-                </tr>
-                <tr>
-                    <td align=right>Abstract</td>
-                    <td><textarea name=abstract id=abstract cols="100" rows="10"></textarea></td>
                 </tr>
                 <tr>
                     <td align=right>Validation URL</td>
