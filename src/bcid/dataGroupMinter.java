@@ -3,6 +3,8 @@ package bcid;
 import java.math.BigInteger;
 import java.net.URI;
 import java.sql.*;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.UUID;
 
 /**
@@ -363,7 +365,7 @@ public class dataGroupMinter extends dataGroupEncoder {
                         " " +
                         // Normally we would use resolverMetadataPrefix here but i'm stripping the host so this
                         // can be more easily tested on localhost
-                        "(<a href='/bcid/secure/dataGroupEditor.jsp?ark=" + rs.getString("prefix") + "'>edit</a>)" +
+                        "(<a href='javascript:void();' class='edit' data-ark='" + rs.getString("prefix") + "'>edit</a>)" +
                         "</td>");
 
                 sb.append("<td>" + rs.getString("title") + "</td>");
@@ -453,5 +455,180 @@ public class dataGroupMinter extends dataGroupEncoder {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * fetch a BCID's configuration given a prefix and username
+     * @param prefix
+     * @param username
+     * @return
+     */
+    public Hashtable<String, String> getDataGroupConfig(String prefix, String username) {
+        Hashtable<String, String> config = new Hashtable<String, String>();
+        ResourceTypes rts = new ResourceTypes();
+        try {
+            database db = new database();
+            Integer userId = db.getUserId(username);
+
+            String sql = "SELECT suffixPassThrough as suffix, doi, title, webaddress, resourceType " +
+                    "FROM datasets WHERE BINARY prefix = ? AND users_id = \"" + userId + "\"";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            stmt.setString(1, prefix);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                config.put("suffix", String.valueOf(rs.getBoolean("suffix")));
+                if (rs.getString("doi") != null) {
+                    config.put("doi", rs.getString("doi"));
+                }
+                if (rs.getString("title") != null) {
+                    config.put("title", rs.getString("title"));
+                }
+                if (rs.getString("webaddress") != null) {
+                    config.put("webaddress", rs.getString("webaddress"));
+                }
+
+                try {
+                    config.put("resourceType", rts.get(rs.getString("resourceType")).string);
+                } catch (Exception e) {
+                    config.put("resourceType", rs.getString("resourceType"));
+                }
+
+            } else {
+                config.put("error", "Dataset not found. Are you the owner of this dataset?");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            config.put("error", "server error");
+        }
+        return config;
+    }
+
+    /**
+     * update a BCID's configuration
+     * @param config a Hashtable<String, String> which has the datasets table fields to be updated as key, new value pairs
+     * @param prefix the ark:// for the BICD
+     * @return
+     */
+    public Boolean updateDataGroupConfig(Hashtable<String, String> config, String prefix, String username) {
+        try {
+            database db = new database();
+            Integer userId = db.getUserId(username);
+            String sql = "UPDATE datasets SET ";
+
+            // update resourceTypeString to the correct uri
+            if (config.containsKey("resourceTypeString")) {
+                config.put("resourceType", new ResourceTypes().getByShortName(config.get("resourceTypeString")).uri);
+                config.remove("resourceTypeString");
+            }
+
+            // Dynamically create our UPDATE statement depending on which fields the user wants to update
+            for (Enumeration e = config.keys(); e.hasMoreElements();){
+                String key = e.nextElement().toString();
+                sql += key + " = ?";
+
+                if (e.hasMoreElements()) {
+                    sql += ", ";
+                } else {
+                    sql += " WHERE BINARY prefix =\"" + prefix + "\" AND users_id =\"" + userId + "\";";
+                }
+            }
+
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            // place the parametrized values into the SQL statement
+            {
+                int i = 1;
+                for (Enumeration e = config.keys(); e.hasMoreElements();) {
+                    String key = e.nextElement().toString();
+                    if (key.equals("suffixPassthrough")) {
+                        if (config.get(key).equalsIgnoreCase("true")) {
+                            stmt.setBoolean(i, true);
+                        } else {
+                            stmt.setBoolean(i, false);
+                        }
+                    } else if (config.get(key).equals("")) {
+                        stmt.setString(i, null);
+                    } else {
+                        stmt.setString(i, config.get(key));
+                    }
+                    i++;
+                }
+            }
+
+            Integer result = stmt.executeUpdate();
+
+            // result should be '1', if not, an error occurred during the UPDATE statement
+            if (result >= 1) {
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public String bcidEditorAsTable(String username, String prefix) {
+        StringBuilder sb = new StringBuilder();
+        Hashtable<String, String> config = getDataGroupConfig(prefix, username);
+
+        sb.append("<form method=\"POST\" id=\"dataGroupEditForm\">\n");
+        sb.append("\t<input type=hidden name=resourceTypes id=resourceTypes value=\"Dataset\">\n");
+        sb.append("\t<table>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td align=\"right\">Title*</td>\n");
+        sb.append("\t\t\t<td><input name=\"title\" type=\"textbox\" size=\"40\" value=\"");
+        sb.append(config.get("title"));
+        sb.append("\"></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td align=\"right\"><a href='/bcid/concepts.jsp'>Concept*</a></td>\n");
+        sb.append("\t\t\t<td><select name=\"resourceTypesMinusDataset\" id=\"resourceTypesMinusDataset\" data-resource_type=\"");
+        sb.append(config.get("resourceType"));
+        sb.append("\"></select></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td align=\"right\">Target URL</td>\n");
+        sb.append("\t\t\t<td><input name=\"webaddress\" type=\"textbox\" size=\"40\" value=\"");
+        sb.append(config.get("webaddress"));
+        sb.append("\"></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td align=\"right\">DOI</td>\n");
+        sb.append("\t\t\t<td><input name=\"doi\" type=\"textbox\" size=\"40\" value=\"");
+        sb.append(config.get("doi"));
+        sb.append("\"></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td align=\"right\">Rights</td>\n");
+        sb.append("\t\t\t<td><a href=\"http://creativecommons.org/licenses/by/3.0/\">Creative Commons Attribution 3.0</a></td>");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td align=\"right\">Follow Suffixes</td>\n");
+        sb.append("\t\t\t<td><input name=\"suffixPassThrough\" type=\"checkbox\"");
+        if (config.get("suffix").equalsIgnoreCase("true")) {
+            sb.append(" checked=\"checked\"");
+        }
+        sb.append("\"></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td class=\"error\"></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td><input type=\"hidden\" name=\"prefix\" value=\""+ prefix +"\"></td>\n");
+        sb.append("\t\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"dataGroupEditorSubmit();\" /><input type=\"button\" id=\"cancelButton\" value=\"Cancel\" /></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        return sb.toString();
     }
 }
