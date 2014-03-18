@@ -149,7 +149,6 @@ public class projectService {
     @Produces(MediaType.APPLICATION_JSON)
     public String updateConfig(@PathParam("project_id") Integer projectID,
                                @FormParam("title") String title,
-                               @FormParam("abstract") String ab,
                                @FormParam("validation_xml") String validationXML,
                                @FormParam("public") String publicProject,
                                @Context HttpServletRequest request) {
@@ -172,9 +171,6 @@ public class projectService {
 
             if (!config.get("title").equals(title)) {
                 update.put("title", title);
-            }
-            if (!config.containsKey("ab") || !config.get("ab").equals(ab)) {
-                update.put("abstract", ab);
             }
             if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {
                 update.put("validation_xml", validationXML);
