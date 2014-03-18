@@ -6,6 +6,17 @@ function dataGroupCreatorSubmit() {
     results(posting,"#dataGroupCreatorResults");
 }
 
+function dataGroupEditorSubmit() {
+    var posting = $.post( "/id/groupService/dataGroup/update", $("#dataGroupEditForm").serialize())
+        .done(function(data) {
+            if (data[0].error != null) {
+                $(".error").html(data[0].error);
+            } else {
+                window.location.reload();
+            }
+        });
+}
+
 /** Process submit button for Data Group Creator **/
 function expeditionCreatorSubmit() {
     $( "#expeditionCreatorResults" ).html( "Processing ..." );

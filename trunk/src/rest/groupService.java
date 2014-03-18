@@ -24,6 +24,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Hashtable;
 
 /**
  * REST interface calls for working with data groups.    This includes creating a group, looking up
@@ -240,5 +241,102 @@ public class groupService {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         return "Exception encountered attempting to list expeditions";
+    }
+
+    @GET
+    @Path("/dataGroupEditorAsTable")
+    @Produces(MediaType.TEXT_HTML)
+    public String dataGroupEditorAsTable(@QueryParam("ark") String prefix,
+                                         @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        if (username == null) {
+            return "You must be logged in to edit a BCID.";
+        }
+
+        if (prefix == null) {
+            return "You must provide an \"ark\" query parameter.";
+        }
+
+        try {
+            dataGroupMinter d = new dataGroupMinter();
+            return d.bcidEditorAsTable(username.toString(), prefix);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "Server error loading BCID editor.";
+    }
+
+    @POST
+    @Path("/dataGroup/update")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String dataGroupUpdate(@FormParam("doi") String doi,
+                                  @FormParam("webaddress") String webaddress,
+                                  @FormParam("title") String title,
+                                  @FormParam("resourceType") String resourceTypeString,
+                                  @FormParam("resourceTypesMinusDataset") Integer resourceTypesMinusDataset,
+                                  @FormParam("suffixPassThrough") String stringSuffixPassThrough,
+                                  @FormParam("prefix") String prefix,
+                                  @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+        Hashtable<String, String> config;
+        Hashtable<String, String> update = new Hashtable<String, String>();
+
+        if (username == null) {
+            return "[{\"error\": \"You must be logged in to edit BCIDs.\"}]";
+        }
+
+        // get this BCID's config
+
+        try {
+            dataGroupMinter d = new dataGroupMinter();
+            config = d.getDataGroupConfig(prefix, username.toString());
+
+            if (config.containsKey("error")) {
+                // Some error occured when fetching BCID configuration
+                return "[{\"error\": \"" + config.get("error") + "\"}]";
+            }
+
+            if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
+                resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).string;
+            }
+
+            // compare every field and if they don't match, add them to the update hashtable
+            if (doi != null && (!config.containsKey("doi") || !config.get("doi").equals(doi))) {
+                update.put("doi", doi);
+            }
+            if (webaddress != null && (!config.containsKey("webaddress") || !config.get("webaddress").equals(webaddress))) {
+                update.put("webaddress", webaddress);
+            }
+            if (!config.containsKey("title") || !config.get("title").equals(title)) {
+                update.put("title", title);
+            }
+            if (!config.containsKey("resourceType") || !config.get("resourceType").equals(resourceTypeString)) {
+                update.put("resourceTypeString", resourceTypeString);
+            }
+            if ((stringSuffixPassThrough != null && (stringSuffixPassThrough.equals("on") || stringSuffixPassThrough.equals("true")) && config.get("suffix").equals("false")) ||
+                    (stringSuffixPassThrough == null && config.get("suffix").equals("true"))) {
+                if (stringSuffixPassThrough != null && (stringSuffixPassThrough.equals("on") || stringSuffixPassThrough.equals("true"))) {
+                    update.put("suffixPassthrough", "true");
+                } else {
+                    update.put("suffixPassthrough", "false");
+                }
+            }
+
+            if (!update.isEmpty()) {
+                if (d.updateDataGroupConfig(update, prefix, username.toString())) {
+                    return "[{\"success\": \"BCID successfully updated.\"}]";
+                }
+            } else {
+                return "[{\"success\": \"Nothing needed to be updated.\"}]";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // if we are here, there was a server error
+        return "[{\"error\": \"server error.\"}]";
     }
 }
