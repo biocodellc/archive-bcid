@@ -117,6 +117,7 @@ public class projectMinter {
 
     /**
      * A utility function to get the very latest graph loads for each expedition
+     * This is a public accessible function from the REST service so it only returns results that are declared as public
      *
      * @param project_id pass in an project identifier to limit the set of expeditions we are looking at
      * @return
@@ -143,6 +144,7 @@ public class projectMinter {
                 " and pB.datasets_id=d1.datasets_id \n" +
                 " and pB.expedition_id=p.expedition_id\n" +
                 " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                "    and p.public = 1\n" +
                 "    and p.project_id =" + project_id;
 
        // System.out.println(sql);
