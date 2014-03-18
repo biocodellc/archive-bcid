@@ -26,13 +26,18 @@
         } else {
             $(document).ajaxStop(function() {
                 $(".error").text("${param.error}");
+                $("#cancelButton").click(function() {
+                    populateDivFromService(
+                        "/id/userService/profile/listAsTable",
+                        "listUserProfile",
+                        "Unable to load this user's profile from the Server");
+                });
             });
             populateDivFromService(
                 "/id/userService/profile/listEditorAsTable",
                 "listUserProfile",
                 "Unable to load this user's profile editor from the Server")
         }
-
         $(document).ajaxStop(function() {
             $("a", "#profile").click( function() {
                 populateDivFromService(
@@ -41,8 +46,15 @@
                     "Unable to load this user's profile editor from the Server");
                 $(document).ajaxStop(function() {
                     $(".error").text("${param.error}");
+                    $("#cancelButton").click(function() {
+                        populateDivFromService(
+                            "/id/userService/profile/listAsTable",
+                            "listUserProfile",
+                            "Unable to load this user's profile from the Server");
+                    });
                 });
             });
+
         });
     })
 </script>
