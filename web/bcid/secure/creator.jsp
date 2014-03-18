@@ -61,7 +61,7 @@
                     </td>
                 </tr>
             </table>
-            <input type="hidden" name="username" value="<%= request.getRemoteUser() %>" >
+            <input type="hidden" name="username" value="${user}" >
         </form>
 
         <div id="creatorResults" class="sectioncontent-results"></div>

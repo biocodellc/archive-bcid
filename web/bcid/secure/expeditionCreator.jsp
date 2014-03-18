@@ -42,7 +42,7 @@
                 </tr>
                 <tr>
                     <td colspan=2>
-                    <input type="hidden" name="username" value="<%= request.getRemoteUser() %>" >
+                    <input type="hidden" name="username" value="${user}" >
                     <input type="button" value="Submit" onclick="expeditionCreatorSubmit();"/>
                     </td>
                  </tr>
