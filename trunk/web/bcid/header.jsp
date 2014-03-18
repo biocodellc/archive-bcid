@@ -53,7 +53,7 @@
                                 <li><a href='/bcid/secure/projects.jsp' class='enabled'>Manage Projects</a></li>
                             </c:if>
                             <c:if test="${projectAdmin == null}">
-                                <li><a href='/bcid/secure/projects.jsp' class='disabled'>Manage Projects</a></li>
+                                <li><a href='#' class='disabled'>Manage Projects</a></li>
                             </c:if>
                             <li><a href='/bcid/secure/expeditions.jsp' class='enabled'>Manage Expeditions</a></li>
                             <li><a href='/bcid/secure/profile.jsp' class='enabled'>User Profile</a></li>
