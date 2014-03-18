@@ -177,7 +177,7 @@ public class userMinter {
 
         sb.append("\t<tr>\n");
         sb.append("\t\t<td></td>\n");
-        sb.append(("\t\t<td><input type=\"submit\" value=\"Submit\">"));
+        sb.append(("\t\t<td><input type=\"submit\" value=\"Submit\"><input type=\"button\" id=\"cancelButton\" value=\"Cancel\">"));
         sb.append("</td>\n\t</tr>");
         sb.append("</table>\n");
 
