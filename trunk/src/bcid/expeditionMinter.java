@@ -77,15 +77,15 @@ public class expeditionMinter {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             String insertString = "INSERT INTO expeditions " +
                     "(internalID, expedition_code, expedition_title, users_id, project_id) " +
-                    "values (?,?,?,?,?,?)";
+                    "values (?,?,?,?,?)";
 
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
             insertStatement.setString(1, internalID.toString());
             insertStatement.setString(2, expedition_code);
             insertStatement.setString(3, expedition_title);
-            insertStatement.setInt(5, users_id);
-            insertStatement.setInt(6, project_id);
+            insertStatement.setInt(4, users_id);
+            insertStatement.setInt(5, project_id);
             insertStatement.execute();
 
             // Get the datasets_id that was assigned
