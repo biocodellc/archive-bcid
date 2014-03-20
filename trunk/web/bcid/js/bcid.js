@@ -204,7 +204,9 @@ function listProjects(username, url, expedition) {
                 var expandTemplate = '<br>\n<a class="expand-content" id="{project}-{section}" href="javascript:void(0);">\n'
                                     + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
                                     + '</a>\n';
-                $.each(data[0], function(key, val) {
+                $.each(data.projects, function(index, element) {
+                    key=element.project_id;
+                    val=element.project_code;
                     var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                     html += expandTemplate.replace('{text}', val).replace('-{section}', '');
@@ -232,7 +234,9 @@ function listProjects(username, url, expedition) {
                 $(".sectioncontent").html(html);
 
                 // store project id with element, so we don't have to retrieve project id later with an ajax call
-                $.each(data[0], function(key, val) {
+                $.each(data.projects, function(index, element) {
+                    key=element.project_id;
+                    val=element.project_code;
                     var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                     if (!expedition) {
