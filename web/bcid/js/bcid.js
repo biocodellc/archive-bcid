@@ -209,7 +209,7 @@ function listProjects(username, url, expedition) {
                     val=element.project_code;
                     var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
-                    html += expandTemplate.replace('{text}', val).replace('-{section}', '');
+                    html += expandTemplate.replace('{text}', element.project_title).replace('-{section}', '');
                     html += '<div id="{project}" class="toggle-content">';
                     if (!expedition) {
                         html += expandTemplate.replace('{text}', 'Configuration').replace('{section}', 'config').replace('<br>\n', '');
