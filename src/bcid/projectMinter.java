@@ -147,7 +147,7 @@ public class projectMinter {
                 "    and p.public = 1\n" +
                 "    and p.project_id =" + project_id;
 
-       // System.out.println(sql);
+        // System.out.println(sql);
         sb.append("{\n\t\"data\": [\n");
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
@@ -178,60 +178,96 @@ public class projectMinter {
             throw new Exception(e);
         }
     }
+
     /**
      * Return a JSON representation of the projects a user is an admin for
+     *
      * @param username
      * @return
      */
     public String listUserAdminProjects(String username) {
         StringBuilder sb = new StringBuilder();
-        sb.append("[{");
+       // sb.append("[{");
 
         try {
             database db = new database();
             Integer user_id = db.getUserId(username);
 
             Statement stmt = conn.createStatement();
-            String sql = "SELECT project_id, project_title FROM projects WHERE users_id = \"" + user_id + "\"";
+            String sql = "SELECT project_id, project_code, project_title, project_title, biovalidator_validation_xml FROM projects WHERE users_id = \"" + user_id + "\"";
 
             ResultSet rs = stmt.executeQuery(sql);
+
+            sb.append("{\n");
+            sb.append("\t\"projects\": [\n");
             while (rs.next()) {
-                sb.append("\"" + rs.getInt("project_id") + "\":\"" + rs.getString("project_title") + "\",");
+                sb.append("\t\t{\n");
+                sb.append("\t\t\t\"project_id\":\"" + rs.getString("project_id") + "\",\n");
+                sb.append("\t\t\t\"project_code\":\"" + rs.getString("project_code") + "\",\n");
+                sb.append("\t\t\t\"project_title\":\"" + rs.getString("project_title") + "\",\n");
+                sb.append("\t\t\t\"biovalidator_validation_xml\":\"" + rs.getString("biovalidator_validation_xml") + "\"\n");
+                sb.append("\t\t}");
+                if (!rs.isLast())
+                    sb.append(",\n");
+                else
+                    sb.append("\n");
             }
+            sb.append("\t]\n}");
+
+          //  while (rs.next()) {
+          //      sb.append("\"" + rs.getInt("project_id") + "\":\"" + rs.getString("project_title") + "\",");
+           // }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (sb.length() > 2) {
-            sb.deleteCharAt(sb.lastIndexOf(","));
-        }
-        sb.append("}]");
+      //  if (sb.length() > 2) {
+      //      sb.deleteCharAt(sb.lastIndexOf(","));
+       // }
+        //sb.append("}]");
         return sb.toString();
     }
 
     public String listUsersProjects(String username) {
         StringBuilder sb = new StringBuilder();
-        sb.append("[{");
+        // sb.append("[{");
 
         try {
             database db = new database();
             Integer userId = db.getUserId(username);
 
             Statement stmt = conn.createStatement();
-            String sql = "SELECT p.project_id, p.project_title FROM projects p, usersProjects u WHERE p.project_id = u.project_id && u.users_id = \"" + userId + "\"";
+            String sql = "SELECT p.project_id, p.project_code, p.project_title, p.biovalidator_validation_xml FROM projects p, usersProjects u WHERE p.project_id = u.project_id && u.users_id = \"" + userId + "\"";
 
             ResultSet rs = stmt.executeQuery(sql);
+
+            sb.append("{\n");
+            sb.append("\t\"projects\": [\n");
             while (rs.next()) {
-                sb.append("\"" + rs.getInt("p.project_id") + "\":\"" + rs.getString("p.project_title") + "\",");
+                sb.append("\t\t{\n");
+                sb.append("\t\t\t\"project_id\":\"" + rs.getString("project_id") + "\",\n");
+                sb.append("\t\t\t\"project_code\":\"" + rs.getString("project_code") + "\",\n");
+                sb.append("\t\t\t\"project_title\":\"" + rs.getString("project_title") + "\",\n");
+                sb.append("\t\t\t\"biovalidator_validation_xml\":\"" + rs.getString("biovalidator_validation_xml") + "\"\n");
+                sb.append("\t\t}");
+                if (!rs.isLast())
+                    sb.append(",\n");
+                else
+                    sb.append("\n");
             }
+            sb.append("\t]\n}");
+
+            //  while (rs.next()) {
+            //     sb.append("\"" + rs.getInt("p.project_id") + "\":\"" + rs.getString("p.project_title") + "\",");
+            //}
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (sb.length() > 2) {
-            sb.deleteCharAt(sb.lastIndexOf(","));
-        }
-        sb.append("}]");
+        //if (sb.length() > 2) {
+        //   sb.deleteCharAt(sb.lastIndexOf(","));
+        //}
+        //sb.append("}]");
         return sb.toString();
     }
 
@@ -331,7 +367,7 @@ public class projectMinter {
             String updateString = "UPDATE projects SET ";
 
             // Dynamically create our UPDATE statement depending on which fields the user wants to update
-            for (Enumeration e = updateTable.keys(); e.hasMoreElements();){
+            for (Enumeration e = updateTable.keys(); e.hasMoreElements(); ) {
                 String key = e.nextElement().toString();
                 updateString += key + " = ?";
 
@@ -347,7 +383,7 @@ public class projectMinter {
             // place the parametrized values into the SQL statement
             {
                 int i = 1;
-                for (Enumeration e = updateTable.keys(); e.hasMoreElements();) {
+                for (Enumeration e = updateTable.keys(); e.hasMoreElements(); ) {
                     String key = e.nextElement().toString();
                     if (key.equals("public")) {
                         if (updateTable.get(key).equalsIgnoreCase("true")) {
@@ -402,6 +438,7 @@ public class projectMinter {
         }
         return config;
     }
+
     public Boolean userProjectAdmin(Integer userId, Integer projectId) {
         try {
             String sql = "SELECT count(*) as count FROM projects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
@@ -496,7 +533,7 @@ public class projectMinter {
             while (rs2.next()) {
                 Integer userId = rs2.getInt("user_id");
                 if (!projectUsers.contains(userId)) {
-                    sb.append("\t\t\t<option value=\"" + userId + "\">" + db.getUserName(userId) +"</option>\n");
+                    sb.append("\t\t\t<option value=\"" + userId + "\">" + db.getUserName(userId) + "</option>\n");
                 }
             }
 
