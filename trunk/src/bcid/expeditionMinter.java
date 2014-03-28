@@ -473,8 +473,8 @@ public class expeditionMinter {
      */
     private void checkExpeditionCodeValid(String expedition_code) throws Exception {
         // Check expedition_code length
-        if (expedition_code.length() < 4 || expedition_code.length() > 12)
-            throw new Exception("Expedition code " + expedition_code + " must be between 4 and 12 characters long");
+        if (expedition_code.length() < 4 || expedition_code.length() > 16)
+            throw new Exception("Expedition code " + expedition_code + " must be between 4 and 16 characters long");
         // Check to make sure characters are normal!
         if (!expedition_code.matches("[a-zA-Z0-9]*")) {
             throw new Exception("Expedition code " + expedition_code + " contains invalid characters.");
