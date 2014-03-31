@@ -206,7 +206,7 @@ function listProjects(username, url, expedition) {
                                     + '</a>\n';
                 $.each(data.projects, function(index, element) {
                     key=element.project_id;
-                    val=element.project_code;
+                    val=element.project_title;
                     var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                     html += expandTemplate.replace('{text}', element.project_title).replace('-{section}', '');
@@ -236,7 +236,7 @@ function listProjects(username, url, expedition) {
                 // store project id with element, so we don't have to retrieve project id later with an ajax call
                 $.each(data.projects, function(index, element) {
                     key=element.project_id;
-                    val=element.project_code;
+                    val=element.project_title;
                     var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
                     if (!expedition) {
