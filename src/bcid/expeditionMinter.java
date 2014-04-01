@@ -4,6 +4,7 @@ import ezid.EZIDService;
 import util.SettingsManager;
 
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
+import javax.ws.rs.core.MultivaluedMap;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -543,7 +544,6 @@ public class expeditionMinter {
                     "WHERE d.datasets_id = e.datasets_id && e.expedition_id = \"" + expeditionId + "\"";
             Statement stmt = conn.createStatement();
 
-            System.out.print(sql);
             ResourceTypes rt = new ResourceTypes();
 
             ResultSet rs = stmt.executeQuery(sql);
@@ -600,7 +600,6 @@ public class expeditionMinter {
                     "ORDER BY d.ts DESC";
             Statement stmt = conn.createStatement();
 
-            System.out.print(sql);
             ResourceTypes rt = new ResourceTypes();
 
             ResultSet rs = stmt.executeQuery(sql);
@@ -640,4 +639,93 @@ public class expeditionMinter {
         return sb.toString();
     }
 
+    public String listExpeditionsAsTable(Integer projectId, String username) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<form method=\"POST\">\n");
+        sb.append("<table>\n");
+        sb.append("<tbody>\n");
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<th>Expedition</th>\n");
+        sb.append("\t\t<th>Public?</th>\n");
+        sb.append("\t</tr>\n");
+
+        try {
+            database db = new database();
+            Integer userId = db.getUserId(username);
+            projectMinter p = new projectMinter();
+
+            if (!p.userProjectAdmin(userId, projectId)) {
+                return "You must be this project's admin to view its expeditions.";
+            }
+
+            String sql = "SELECT expedition_title, expedition_id, public FROM expeditions WHERE project_id = \"" + projectId + "\"";
+            Statement stmt = conn.createStatement();
+
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()) {
+                sb.append("\t<tr>\n");
+                sb.append("\t\t<td>");
+                sb.append(rs.getString("expedition_title"));
+                sb.append("</td>\n");
+                sb.append("\t\t<td><input name=\"");
+                sb.append(rs.getInt("expedition_id"));
+                sb.append("\" type=\"checkbox\"");
+                if (rs.getBoolean("public")) {
+                    sb.append(" checked=\"checked\"");
+                }
+                sb.append("/></td>\n");
+                sb.append("\t</tr>\n");
+            }
+
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td><input type=\"hidden\" name=\"project_id\" value=\"" + projectId + "\" /></td>\n");
+            sb.append("\t\t<td><input id=\"expeditionForm\" type=\"button\" value=\"Submit\"></td>\n");
+            sb.append("\t</tr>\n");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td class=\"error\" colspan=\"2\">Server Error</td>\n");
+            sb.append("\t</tr>\n");
+        }
+
+        sb.append("</tbody>\n");
+        sb.append("</table>\n");
+        sb.append("</form>\n");
+        return sb.toString();
+    }
+
+    public Boolean updateExpeditionsPublicStatus(MultivaluedMap<String, String> expeditions, Integer projectId) {
+        List<String> updateExpeditions = new ArrayList<String>();
+        try {
+            String sql = "SELECT expedition_id, public FROM expeditions WHERE project_id = \"" + projectId + "\"";
+            Statement stmt = conn.createStatement();
+
+            ResultSet rs = stmt.executeQuery(sql);
+
+            while (rs.next()){
+                String expedition_id = rs.getString("expedition_id");
+                if (expeditions.containsKey(expedition_id) &&
+                        !expeditions.getFirst(expedition_id).equals(String.valueOf(rs.getBoolean("public")))) {
+                    updateExpeditions.add(expedition_id);
+                }
+            }
+
+            if (!updateExpeditions.isEmpty()) {
+                String updateString = "UPDATE expeditions SET" +
+                    " public = CASE WHEN public ='0' THEN '1' WHEN public = '1' THEN '0' END" +
+                    " WHERE expedition_id IN (" + updateExpeditions.toString().replaceAll("[\\[\\]]", "") + ")";
+
+                System.out.print(updateString);
+
+                stmt.executeUpdate(updateString);
+            }
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

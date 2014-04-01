@@ -214,6 +214,8 @@ function listProjects(username, url, expedition) {
                     if (!expedition) {
                         html += expandTemplate.replace('{text}', 'Configuration').replace('{section}', 'config').replace('<br>\n', '');
                         html += '<div id="{project}-config" class="toggle-content">Loading Project Configuration...</div>';
+                        html += expandTemplate.replace('{text}', 'Expeditions').replace('{section}', 'expeditions');
+                        html += '<div id="{project}-expeditions" class="toggle-content">Loading Expeditions...</div>';
                         html +=  expandTemplate.replace('{text}', 'Users').replace('{section}', 'users');
                         html += '<div id="{project}-users" class="toggle-content">Loading Users...</div>';
                     } else {
@@ -242,6 +244,7 @@ function listProjects(username, url, expedition) {
                     if (!expedition) {
                         $('div#' + project +'-config').data('project_id', key);
                         $('div#' + project +'-users').data('project_id', key);
+                        $('div#' + project + '-expeditions').data('project_id', key);
                     } else {
                         $('div#' + project).data('project_id', key);
                     }
@@ -259,13 +262,14 @@ function projectToggle(id) {
     }
     // check if we've loaded this section, if not, load from service
     var divId = 'div#' + id
-    if ((id.indexOf("config") != -1 || id.indexOf("users") != -1) && ($(divId).children().length == 0 || $('#submitForm', divId).length !== 0)) {
-        populateConfigOrUsers(divId);
+    if ((id.indexOf("config") != -1 || id.indexOf("users") != -1 || id.indexOf("expeditions") != -1) &&
+        ($(divId).children().length == 0 || $('#submitForm', divId).length !== 0)) {
+        populateProjectSubsections(divId);
     }
     $('.toggle-content#'+id).slideToggle('slow');
 }
 
-function populateConfigOrUsers(id) {
+function populateProjectSubsections(id) {
     // load config table from REST service
     var projectID = $(id).data('project_id');
     if (id.indexOf("config") != -1) {
@@ -286,7 +290,7 @@ function populateConfigOrUsers(id) {
                      });
                 });
         });
-    } else {
+    } else if (id.indexOf("users") != -1) {
         populateDivFromService(
             '/id/projectService/listProjectUsersAsTable/' + projectID,
             id,
@@ -320,7 +324,36 @@ function populateConfigOrUsers(id) {
                 });
             });
         });
+    } else {
+        populateDivFromService(
+            '/id/expeditionService/admin/listExpeditionsAsTable/' + projectID,
+            id,
+            'Unable to load this project\'s expeditions from server.');
+        $( document ).one("ajaxStop", function() {
+            $('#expeditionForm', id).click(function() {
+                expeditionsPublicSubmit(id);
+            });
+        });
     }
+}
+
+function expeditionsPublicSubmit(divId) {
+    var inputs = $('form input[name]', divId);
+    var data = '';
+    inputs.each( function(index, element) {
+        if (element.name == 'project_id') {
+            data += '&project_id=' + element.value;
+            return true;
+        }
+        var expedition = '&' + element.name + '=' + element.checked;
+        data += expedition;
+    });
+    $.post('/id/expeditionService/admin/publicExpeditions', data.replace('&', ''))
+        .done(function() {
+            $( document ).one("ajaxStop", function() {
+                populateProjectSubsections(divId);
+            });
+        });
 }
 
 function projectUserSubmit(id) {
@@ -338,13 +371,13 @@ function projectUserSubmit(id) {
             });
             $("#createFormCancelButton", divId).click(function() {
                 $(divId).data('project_id', $("input[name='project_id']", divId).val())
-                populateConfigOrUsers(divId);
+                populateProjectSubsections(divId);
             });
         });
     } else {
         var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize())
             .done(function(data) {
-                populateConfigOrUsers(divId + '-users');
+                populateProjectSubsections(divId + '-users');
                 if (data[0].error != null) {
                     $( document ).one("ajaxStop", function() {
                         $(".error", divId + '-users').html(data[0].error);
@@ -357,7 +390,7 @@ function projectUserSubmit(id) {
 function createUserSubmit(project_id, divId) {
     var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
         .done(function(data) {
-            populateConfigOrUsers(divId + '-users');
+            populateProjectSubsections(divId + '-users');
             if (data[0].error != null) {
                 $( document ).one("ajaxStop", function() {
                     $(".error", divId + '-users').html(data[0].error);
@@ -374,7 +407,7 @@ function projectRemoveUser(e) {
 
     var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId)
         .done (function(data) {
-            populateConfigOrUsers(divId);
+            populateProjectSubsections(divId);
             if (data[0].error != null) {
                 $( document ).one("ajaxStop", function() {
                     $(".error", divId).html(data[0].error);
@@ -389,7 +422,7 @@ function projectConfigSubmit(project_id, divId) {
             if (data[0].error != null) {
                 $(".error", divId).html(data[0].error);
             } else {
-                populateConfigOrUsers(divId);
+                populateProjectSubsections(divId);
             }
         });
 }
