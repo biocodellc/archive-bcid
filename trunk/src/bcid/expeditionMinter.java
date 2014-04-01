@@ -506,27 +506,36 @@ public class expeditionMinter {
 
     public String listExpeditions(Integer projectId, String username) {
         StringBuilder sb = new StringBuilder();
-        sb.append("[{");
 
         try {
             database db = new database();
             Integer userId = db.getUserId(username);
 
             Statement stmt = conn.createStatement();
-            String sql = "SELECT expedition_id, expedition_title FROM expeditions WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
+            String sql = "SELECT expedition_id, expedition_title, expedition_code, public " +
+                         "FROM expeditions WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
 
             ResultSet rs = stmt.executeQuery(sql);
+            sb.append("{\n");
+            sb.append("\t\"expeditions\": [\n");
             while (rs.next()) {
-                sb.append("\"" + rs.getInt("expedition_id") + "\":\"" + rs.getString("expedition_title") + "\",");
+                sb.append("\t\t{\n");
+                sb.append("\t\t\t\"expedition_id\":\"" + rs.getString("expedition_id") + "\",\n");
+                sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
+                sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\",\n");
+                sb.append("\t\t\t\"public\":\"" + rs.getBoolean("public") + "\"\n");
+                sb.append("\t\t}");
+                if (!rs.isLast())
+                    sb.append(",\n");
+                else
+                    sb.append("\n");
             }
+            sb.append("\t]\n}");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (sb.length() > 2) {
-            sb.deleteCharAt(sb.lastIndexOf(","));
-        }
-        sb.append("}]");
         return sb.toString();
     }
 
