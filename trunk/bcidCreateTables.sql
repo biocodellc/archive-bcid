@@ -85,6 +85,7 @@ CREATE TABLE `expeditions` (
   `abstract` text COMMENT 'The abstract for this particular expedition',
   `users_id` int(10) DEFAULT NULL COMMENT 'who created this data',
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
+  `public` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Whether or not this is a public expedition',
   UNIQUE KEY `expedition_expedition_id_idx` (`expedition_id`),
   UNIQUE KEY `expedition_expeditioncode_project_idx` (`expedition_code`,`project_id`),
   KEY `expedition_project_id_idx` (`project_id`)
@@ -116,7 +117,6 @@ CREATE TABLE `projects` (
   `ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The user_id of the project admin',
   `public` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Whether or not this is a public project?',
-    `public` tinyint(1) DEFAULT '1',
   UNIQUE KEY `projects_project_id_idx` (`project_id`),
   KEY `projects_users_id_idx` (`users_id`),
   CONSTRAINT `FK_projects_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
