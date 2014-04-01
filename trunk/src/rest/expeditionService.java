@@ -1,6 +1,7 @@
 package rest;
 
 import bcid.database;
+import bcid.projectMinter;
 import bcid.resolver;
 import bcid.expeditionMinter;
 
@@ -14,7 +15,10 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
 
 /**
  * REST interface calls for working with expeditions.  This includes creating, updating and deleting expeditions.
@@ -271,6 +275,61 @@ public class expeditionService {
         }
 
         return "Server Error";
+    }
+
+    @GET
+    @Path("/admin/listExpeditionsAsTable/{project_id}")
+    @Produces(MediaType.TEXT_HTML)
+    public String listExpeditionAsTable(@PathParam("project_id") Integer projectId,
+                                        @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object admin = session.getAttribute("projectAdmin");
+        String username = session.getAttribute("user").toString();
+
+        if (admin == null) {
+            return "You must be this project's admin in order to view its expeditions.";
+        }
+
+        try {
+            expeditionMinter e = new expeditionMinter();
+            return e.listExpeditionsAsTable(projectId, username);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "Server error fetching expeditions.";
+    }
+
+    @POST
+    @Path("/admin/publicExpeditions")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String publicExpeditions(MultivaluedMap<String, String> data,
+                                    @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+        Integer projectId = new Integer(data.remove("project_id").get(0));
+
+        if (username == null) {
+            return "[{\"error\": \"You must be logged in to update an expedition's public status.\"}]";
+        }
+
+        try {
+            database db = new database();
+            projectMinter p = new projectMinter();
+            Integer userId = db.getUserId(username.toString());
+
+            if (!p.userProjectAdmin(userId, projectId)) {
+                return "[{\"error\": \"You must be this project's admin in order to update a project expedition's public status.\"}]";
+            }
+            expeditionMinter e = new expeditionMinter();
+
+            if (e.updateExpeditionsPublicStatus(data, projectId)) {
+                return "[{\"success\": \"successfully updated.\"}]";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "[{\"error\": \"server error\"}]";
     }
 
 }
