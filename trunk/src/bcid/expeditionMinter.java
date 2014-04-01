@@ -654,8 +654,9 @@ public class expeditionMinter {
         sb.append("<table>\n");
         sb.append("<tbody>\n");
         sb.append("\t<tr>\n");
-        sb.append("\t\t<th>Expedition</th>\n");
-        sb.append("\t\t<th>Public?</th>\n");
+        sb.append("\t\t<th>Username</th>\n");
+        sb.append("\t\t<th>Expedition Title</th>\n");
+        sb.append("\t\t<th>Public</th>\n");
         sb.append("\t</tr>\n");
 
         try {
@@ -667,7 +668,8 @@ public class expeditionMinter {
                 return "You must be this project's admin to view its expeditions.";
             }
 
-            String sql = "SELECT expedition_title, expedition_id, public FROM expeditions WHERE project_id = \"" + projectId + "\"";
+            String sql = "SELECT e.expedition_title, e.expedition_id, e.public, u.username " +
+                         "FROM expeditions as e, users as u WHERE u.user_id=e.users_id && project_id = \"" + projectId + "\"";
             Statement stmt = conn.createStatement();
 
             ResultSet rs = stmt.executeQuery(sql);
@@ -675,12 +677,15 @@ public class expeditionMinter {
             while (rs.next()) {
                 sb.append("\t<tr>\n");
                 sb.append("\t\t<td>");
-                sb.append(rs.getString("expedition_title"));
+                sb.append(rs.getString("u.username"));
+                sb.append("</td>\n");
+                sb.append("\t\t<td>");
+                sb.append(rs.getString("e.expedition_title"));
                 sb.append("</td>\n");
                 sb.append("\t\t<td><input name=\"");
-                sb.append(rs.getInt("expedition_id"));
+                sb.append(rs.getInt("e.expedition_id"));
                 sb.append("\" type=\"checkbox\"");
-                if (rs.getBoolean("public")) {
+                if (rs.getBoolean("e.public")) {
                     sb.append(" checked=\"checked\"");
                 }
                 sb.append("/></td>\n");
@@ -688,6 +693,7 @@ public class expeditionMinter {
             }
 
             sb.append("\t<tr>\n");
+            sb.append("\t\t<td></td>\n");
             sb.append("\t\t<td><input type=\"hidden\" name=\"project_id\" value=\"" + projectId + "\" /></td>\n");
             sb.append("\t\t<td><input id=\"expeditionForm\" type=\"button\" value=\"Submit\"></td>\n");
             sb.append("\t</tr>\n");
