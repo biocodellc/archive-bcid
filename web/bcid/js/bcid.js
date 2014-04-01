@@ -461,10 +461,14 @@ function listExpeditions(divId) {
             var expandTemplate = '<br>\n<a class="expand-content" id="{expedition}-{section}" href="javascript:void(0);">\n'
                                 + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
                                 + '</a>\n';
-            $.each(data[0], function(key, val) {
-                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
+            $.each(data['expeditions'], function(index, e) {
+                var expedition = e.expedition_title.replace(new RegExp('[#. ]', 'g'), '_') + '_' + e.expedition_id;
 
-                html += expandTemplate.replace('{text}', val).replace('-{section}', '');
+                if (e.public == "true") {
+                    html += expandTemplate.replace('{text}', e.expedition_title + ' (public)').replace('-{section}', '');
+                } else {
+                    html += expandTemplate.replace('{text}', e.expedition_title + ' (private)').replace('-{section}', '');
+                }
                 html += '<div id="{expedition}" class="toggle-content">';
                 html += expandTemplate.replace('{text}', 'Resources').replace('{section}', 'resources').replace('<br>\n', '');
                 html += '<div id="{expedition}-resources" class="toggle-content">Loading Expedition Resources...</div>';
@@ -480,11 +484,11 @@ function listExpeditions(divId) {
                 html += 'You have no expeditions in this project.';
             }
             $(divId).html(html);
-            $.each(data[0], function(key, val) {
-                var expedition = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
+            $.each(data['expeditions'], function(index, e) {
+                var expedition = e.expedition_title.replace(new RegExp('[#. ]', 'g'), '_') + '_' + e.expedition_id;
 
-                $('div#' + expedition +'-resources').data('expedition_id', key);
-                $('div#' + expedition +'-datasets').data('expedition_id', key);
+                $('div#' + expedition +'-resources').data('expedition_id', e.expedition_id);
+                $('div#' + expedition +'-datasets').data('expedition_id', e.expedition_id);
             });
 
             // remove previous click event and attach toggle function to each project
