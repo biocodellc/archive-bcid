@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.util.Calendar;
+import java.util.Hashtable;
 
 import org.apache.commons.cli.*;
 import sun.print.resources.serviceui_sv;
@@ -161,22 +162,26 @@ public class authenticator {
 
     /**
      * create a user given a username and password
-     * @param username
-     * @param password
+     * @param userInfo
      * @return
      */
-    public Boolean createUser(String username, String password) {
+    public Boolean createUser(Hashtable<String, String> userInfo) {
         PreparedStatement stmt;
         Boolean success = false;
-        String hashedPass = createHash(password);
+        String hashedPass = createHash(userInfo.get("password"));
 
         if (hashedPass != null) {
             try {
-                String insertString = "INSERT INTO users (username, password) VALUES(?,?)";
+                String insertString = "INSERT INTO users (username, password, email, firstName, lastName, institution)" +
+                        " VALUES(?,?,?,?,?,?)";
                 stmt = conn.prepareStatement(insertString);
 
-                stmt.setString(1, username);
+                stmt.setString(1, userInfo.get("username"));
                 stmt.setString(2, hashedPass);
+                stmt.setString(3, userInfo.get("email"));
+                stmt.setString(4, userInfo.get("firstName"));
+                stmt.setString(5, userInfo.get("lastName"));
+                stmt.setString(6, userInfo.get("institution"));
 
                 stmt.execute();
                 success = true;
@@ -269,7 +274,7 @@ public class authenticator {
     }
 
     /**
-     * This will update a given users password. Probably not the best way to do this though.
+     * This will update a given users password. Better to use the web interface
      *
      * @param args username and password
      */

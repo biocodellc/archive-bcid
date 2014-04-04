@@ -2,6 +2,7 @@ package rest;
 
 import auth.authenticator;
 import bcid.database;
+import bcid.projectMinter;
 import bcid.userMinter;
 import util.queryParams;
 
@@ -30,6 +31,10 @@ public class userService {
     @Produces(MediaType.APPLICATION_JSON)
     public String createUser(@FormParam("username") String username,
                              @FormParam("password") String password,
+                             @FormParam("firstName") String firstName,
+                             @FormParam("lastName") String lastName,
+                             @FormParam("email") String email,
+                             @FormParam("institution") String institution,
                              @FormParam("project_id") Integer projectId,
                              @Context HttpServletRequest request,
                              @Context HttpServletResponse response)
@@ -42,12 +47,34 @@ public class userService {
             return "[{\"error\": \"only project admins are able to create users\"}]";
         }
 
+        if (username.isEmpty() || password.isEmpty() || firstName.isEmpty() || lastName.isEmpty() ||
+                email.isEmpty() || institution.isEmpty()) {
+            return "[{\"error\": \"all fields are required\"}]";
+        }
+
+        if (!email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
+            return "[{\"error\": \"please enter a valid email\"}]";
+        }
+
+        Hashtable<String, String> userInfo = new Hashtable<String, String>();
+        userInfo.put("username", username);
+        userInfo.put("firstName", firstName);
+        userInfo.put("lastName", lastName);
+        userInfo.put("email", email);
+        userInfo.put("institution", institution);
+        userInfo.put("password", password);
+
         try {
             userMinter u = new userMinter();
+            projectMinter p = new projectMinter();
             String admin = session.getAttribute("user").toString();
             database db = new database();
 
-            return u.createUser(username, password, projectId, db.getUserId(admin));
+            if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
+                return "[{\"error\": \"you can't add a user to a project that you're not an admin\"}]";
+            }
+
+            return u.createUser(userInfo, projectId);
         } catch (Exception e) {
             e.printStackTrace();
         }
