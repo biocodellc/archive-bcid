@@ -390,11 +390,10 @@ function projectUserSubmit(id) {
 function createUserSubmit(project_id, divId) {
     var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
         .done(function(data) {
-            populateProjectSubsections(divId + '-users');
             if (data[0].error != null) {
-                $( document ).one("ajaxStop", function() {
-                    $(".error", divId + '-users').html(data[0].error);
-                });
+                $(".error", divId + '-users').html(data[0].error);
+            } else {
+                populateProjectSubsections(divId + '-users');
             }
         });
 }

@@ -4,6 +4,7 @@ import auth.authenticator;
 import auth.oauth2.provider;
 
 import java.sql.*;
+import java.util.Hashtable;
 
 /**
  * Created by rjewing on 2/11/14.
@@ -16,20 +17,16 @@ public class userMinter {
         conn = db.getConn();
     }
 
-    public String createUser(String username, String password, Integer projectId, Integer adminId) {
+    public String createUser(Hashtable<String, String> userInfo, Integer projectId) {
         authenticator auth = new authenticator();
-        Boolean success = auth.createUser(username, password);
+        Boolean success = auth.createUser(userInfo);
 
         // if user was created, add user to project
         if (success) {
             try {
                 database db = new database();
-                Integer userId = db.getUserId(username);
+                Integer userId = db.getUserId(userInfo.get("username"));
                 projectMinter p = new projectMinter();
-
-                if (!p.userProjectAdmin(adminId, projectId)) {
-                    return "[{\"error\": \"you can't add a user to a project that you're not an admin\"}]";
-                }
 
                 if (p.addUserToProject(userId, projectId)) {
                     return "[{\"success\": \"successfully created new user\"}]";
@@ -48,14 +45,40 @@ public class userMinter {
         StringBuilder sb = new StringBuilder();
         sb.append("<table>\n");
         sb.append("\t<form id=\"submitForm\" method=\"POST\">\n");
+
         sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td>Username:</td>\n");
+        sb.append("\t\t\t<td>Username</td>\n");
         sb.append("\t\t\t<td><input type=\"text\" name=\"username\"></td>\n");
         sb.append("\t\t</tr>\n");
 
         sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td>Password:</td>\n");
+        sb.append("\t\t\t<td>First Name</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" name=\"firstName\"></td>\n"));
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Last Name</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" name=\"lastName\"></td>\n"));
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Email</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" name=\"email\"></td>\n"));
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Institution</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" name=\"institution\"></td>\n"));
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Password</td>\n");
         sb.append("\t\t\t<td><input type=\"passoword\" name=\"password\"></td>\n");
+        sb.append("\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td><div class=\"error\" align=\"center\"></div></td>\n");
         sb.append("\t\t</tr>\n");
 
         sb.append("\t\t<tr>\n");
