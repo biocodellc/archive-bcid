@@ -200,4 +200,66 @@ public class authenticationService {
         }
         return Response.status(500).entity("[{}]").build();
     }
+
+    @POST
+    @Path("/reset")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public void resetPassword(@FormParam("password") String password,
+                              @FormParam("token") String token,
+                              @Context HttpServletResponse response)
+        throws IOException {
+        if (token == null) {
+            response.sendRedirect("/bcid/resetPass.jsp?error=Invalid Reset Token");
+            return;
+        }
+
+        if (password.isEmpty()) {
+            response.sendRedirect("/bcid/resetPass.jsp?error=Invalid Password");
+            return;
+        }
+
+        try {
+            authorizer authorizer = new authorizer();
+            authenticator authenticator = new authenticator();
+
+            if (!authorizer.validResetToken(token)) {
+                response.sendRedirect("/bcid/resetPass.jsp?error=Expired Reset Token");
+                return;
+            }
+
+            if (authenticator.resetPass(token, password)) {
+                response.sendRedirect("/bcid/login.jsp");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        response.sendRedirect("/bcid/resetPass.jsp?error=Server Error");
+        return;
+    }
+
+    @POST
+    @Path("/sendResetToken")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public String sendResetToken(@FormParam("username") String username) {
+
+        if (username.isEmpty()) {
+            return "{\"error\": \"User not found\"}";
+        }
+        try {
+            authenticator a = new authenticator();
+            String email = a.sendResetToken(username);
+
+            if (email != null) {
+                return "{\"success\": \"" + email + "\"}";
+            } else {
+                return "{\"error\": \"User not found\"}";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "{\"error\": \"server error\"}";
+    }
 }

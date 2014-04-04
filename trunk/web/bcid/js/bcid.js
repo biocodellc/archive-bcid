@@ -543,3 +543,14 @@ function populateBCIDPage() {
         });
     });
 }
+
+function resetPassSubmit() {
+    var jqxhr = $.post("/id/authenticationService/sendResetToken/", $('form').serialize())
+        .done(function(data) {
+            if (data.success) {
+                $('table').html("Reset password link successfully sent.")
+            } else {
+                window.location.href = "/bcid/reset.jsp?error=" + data.error;
+            }
+        });
+}
