@@ -7,9 +7,13 @@ import javax.ws.rs.core.Response;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
+import java.util.Calendar;
 
 import org.apache.commons.cli.*;
 import sun.print.resources.serviceui_sv;
+import util.SettingsManager;
+import util.sendEmail;
+import util.stringGenerator;
 
 /**
  * Used for all authentication duties
@@ -111,6 +115,31 @@ public class authenticator {
         return false;
     }
 
+    public Boolean resetPass(String token, String password) {
+        try {
+            String username = null;
+            String sql = "SELECT username FROM users where pass_reset_token = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            stmt.setString(1, token);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                username = rs.getString("username");
+            }
+            if (username != null) {
+                String updateSql = "UPDATE users SET pass_reset_token = null, pass_reset_expiration = null WHERE username = \"" + username + "\"";
+                Statement stmt2 = conn.createStatement();
+                stmt2.executeUpdate(updateSql);
+
+                return setHashedPass(username, password);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /**
      * create a hash of a password string
      * @param password
@@ -185,6 +214,58 @@ public class authenticator {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public String sendResetToken(String username) throws Exception{
+        String email = null;
+        String sql = "SELECT email FROM users WHERE username = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+
+        stmt.setString(1, username);
+        ResultSet rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            email = rs.getString("email");
+        }
+
+        if (email != null) {
+            stringGenerator sg = new stringGenerator();
+            String token = sg.generateString(20);
+            // set for 24hrs in future
+            Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime() + (1000*60*60*24));
+            Statement stmt2 = conn.createStatement();
+
+            String updateSql = "UPDATE users SET " +
+                    "pass_reset_token = \"" + token + "\", " +
+                    "pass_reset_expiration = \"" + ts + "\" " +
+                    "WHERE username = \"" + username + "\"";
+
+            stmt2.executeUpdate(updateSql);
+
+            String emailBody = "You requested a password reset for your BCID account.\n\n" +
+                    "Use the following link within the next 24 hrs to reset your password.\n\n" +
+                    "http://biscicol.org/bcid/resetPass.jsp?token=" + token + "\n\n" +
+                    "Thanks";
+
+            // Initialize settings manager
+            SettingsManager sm = SettingsManager.getInstance();
+            try {
+                sm.loadProperties();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // Send an Email that this completed
+            sendEmail sendEmail = new sendEmail(
+                    sm.retrieveValue("mailUser"),
+                    sm.retrieveValue("mailPassword"),
+                    sm.retrieveValue("mailFrom"),
+                    email,
+                    "Reset Password",
+                    emailBody);
+            sendEmail.start();
+        }
+        return email;
     }
 
     /**

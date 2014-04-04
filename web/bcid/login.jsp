@@ -18,6 +18,10 @@
                     <td align="right">Password</td>
                     <td><input type="password" name="password"></td>
                 </tr>
+                <tr>
+                    <td></td>
+                    <td align="center"><a href="/bcid/reset.jsp">(forgot password)</a></td>
+                </tr>
                 <c:if test="${param['error'] != null}">
                 <tr></tr>
                 <tr>

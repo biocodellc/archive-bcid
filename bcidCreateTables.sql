@@ -21,6 +21,8 @@ CREATE TABLE `users` (
   `IDlimit` int(11) DEFAULT NULL,
   `set_password` boolean not null DEFAULT '0',
   `admin` boolean not null,
+  `pass_reset_token` char(20) DEFAULT NULL COMMENT 'Unique token used to reset a users password',
+  `pass_reset_expiration` datetime DEFAULT NULL COMMENT 'time when the reset token expires',
    KEY (`USER_ID`)
 ) ENGINE=Innodb DEFAULT CHARSET=utf8;
 

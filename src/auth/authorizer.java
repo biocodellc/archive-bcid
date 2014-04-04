@@ -2,10 +2,8 @@ package auth;
 
 import bcid.database;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.Calendar;
 
 /**
  * Created by rjewing on 2/7/14.
@@ -19,6 +17,11 @@ public class authorizer {
         conn = db.getConn();
     }
 
+    /**
+     * determine if the user is an admin for any projects
+     * @param username
+     * @return
+     */
     public Boolean userProjectAdmin(String username) {
         PreparedStatement stmt;
         try {
@@ -36,5 +39,32 @@ public class authorizer {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * determine if the password reset token is still valid
+     * @param token
+     * @return
+     */
+    public Boolean validResetToken(String token) {
+        PreparedStatement stmt;
+        try {
+            String sql = "SELECT pass_reset_expiration as ts FROM users WHERE pass_reset_token = ?";
+
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, token);
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                Timestamp expirationTs = rs.getTimestamp("ts");
+                Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime());
+                if (expirationTs != null && expirationTs.after(ts)) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
