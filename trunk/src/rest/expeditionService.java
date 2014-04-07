@@ -110,12 +110,18 @@ public class expeditionService {
     public Response mint(@FormParam("expedition_code") String expedition_code,
                          @FormParam("expedition_title") String expedition_title,
                          @FormParam("project_id") Integer project_id,
+                         @FormParam("public") Boolean isPublic,
                          @Context HttpServletRequest request) throws Exception {
 
         // Get the user_id
         database db = new database();
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
+
+        //
+        if (isPublic == null) {
+            isPublic = true;
+        }
 
         if (username == null) {
             return Response.status(401).build();
@@ -133,7 +139,10 @@ public class expeditionService {
                     expedition_code,
                     expedition_title,
                     user_id,
-                    project_id);
+                    project_id,
+                    isPublic
+                    );
+
         } catch (Exception e) {
             e.printStackTrace();
             return Response.ok("ERROR: " + e.getMessage()).build();

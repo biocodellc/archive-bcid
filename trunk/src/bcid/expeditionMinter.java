@@ -53,7 +53,8 @@ public class expeditionMinter {
             String expedition_code,
             String expedition_title,
             Integer users_id,
-            Integer project_id) throws Exception {
+            Integer project_id,
+            Boolean isPublic) throws Exception {
 
         Integer expedition_id = null;
 
@@ -77,8 +78,8 @@ public class expeditionMinter {
 
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             String insertString = "INSERT INTO expeditions " +
-                    "(internalID, expedition_code, expedition_title, users_id, project_id) " +
-                    "values (?,?,?,?,?)";
+                    "(internalID, expedition_code, expedition_title, users_id, project_id,public) " +
+                    "values (?,?,?,?,?,?)";
 
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
@@ -87,6 +88,8 @@ public class expeditionMinter {
             insertStatement.setString(3, expedition_title);
             insertStatement.setInt(4, users_id);
             insertStatement.setInt(5, project_id);
+            insertStatement.setBoolean(6, isPublic);
+
             insertStatement.execute();
 
             // Get the datasets_id that was assigned
@@ -455,7 +458,7 @@ public class expeditionMinter {
             Integer expedition_id = expedition.mint(
                     "DEMOH",
                     "Test creating expedition under an project for which it already exists",
-                    8, 4);
+                    8, 4, false);
 
             System.out.println(expedition.printMetadata(expedition_id));
 
