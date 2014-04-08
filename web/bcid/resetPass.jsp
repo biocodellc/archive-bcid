@@ -7,7 +7,11 @@
             <table>
                 <tr>
                     <td align="right">New Password</td>
-                    <td><input type="password" name="password"></td>
+                    <td><input class="pwcheck" type="password" data-indicator="pwindicator" name="password"></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><div id="pwindicator"><div class="label"></div></div></td>
                 </tr>
                 <c:if test="${param['error'] != null}">
                 <tr></tr>
