@@ -330,4 +330,26 @@ public class userMinter {
 
         return "[{\"error\": \"invalid_grant\"}]";
     }
+
+    /**
+     * check if a username already exists
+     * @param username
+     * @return
+     */
+    public Boolean checkUsernameExists(String username) {
+        try {
+            String sql = "SELECT count(*) as count FROM users WHERE username = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            stmt.setString(1, username);
+
+            ResultSet rs = stmt.executeQuery();
+            rs.next();
+            return rs.getInt("count") >= 1;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
