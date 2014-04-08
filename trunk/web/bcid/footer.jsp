@@ -9,5 +9,16 @@
         <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>.
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $(".pwcheck").pwstrength({texts:['weak', 'good', 'good', 'strong', 'strong'],
+                                  classes:['pw-weak', 'pw-good', 'pw-good', 'pw-strong', 'pw-strong']});
+    });
+    $(document).ajaxStop(function() {
+        $(".pwcheck").pwstrength({texts:['weak', 'good', 'good', 'strong', 'strong'],
+                                  classes:['pw-weak', 'pw-good', 'pw-good', 'pw-strong', 'pw-strong']});
+    });
+</script>
 </body>
 </html>

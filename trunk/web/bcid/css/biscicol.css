@@ -284,3 +284,20 @@ li {
     background: linear-gradient(to bottom, #eee, #bbb);
     box-shadow: 0px 0px 6px rgba(0, 0, 0, .1);
 }
+
+#pwindicator {
+    margin: -4px 2px -2px;
+    font-size: .85em;
+}
+
+.pw-weak .label {
+    color: #d73027;
+}
+
+.pw-good .label {
+    color: #25D500;
+}
+
+.pw-strong .label {
+    color: #188B00;
+}

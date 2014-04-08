@@ -74,7 +74,13 @@ public class userMinter {
 
         sb.append("\t\t<tr>\n");
         sb.append("\t\t\t<td>Password</td>\n");
-        sb.append("\t\t\t<td><input type=\"passoword\" name=\"password\"></td>\n");
+        sb.append("\t\t\t<td><input type=\"password\" name=\"password\"></td>\n");
+        sb.append("\t\t\t<td><input class=\"pwcheck\" type=\"password\" name=\"new_password\" data-indicator=\"pwindicator\"></td>\n");
+        sb.append("\t\t</tr>");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td><div id=\"pwindicator\"><div class=\"label\"></div></div></td>\n");
         sb.append("\t\t</tr>\n");
 
         sb.append("\t\t<tr>\n");
@@ -185,13 +191,18 @@ public class userMinter {
 
         sb.append("\t<tr>\n");
         sb.append("\t\t<td>New Password</td>\n");
-        sb.append(("\t\t<td><input type=\"password\" name=\"new_password\">"));
+        sb.append("\t\t<td><input class=\"pwcheck\" type=\"password\" name=\"new_password\" data-indicator=\"pwindicator\">");
         sb.append("</td>\n\t</tr>");
+
+        sb.append("\t<tr>\n");
+        sb.append("\t\t<td></td>\n");
+        sb.append("\t\t<td><div id=\"pwindicator\"><div class=\"label\"></div></div></td>\n");
+        sb.append("\t</tr>");
 
         if (!isAdmin) {
             sb.append("\t<tr>\n");
             sb.append("\t\t<td>Old Password</td>\n");
-            sb.append(("\t\t<td><input type=\"password\" name=\"old_password\">"));
+            sb.append("\t\t<td><input type=\"password\" name=\"old_password\">");
             sb.append("</td>\n\t</tr>");
         }
 
