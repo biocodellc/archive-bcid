@@ -52,6 +52,7 @@ public class userService {
             return "[{\"error\": \"all fields are required\"}]";
         }
 
+        // check that a valid email is given
         if (!email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
             return "[{\"error\": \"please enter a valid email\"}]";
         }
@@ -70,6 +71,10 @@ public class userService {
             String admin = session.getAttribute("user").toString();
             database db = new database();
 
+            if (u.checkUsernameExists(username)) {
+                return "[{\"error\": \"username already exists\"}]";
+            }
+            // check if the user is this project's admin
             if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
                 return "[{\"error\": \"you can't add a user to a project that you're not an admin\"}]";
             }
