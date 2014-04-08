@@ -4,6 +4,7 @@ import auth.authenticator;
 import auth.oauth2.provider;
 
 import java.sql.*;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
@@ -149,7 +150,7 @@ public class userMinter {
      * @param username
      * @return
      */
-    public String getProfileEditorAsTable(String username) {
+    public String getProfileEditorAsTable(String username, Boolean isAdmin) {
         StringBuilder sb = new StringBuilder();
         String firstName = getFirstName(username);
         String lastName = getLastName(username);
@@ -157,6 +158,7 @@ public class userMinter {
         String institution = getInstitution(username);
 
         sb.append("<table>\n");
+        sb.append("<form method=\"POST\" action=\"/id/userService/profile/update\">\n");
         sb.append("\t<tr>\n");
         sb.append("\t\t<td>First Name</td>\n");
         sb.append(("\t\t<td><input type=\"text\" name=\"firstName\" value=\""));
@@ -186,22 +188,23 @@ public class userMinter {
         sb.append(("\t\t<td><input type=\"password\" name=\"new_password\">"));
         sb.append("</td>\n\t</tr>");
 
-        sb.append("\t<tr>\n");
-        sb.append("\t\t<td>Old Password</td>\n");
-        sb.append(("\t\t<td><input type=\"password\" name=\"old_password\">"));
-        sb.append("</td>\n\t</tr>");
+        if (!isAdmin) {
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td>Old Password</td>\n");
+            sb.append(("\t\t<td><input type=\"password\" name=\"old_password\">"));
+            sb.append("</td>\n\t</tr>");
+        }
 
-        sb.append("<c:if test=\"${param.error != null}\">");
         sb.append("\t<tr>\n");
         sb.append("\t\t<td></td>\n");
         sb.append("<td class=\"error\" align=\"center\">");
         sb.append("</td>\n\t</tr>");
-        sb.append("</c:if>");
 
         sb.append("\t<tr>\n");
         sb.append("\t\t<td></td>\n");
-        sb.append(("\t\t<td><input type=\"submit\" value=\"Submit\"><input type=\"button\" id=\"cancelButton\" value=\"Cancel\">"));
-        sb.append("</td>\n\t</tr>");
+        sb.append(("\t\t<td><input id=\"profile_submit\" type=\"button\" value=\"Submit\"><input type=\"button\" id=\"cancelButton\" value=\"Cancel\">"));
+        sb.append("</td>\n\t</tr>\n");
+        sb.append("</form>\n");
         sb.append("</table>\n");
 
         return sb.toString();
@@ -351,5 +354,55 @@ public class userMinter {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * update a users profile
+     * @param info
+     * @param username
+     * @return
+     */
+    public Boolean updateProfile(Hashtable<String, String> info, String username) {
+        String updateString = "UPDATE users SET ";
+
+        // Dynamically create our UPDATE statement depending on which fields the user wants to update
+        for (Enumeration e = info.keys(); e.hasMoreElements();){
+            String key = e.nextElement().toString();
+            updateString += key + " = ?";
+
+            if (e.hasMoreElements()) {
+                updateString += ", ";
+            }
+            else {
+                updateString += " WHERE username = ?;";
+            }
+        }
+
+
+        try {
+            PreparedStatement stmt = conn.prepareStatement(updateString);
+
+            // place the parametrized values into the SQL statement
+            {
+                int i = 1;
+                for (Enumeration e = info.keys(); e.hasMoreElements();) {
+                    String key = e.nextElement().toString();
+                    stmt.setString(i, info.get(key));
+                    i++;
+
+                    if (!e.hasMoreElements()) {
+                        stmt.setString(i, username);
+                    }
+                }
+            }
+
+            Integer result = stmt.executeUpdate();
+
+            // result should be '1', if not, an error occurred during the UPDATE statement
+            return result == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

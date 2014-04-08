@@ -515,7 +515,8 @@ public class projectMinter {
                 sb.append("\t\t<td>");
                 sb.append(username);
                 sb.append("</td>\n");
-                sb.append("\t\t<td><a data-user_id=\"" + userId + "\" data-username=\"" + username + "\" href=\"javascript:void();\">(remove)</a></td>\n");
+                sb.append("\t\t<td><a id=\"remove_user\" data-user_id=\"" + userId + "\" data-username=\"" + username + "\" href=\"javascript:void();\">(remove)</a> ");
+                sb.append("<a id=\"edit_profile\" data-username=\"" + username + "\" href=\"javascript:void();\">(edit)</a></td>\n");
                 sb.append("\t</tr>\n");
             }
 

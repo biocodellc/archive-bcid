@@ -98,6 +98,102 @@ public class userService {
         }
     }
 
+    /**
+     * project admin update a users profile
+     * @param firstName
+     * @param lastName
+     * @param email
+     * @param institution
+     * @param new_password
+     * @param username
+     * @param request
+     * @return
+     */
+    @POST
+    @Path("/profile/update/{username}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public String adminUpdateProfile(@FormParam("firstName") String firstName,
+                                     @FormParam("lastName") String lastName,
+                                     @FormParam("email") String email,
+                                     @FormParam("institution") String institution,
+                                     @FormParam("new_password") String new_password,
+                                     @PathParam("username") String username,
+                                     @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        String error = "";
+        Hashtable<String, String> update = new Hashtable<String, String>();
+
+        if (session.getAttribute("projectAdmin") == null) {
+            return "[{\"error\": \"you must be a project admin to edit another user's profile\"}]";
+        }
+
+        // set new password if given
+        if (!new_password.isEmpty()) {
+            authenticator authenticator = new authenticator();
+            Boolean success = authenticator.setHashedPass(username, new_password);
+            if (!success) {
+                error = "server error";
+            } else {
+                // Make the user change their password next time they login
+                update.put("set_password", "0");
+            }
+        }
+
+        // Check if any other fields should be updated
+        try {
+            userMinter u = new userMinter();
+
+            if (!firstName.equals(u.getFirstName(username))) {
+                update.put("firstName", firstName);
+            }
+            if (!lastName.equals(u.getLastName(username))) {
+                update.put("lastName", lastName);
+            }
+            if (!email.equals(u.getEmail(username))) {
+                // check that a valid email is given
+                if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
+                    update.put("email", email);
+                } else {
+                    error = "please enter a valid email";
+                }
+            }
+            if (!institution.equals(u.getInstitution(username))) {
+                update.put("institution", institution);
+            }
+
+
+            if (!update.isEmpty()) {
+                Boolean success = u.updateProfile(update, username);
+                if (!success) {
+                    error = "server error";
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            error = "server error";
+        }
+
+        if (error.isEmpty()) {
+            return "[{\"success\": \"true\"}]";
+        } else {
+            return "[{\"error\": \"" + error + "\"}]";
+        }
+    }
+
+    /**
+     * update a users profile
+     * @param firstName
+     * @param lastName
+     * @param email
+     * @param institution
+     * @param old_password
+     * @param new_password
+     * @param return_to
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     @POST
     @Path("/profile/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -128,7 +224,7 @@ public class userService {
             if (valid_pass) {
                 Boolean success = authenticator.setHashedPass(username, new_password);
                 if (!success) {
-                    error = "DB Error";
+                    error = "server error";
                 }
                 // Make sure that the set_password field is 1 (true) so they aren't asked to change their password after login
                 else {
@@ -153,72 +249,28 @@ public class userService {
                 update.put("lastName", lastName);
             }
             if (!email.equals(u.getEmail(username))) {
-                update.put("email", email);
+                // check that a valid email is given
+                if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
+                    update.put("email", email);
+                } else {
+                    error = "please enter a valid email";
+                }
             }
             if (!institution.equals(u.getInstitution(username))) {
                 update.put("institution", institution);
             }
 
+            if (!update.isEmpty()) {
+                Boolean success = u.updateProfile(update, username);
+                if (!success) {
+                    error = "server error";
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
+            error = "server error";
         }
 
-        Connection conn;
-
-        if (!update.isEmpty()) {
-            try {
-                db = new database();
-                conn = db.getConn();
-            }   catch   (Exception e){
-                e.printStackTrace();
-                throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-            }
-
-            String updateString = "UPDATE users SET ";
-
-            // Dynamically create our UPDATE statement depending on which fields the user wants to update
-            for (Enumeration e = update.keys(); e.hasMoreElements();){
-                String key = e.nextElement().toString();
-                updateString += key + " = ?";
-
-                if (e.hasMoreElements()) {
-                    updateString += ", ";
-                }
-                else {
-                    updateString += " WHERE username = ?;";
-                }
-            }
-
-
-            try {
-                PreparedStatement stmt = conn.prepareStatement(updateString);
-
-                // place the parametrized values into the SQL statement
-                {
-                    int i = 1;
-                    for (Enumeration e = update.keys(); e.hasMoreElements();) {
-                        String key = e.nextElement().toString();
-                        stmt.setString(i, update.get(key));
-                        i++;
-
-                        if (!e.hasMoreElements()) {
-                            stmt.setString(i, username);
-                        }
-                    }
-                }
-
-                Integer result = stmt.executeUpdate();
-
-                // result should be '1', if not, an error occurred during the UPDATE statement
-                if (result != 1) {
-                    error += " DB Error";
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Error occurred somewhere, inform user
         if (error.isEmpty()) {
             if (return_to != null) {
                 response.sendRedirect(return_to);
@@ -228,12 +280,46 @@ public class userService {
             }
         }
 
+        // Error occurred somewhere, inform user
         if (return_to != null) {
             response.sendRedirect("/bcid/secure/profile.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
             return;
         }
         response.sendRedirect("/bcid/secure/profile.jsp?error=" + error);
     }
+
+    /**
+     * load a users profile for a project admin to edit
+     * @param username
+     * @param request
+     * @return
+     */
+    @GET
+    @Path("/profile/listEditorAsTable/{username}")
+    @Produces(MediaType.TEXT_HTML)
+    public String getUsersProfile(@PathParam("username") String username,
+                                  @Context HttpServletRequest request) {
+        HttpSession session = request.getSession();
+
+        if (session.getAttribute("projectAdmin") == null) {
+            return "You must be a project admin to edit a user's profile";
+        }
+
+        try {
+            userMinter u = new userMinter();
+            return u.getProfileEditorAsTable(username, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "error loading profile editor";
+    }
+
+    /**
+     * load a users profile for the user to edit
+     * @param request
+     * @return
+     * @throws IOException
+     */
     @GET
     @Path("/profile/listEditorAsTable")
     @Produces(MediaType.TEXT_HTML)
@@ -250,7 +336,7 @@ public class userService {
 
         try {
             u = new userMinter();
-            return u.getProfileEditorAsTable(username.toString());
+            return u.getProfileEditorAsTable(username.toString(), false);
         }   catch (Exception e) {
             e.printStackTrace();
         }
