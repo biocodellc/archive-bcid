@@ -8,9 +8,7 @@
         <br>
 
         <div>
-            <form method="POST" action="/id/userService/profile/update">
-                <div id=listUserProfile>Loading profile...</div>
-            </form>
+            <div id=listUserProfile>Loading profile...</div>
         </div>
     </div>
 </div>
@@ -32,6 +30,9 @@
                         "listUserProfile",
                         "Unable to load this user's profile from the Server");
                 });
+                $("#profile_submit").click(function() {
+                    $("form").submit();
+                });
             });
             populateDivFromService(
                 "/id/userService/profile/listEditorAsTable",
@@ -51,6 +52,9 @@
                             "/id/userService/profile/listAsTable",
                             "listUserProfile",
                             "Unable to load this user's profile from the Server");
+                    });
+                    $("#profile_submit").click(function() {
+                        $("form").submit();
                     });
                 });
             });

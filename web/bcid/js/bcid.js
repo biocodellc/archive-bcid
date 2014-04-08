@@ -296,7 +296,7 @@ function populateProjectSubsections(id) {
             id,
             'Unable to load this project\'s users from server.');
         $( document ).one("ajaxStop", function() {
-            $.each($('a', id), function(key, e) {
+            $.each($('a#remove_user', id), function(key, e) {
                 $(e).click(function() {
                     var username = $(e).data('username');
                     $('#confirm').html($('#confirm').html().replace('{user}', username));
@@ -323,6 +323,29 @@ function populateProjectSubsections(id) {
 
                 });
             });
+            $.each($('a#edit_profile', id), function(key, e) {
+                $(e).click(function() {
+                    var username = $(e).data('username');
+                    var divId = 'div#' + $(e).closest('div').attr('id');
+
+                    populateDivFromService(
+                        "/id/userService/profile/listEditorAsTable/" + username,
+                        divId,
+                        "error loading profile editor"
+                    );
+
+                    $(document).one("ajaxStop", function() {
+                        $("#profile_submit", divId).click(function() {
+                            profileSubmit(username, divId);
+                        })
+                        $("#cancelButton").click(function() {
+                            populateProjectSubsections(divId);
+                        })
+                    });
+
+
+                });
+            });
         });
     } else {
         populateDivFromService(
@@ -335,6 +358,17 @@ function populateProjectSubsections(id) {
             });
         });
     }
+}
+
+function profileSubmit(username, divId) {
+    var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize())
+        .done (function(data) {
+            if (data[0].error != null) {
+                $(".error", divId).html(data[0].error);
+            } else {
+                populateProjectSubsections(divId);
+            }
+        });
 }
 
 function expeditionsPublicSubmit(divId) {
@@ -401,7 +435,6 @@ function createUserSubmit(project_id, divId) {
 function projectRemoveUser(e) {
     var userId = $(e).data('user_id');
     var projectId = $(e).closest('table').data('project_id');
-    var projectTitle = $(e).closest('table').data('project_title');
     var divId = 'div#' + $(e).closest('div').attr('id');
 
     var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId)
