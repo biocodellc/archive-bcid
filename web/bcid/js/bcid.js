@@ -361,14 +361,18 @@ function populateProjectSubsections(id) {
 }
 
 function profileSubmit(username, divId) {
-    var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize())
-        .done (function(data) {
-            if (data[0].error != null) {
-                $(".error", divId).html(data[0].error);
-            } else {
-                populateProjectSubsections(divId);
-            }
-        });
+    if ($("input.pwcheck", divId).val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
+        $(".error", divId).html("password too weak");
+    } else {
+        jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize())
+            .done (function(data) {
+                if (data[0].error != null) {
+                    $(".error", divId).html(data[0].error);
+                } else {
+                    populateProjectSubsections(divId);
+                }
+            });
+    }
 }
 
 function expeditionsPublicSubmit(divId) {
@@ -422,14 +426,18 @@ function projectUserSubmit(id) {
 }
 
 function createUserSubmit(project_id, divId) {
-    var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
-        .done(function(data) {
-            if (data[0].error != null) {
-                $(".error", divId + '-users').html(data[0].error);
-            } else {
-                populateProjectSubsections(divId + '-users');
-            }
-        });
+    if ($("input.pwcheck", divId).val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
+        $(".error", divId).html("password too weak");
+    } else {
+        var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
+            .done(function(data) {
+                if (data[0].error != null) {
+                    $(".error", divId + '-users').html(data[0].error);
+                } else {
+                    populateProjectSubsections(divId + '-users');
+                }
+            });
+    }
 }
 
 function projectRemoveUser(e) {

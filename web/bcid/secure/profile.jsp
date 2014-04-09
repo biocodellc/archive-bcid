@@ -31,7 +31,11 @@
                         "Unable to load this user's profile from the Server");
                 });
                 $("#profile_submit").click(function() {
-                    $("form").submit();
+                    if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
+                        $(".error").html("password too weak");
+                    } else {
+                        $("form").submit();
+                    }
                 });
             });
             populateDivFromService(
@@ -54,7 +58,11 @@
                             "Unable to load this user's profile from the Server");
                     });
                     $("#profile_submit").click(function() {
-                        $("form").submit();
+                        if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
+                            $(".error").html("password too weak");
+                        } else {
+                            $("form").submit();
+                        }
                     });
                 });
             });

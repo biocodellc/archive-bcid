@@ -74,8 +74,7 @@ public class userMinter {
 
         sb.append("\t\t<tr>\n");
         sb.append("\t\t\t<td>Password</td>\n");
-        sb.append("\t\t\t<td><input type=\"password\" name=\"password\"></td>\n");
-        sb.append("\t\t\t<td><input class=\"pwcheck\" type=\"password\" name=\"new_password\" data-indicator=\"pwindicator\"></td>\n");
+        sb.append("\t\t\t<td><input class=\"pwcheck\" type=\"password\" name=\"password\" data-indicator=\"pwindicator\"></td>\n");
         sb.append("\t\t</tr>");
 
         sb.append("\t\t<tr>\n");
