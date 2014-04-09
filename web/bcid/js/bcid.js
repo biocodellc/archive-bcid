@@ -395,12 +395,12 @@ function expeditionsPublicSubmit(divId) {
 }
 
 function projectUserSubmit(id) {
-    var divId = 'div#' + id;
+    var divId = 'div#' + id + "-users";
     if ($('select option:selected', divId).val() == 0) {
         var project_id = $("input[name='project_id']", divId).val()
         populateDivFromService(
             '/id/userService/createFormAsTable',
-            divId + '-users',
+            divId,
             'error fetching create user form');
         $( document ).one("ajaxStop", function() {
             $("input[name=project_id]", divId).val(project_id);
@@ -408,17 +408,17 @@ function projectUserSubmit(id) {
                 createUserSubmit(project_id, divId);
             });
             $("#createFormCancelButton", divId).click(function() {
-                $(divId).data('project_id', $("input[name='project_id']", divId).val())
+                //$(divId).data('project_id', $("input[name='project_id']", divId).val())
                 populateProjectSubsections(divId);
             });
         });
     } else {
         var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize())
             .done(function(data) {
-                populateProjectSubsections(divId + '-users');
+                populateProjectSubsections(divId);
                 if (data[0].error != null) {
                     $( document ).one("ajaxStop", function() {
-                        $(".error", divId + '-users').html(data[0].error);
+                        $(".error", divId).html(data[0].error);
                     });
                 }
             });
@@ -426,15 +426,15 @@ function projectUserSubmit(id) {
 }
 
 function createUserSubmit(project_id, divId) {
-    if ($("input.pwcheck", divId).val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
+    if ($(".label", "#pwindicator").text() == "weak") {
         $(".error", divId).html("password too weak");
     } else {
         var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
             .done(function(data) {
                 if (data[0].error != null) {
-                    $(".error", divId + '-users').html(data[0].error);
+                    $(".error", divId).html(data[0].error);
                 } else {
-                    populateProjectSubsections(divId + '-users');
+                    populateProjectSubsections(divId);
                 }
             });
     }
