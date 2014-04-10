@@ -47,8 +47,12 @@ public class userService {
             return "[{\"error\": \"only project admins are able to create users\"}]";
         }
 
-        if (username.isEmpty() || password.isEmpty() || firstName.isEmpty() || lastName.isEmpty() ||
-                email.isEmpty() || institution.isEmpty()) {
+        if ((username == null || username.isEmpty()) ||
+                (password == null || password.isEmpty()) ||
+                (firstName == null || firstName.isEmpty()) ||
+                (lastName == null || lastName.isEmpty()) ||
+                (email == null || email.isEmpty()) ||
+                (institution == null) || institution.isEmpty()) {
             return "[{\"error\": \"all fields are required\"}]";
         }
 
