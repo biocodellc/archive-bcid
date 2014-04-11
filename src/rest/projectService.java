@@ -173,7 +173,7 @@ public class projectService {
                 update.put("title", title);
             }
             if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {
-                update.put("validation_xml", validationXML);
+                update.put("bioValidator_validation_xml", validationXML);
             }
             if ((publicProject != null && (publicProject.equals("on") || publicProject.equals("true")) && config.get("public").equals("false")) ||
                 (publicProject == null && config.get("public").equals("true"))) {
