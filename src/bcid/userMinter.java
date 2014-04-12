@@ -325,7 +325,7 @@ public class userMinter {
                 String username = db.getUserName(user_id);
 
                 StringBuilder sb = new StringBuilder();
-                sb.append("{\n");
+                sb.append("[{\n");
 
                 sb.append("\t\"first_name\": \"" + getFirstName(username) + "\",\n");
                 sb.append("\t\"last_name\": \"" + getLastName(username) + "\",\n");
@@ -334,7 +334,7 @@ public class userMinter {
                 sb.append("\t\"user_id\": \"" + user_id + "\",\n");
                 sb.append("\t\"username\": \"" + username + "\"\n");
 
-                sb.append("}");
+                sb.append("}]");
 
                 return sb.toString();
             }
