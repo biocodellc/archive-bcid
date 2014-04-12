@@ -38,3 +38,4 @@ If the token is still valid, you will receive a JSON response with the following
     * email
     * institution
     * user_id
+    * username
