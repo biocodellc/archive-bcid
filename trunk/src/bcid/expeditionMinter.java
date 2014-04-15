@@ -430,6 +430,7 @@ public class expeditionMinter {
         try {
             // See if the user owns this expedition or no
             expeditionMinter expedition = new expeditionMinter();
+            expedition.checkExpeditionCodeValid("JBD_foo-))");
             //    System.out.println("validation XML for project = " +expedition.getValidationXML(1));
             /*
             if (expedition.expeditionExistsInProject("DEMOH", 1)) {
@@ -454,13 +455,14 @@ public class expeditionMinter {
             */
 
             // Test creating a expedition
-
+            /*
             Integer expedition_id = expedition.mint(
                     "DEMOH",
                     "Test creating expedition under an project for which it already exists",
                     8, 4, false);
 
             System.out.println(expedition.printMetadata(expedition_id));
+            */
 
             //System.out.println(p.expeditionTable("demo"));
 
@@ -480,8 +482,9 @@ public class expeditionMinter {
         if (expedition_code.length() < 4 || expedition_code.length() > 16)
             throw new Exception("Expedition code " + expedition_code + " must be between 4 and 16 characters long");
         // Check to make sure characters are normal!
-        if (!expedition_code.matches("[a-zA-Z0-9]*")) {
-            throw new Exception("Expedition code " + expedition_code + " contains invalid characters.");
+        if (!expedition_code.matches("[a-zA-Z0-9_-]*")) {
+            throw new Exception("Expedition code " + expedition_code + " contains one or more invalid characters. " +
+                    "Expedition code characters must be in one of the these ranges: [a-Z][0-9][-][_]");
         }
     }
 

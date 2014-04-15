@@ -412,6 +412,12 @@ public class projectMinter {
         return false;
     }
 
+    /**
+     * Return a hashTable of project configuration options for a given project_id and user_id
+     * @param projectId
+     * @param username
+     * @return
+     */
     public Hashtable<String, String> getProjectConfig(Integer projectId, String username) {
         Hashtable<String, String> config = new Hashtable<String, String>();
         try {

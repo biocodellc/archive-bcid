@@ -16,3 +16,32 @@ enable port 80 requests to forward to 8080 for ALL deployed services on this par
 -A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j DNAT --to-destination :8080
 port 443 is https and usually open on various restricted subnets so use this to forward query requests to the non-standard 3030
 -A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j DNAT --to-destination :3030
+
+
+###############################################
+#
+#  Glassfish Stuff
+#
+###############################################
+# Install Glassfish
+download to /usr/local/src/
+extract
+/usr/local/src/glassfish3/glassfish/bin/asadmin change-admin-password
+(other useful notes on glassfish=http://www.davidghedini.com/pg/entry/how_to_install_glassfish_3)
+
+# updating glassfish
+./pkg image-update
+
+# bcid application is the context root
+change contextroot of bcid Application in Glassfish console to "/"
+
+#starting and stopping
+cd {$glassfishRoot}/bin/stopserv
+cd {$glassfishRoot}/bin/startserv
+
+# change master password
+./asadmin
+  -> change-admin-password (admin/{no password} is default)
+# enabling secure admin
+./asadmin
+  -> enable-secure-admin
