@@ -44,8 +44,9 @@ public class userMinter {
 
     public String getCreateForm() {
         StringBuilder sb = new StringBuilder();
-        sb.append("<table>\n");
         sb.append("\t<form id=\"submitForm\" method=\"POST\">\n");
+
+        sb.append("<table>\n");
 
         sb.append("\t\t<tr>\n");
         sb.append("\t\t\t<td>Username</td>\n");
@@ -93,8 +94,9 @@ public class userMinter {
         sb.append("\t\t</tr>\n");
         sb.append("\t\t<input type=\"hidden\" name=\"project_id\">\n");
 
-        sb.append("\t</form>\n");
         sb.append("</table>\n");
+        sb.append("\t</form>\n");
+
 
         return sb.toString();
     }
@@ -162,8 +164,9 @@ public class userMinter {
         String email = getEmail(username);
         String institution = getInstitution(username);
 
-        sb.append("<table>\n");
         sb.append("<form method=\"POST\" action=\"/id/userService/profile/update\">\n");
+
+        sb.append("<table>\n");
         sb.append("\t<tr>\n");
         sb.append("\t\t<td>First Name</td>\n");
         sb.append(("\t\t<td><input type=\"text\" name=\"firstName\" value=\""));
@@ -214,8 +217,9 @@ public class userMinter {
         sb.append("\t\t<td></td>\n");
         sb.append(("\t\t<td><input id=\"profile_submit\" type=\"button\" value=\"Submit\"><input type=\"button\" id=\"cancelButton\" value=\"Cancel\">"));
         sb.append("</td>\n\t</tr>\n");
-        sb.append("</form>\n");
         sb.append("</table>\n");
+        sb.append("</form>\n");
+
 
         return sb.toString();
     }
