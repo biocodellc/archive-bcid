@@ -169,7 +169,8 @@ public class projectService {
             Hashtable config = p.getProjectConfig(projectID, username.toString());
             Hashtable<String, String> update = new Hashtable<String, String>();
 
-            if (!config.get("title").equals(title)) {
+            if (title != null &&
+                    !config.get("title").equals(title)) {
                 update.put("title", title);
             }
             if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {

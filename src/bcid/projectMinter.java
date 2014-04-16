@@ -319,8 +319,8 @@ public class projectMinter {
         if (config.contains("error")) {
             return "You must me this project's admin in order to edit its configuration.";
         } else {
-            sb.append("<table>\n");
             sb.append("<form id=\"submitForm\" method=\"POST\">\n");
+            sb.append("<table>\n");
             sb.append("\t<tbody>\n");
             sb.append("\t\t<tr>\n");
             sb.append("\t\t\t<td>Title</td>\n");
@@ -352,8 +352,9 @@ public class projectMinter {
             sb.append(("\t\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
             sb.append("</td>\n\t\t</tr>\n");
             sb.append("\t</tbody>\n");
-            sb.append("</form>\n");
             sb.append("</table>\n");
+            sb.append("</form>\n");
+
 
             return sb.toString();
         }
@@ -509,6 +510,8 @@ public class projectMinter {
             rs3.next();
             String project_title = rs3.getString("project_title");
 
+            sb.append("\t<form method=\"POST\">\n");
+
             sb.append("<table data-project_id=\"" + projectId + "\" data-project_title=\"" + project_title + "\">\n");
             sb.append("\t<tr>\n");
             ResultSet rs = stmt.executeQuery(userProjectSql);
@@ -526,7 +529,6 @@ public class projectMinter {
                 sb.append("\t</tr>\n");
             }
 
-            sb.append("\t<form method=\"POST\">\n");
             sb.append("\t<tr>\n");
             sb.append("\t\t<td>Add User:</td>\n");
             sb.append("\t\t<td>");
@@ -552,14 +554,17 @@ public class projectMinter {
             sb.append("\t\t<td><input type=\"hidden\" name=\"project_id\" value=\"" + projectId + "\"></td>\n");
             sb.append("\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"projectUserSubmit(\'" + project_title.replaceAll(" ", "_") + '_' + projectId + "\')\"></td>\n");
             sb.append("\t</tr>\n");
-            sb.append("\t</form>\n");
 
         } catch (Exception e) {
             e.printStackTrace();
             sb.append("<table>\n");
+            sb.append("\t</form>\n");
+
         }
 
         sb.append("</table>\n");
+        sb.append("\t</form>\n");
+
         return sb.toString();
     }
 }
