@@ -629,6 +629,9 @@ public class dataGroupMinter extends dataGroupEncoder {
         sb.append("\t\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"dataGroupEditorSubmit();\" /><input type=\"button\" id=\"cancelButton\" value=\"Cancel\" /></td>\n");
         sb.append("\t\t</tr>\n");
 
+        sb.append("\t</table>\n");
+        sb.append("</form>\n");
+
         return sb.toString();
     }
 }
