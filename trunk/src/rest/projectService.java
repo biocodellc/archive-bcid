@@ -1,5 +1,6 @@
 package rest;
 
+import auth.oauth2.provider;
 import bcid.database;
 import bcid.projectMinter;
 
@@ -285,21 +286,35 @@ public class projectService {
     @GET
     @Path("/listUserProjects")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUserProjects(@Context HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
+    public Response getUserProjects(@QueryParam("access_token") String accessToken,
+                                    @Context HttpServletRequest request) {
+        String username = null;
+
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            try {
+                provider p = new provider();
+                username = p.validateToken(accessToken);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
 
         if (username == null) {
-            return "[{\"error\": \"You must be logged in to view your projects\"}]";
+            // status=401 means unauthorized user
+            return Response.status(401).entity("[{\"error\": \"You must be logged in to view your projects\"}]").build();
         }
 
         try {
             projectMinter p = new projectMinter();
-            return p.listUsersProjects(username.toString());
+            return Response.status(200).entity(p.listUsersProjects(username)).build();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return "[{\"error\": \"server_error\"}]";
+        return Response.status(200).entity("[{\"error\": \"server_error\"}]").build();
     }
 }
