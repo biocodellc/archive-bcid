@@ -1,5 +1,6 @@
 package rest;
 
+import auth.oauth2.provider;
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.Renderer;
 import bcid.Renderer.TextRenderer;
@@ -64,6 +65,7 @@ public class groupService {
                          @FormParam("resourceType") String resourceTypeString,
                          @FormParam("resourceTypesMinusDataset") Integer resourceTypesMinusDataset,
                          @FormParam("suffixPassThrough") String stringSuffixPassThrough,
+                         @QueryParam("access_token") String accessToken,
                          @Context HttpServletRequest request) throws Exception {
 
         // If resourceType is specified by an integer, then use that to set the String resourceType.
@@ -76,8 +78,16 @@ public class groupService {
             return Response.ok("ERROR: BCID System Unable to set resource type").build();
         }
 
-        HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
+        String username;
+
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
 
         if (username == null) {
             // status=401 means unauthorized user
@@ -106,7 +116,7 @@ public class groupService {
         // Create a Dataset
         database db = new database();
         // Check for remote-user
-        Integer user_id = db.getUserId(username.toString());
+        Integer user_id = db.getUserId(username);
 
         // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
         // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically

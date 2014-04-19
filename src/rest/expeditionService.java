@@ -1,5 +1,6 @@
 package rest;
 
+import auth.oauth2.provider;
 import bcid.database;
 import bcid.projectMinter;
 import bcid.resolver;
@@ -17,8 +18,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import java.util.List;
-import java.util.Map;
 
 /**
  * REST interface calls for working with expeditions.  This includes creating, updating and deleting expeditions.
@@ -65,21 +64,29 @@ public class expeditionService {
     @Path("/validateExpedition/{project_id}/{expedition_code}")
     public Response mint(@PathParam("expedition_code") String expedition_code,
                          @PathParam("project_id") Integer project_id,
-                         @Context HttpServletRequest request) throws Exception {
+                         @QueryParam("access_token") String accessToken,
+                         @Context HttpServletRequest request)
+            throws Exception {
+        String username;
 
-        // Get the user_id
-        database db = new database();
-        HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
-
-        if (username == null) {
-            return Response.ok("error: user not validated").build();
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
         }
 
-        Integer user_id = db.getUserId(username.toString());
+        if (username == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).build();
+        }
+        // Get the user_id
+        database db = new database();
+        Integer user_id = db.getUserId(username);
 
-
-         expeditionMinter expedition = null;
+        expeditionMinter expedition = null;
 
         try {
             // Mint a expedition
@@ -111,23 +118,32 @@ public class expeditionService {
                          @FormParam("expedition_title") String expedition_title,
                          @FormParam("project_id") Integer project_id,
                          @FormParam("public") Boolean isPublic,
-                         @Context HttpServletRequest request) throws Exception {
+                         @QueryParam("access_token") String accessToken,
+                         @Context HttpServletRequest request)
+            throws Exception {
+        String username;
 
-        // Get the user_id
-        database db = new database();
-        HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
 
-        //
+        if (username == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).build();
+        }
+
         if (isPublic == null) {
             isPublic = true;
         }
 
-        if (username == null) {
-            return Response.status(401).build();
-        }
-
-        Integer user_id = db.getUserId(username.toString());
+        // Get the user_id
+        database db = new database();
+        Integer user_id = db.getUserId(username);
 
         Integer expedition_id = null;
         expeditionMinter expedition = null;

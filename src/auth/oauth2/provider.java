@@ -188,11 +188,12 @@ public class provider {
     /**
      * verify that a token is still valid
      * @param token the access_token issued to the client
-     * @return user_id the token represents, null if invalid token
+     * @return username the token represents, null if invalid token
      */
-    public Integer validateToken(String token) {
+    public String validateToken(String token) {
         try {
-            String selectString = "SELECT ts, user_id FROM oauthTokens WHERE token=?";
+            String selectString = "SELECT t.ts as ts, u.username as username "+
+                    "FROM oauthTokens t, users u WHERE t.token=? && u.user_id = t.user_id";
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, token);
@@ -205,7 +206,7 @@ public class provider {
                 Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 3600000);
                 // if ts is older then 1 hr, we can't proceed
                 if (ts != null && ts.after(expiredTs)) {
-                    return rs.getInt("user_id");
+                    return rs.getString("username");
                 }
             }
         } catch (Exception e) {

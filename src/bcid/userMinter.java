@@ -323,10 +323,10 @@ public class userMinter {
             provider p = new provider();
             database db = new database();
 
-            Integer user_id = p.validateToken(token);
+            String username = p.validateToken(token);
 
-            if (user_id != null) {
-                String username = db.getUserName(user_id);
+            if (username != null) {
+                Integer user_id = db.getUserId(username);
 
                 StringBuilder sb = new StringBuilder();
                 sb.append("[{\n");
