@@ -305,7 +305,7 @@ public class projectService {
 
         if (username == null) {
             // status=401 means unauthorized user
-            return Response.status(401).entity("[{\"error\": \"You must be logged in to view your projects\"}]").build();
+            return Response.status(401).entity("[{\"error\": \"authorization_error\"}]").build();
         }
 
         try {
