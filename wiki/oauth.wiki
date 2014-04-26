@@ -24,13 +24,14 @@ Client app will make a POST request to /id/authenticationService/oauth/access_to
 
 The JSON response will contain the following parameters:
     * access_token - The random 20 character string used to access a user's profile.
+    * refresh_token - The random 20 character string used to obtain a new access_token. This expires after 24 hrs.
     * token_type - currently we only issue bearer tokens.
     * expires_in - the number of seconds the token is good for.
     * state - Only if this parameter was included in the request.
 
 = API Access =
 
-Currently, we only support access on behalf of the user to the profileService endpoint. In order to obtain a user's profile information, make a GET request to /id/userService/oauth with the access_token as a query parameter.
+In order to obtain a user's profile information, make a GET request to /id/userService/oauth with the access_token as a query parameter.
 
 If the token is still valid, you will receive a JSON response with the following user information:
     * first_name
@@ -39,3 +40,10 @@ If the token is still valid, you will receive a JSON response with the following
     * institution
     * user_id
     * username
+
+We also support access to the following rest services on behalf of the user. Just append "?access_token=your_access_token" to the url in order to access the service.
+
+    * /id/expeditionService/validateExpedition/{project_id}/{expedition_code}
+    * /id/expeditionService/validateExpedition/
+    * /id/groupService
+    * /id/projectService/listUsersProjects/
