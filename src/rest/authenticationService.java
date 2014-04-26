@@ -202,6 +202,40 @@ public class authenticationService {
     }
 
     @POST
+    @Path("/oauth/refresh")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response refresh(@FormParam("client_id") String clientId,
+                            @FormParam("client_secret") String clientSecret,
+                            @FormParam("refresh_token") String refreshToken)
+        throws IOException {
+        try {
+            provider p = new provider();
+
+            if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
+                return Response.status(400).entity("[{\"error\": \"invalid_client\"}]").build();
+            }
+
+            if (refreshToken == null || !p.validateRefreshToken(refreshToken)) {
+                return Response.status(400).entity("[{\"error\": \"invalid_grant\"}]").build();
+            }
+
+            String accessToken = p.generateToken(refreshToken);
+
+            // refresh tokens are only good once, so delete the old access token so the refresh token can no longer be used
+            p.deleteAccessToken(refreshToken);
+
+            return Response.ok(accessToken)
+                    .header("Cache-Control", "no-store")
+                    .header("Pragma", "no-cache")
+                    .build();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Response.status(500).entity("[{}]").build();
+    }
+
+    @POST
     @Path("/reset")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public void resetPassword(@FormParam("password") String password,

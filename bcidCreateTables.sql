@@ -174,6 +174,7 @@ CREATE TABLE `oauthTokens` (
   `token` char(20) NOT NULL DEFAULT '' COMMENT 'The generated token used by the client app',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'The ts when the token was issued',
   `user_id` int(11) unsigned NOT NULL COMMENT 'The user_id that this token represents',
+  `refresh_token` char(20) NOT NULL DEFAULT '' COMMENT 'The generated token used to gain a new access_token',
   UNIQUE KEY `oauthTokens_oauthTokens_idx` (`oauthTokens_id`),
   UNIQUE KEY `oauthTokens_oauthTokenx` (`token`),
   KEY `FK_oauthTokens_client` (`client_id`),

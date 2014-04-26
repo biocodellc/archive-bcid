@@ -142,7 +142,6 @@ public class provider {
 
     private void deleteNonce(String clientId, String code) {
         try {
-            // need to do this here instead of
             String deleteString = "DELETE FROM oauthNonces WHERE client_id = ? AND code = ?";
             PreparedStatement stmt2 = conn.prepareStatement(deleteString);
 
@@ -155,26 +154,80 @@ public class provider {
         }
     }
 
-    public String generateToken(String clientID, String state, String code) throws SQLException{
-        stringGenerator sg = new stringGenerator();
-        String token = sg.generateString(20);
+    /**
+     * generate a token given a refresh token
+     * @param refreshToken
+     * @return
+     * @throws SQLException
+     */
+    public String generateToken(String refreshToken)
+        throws SQLException {
+        Integer userId = null;
+        String clientId = null;
 
+        String sql = "SELECT client_id, user_id FROM oauthTokens WHERE refresh_token = ?";
+        PreparedStatement stmt = conn.prepareStatement(sql);
+
+        stmt.setString(1, refreshToken);
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            userId = rs.getInt("user_id");
+            clientId = rs.getString("client_id");
+        }
+
+        if (userId == null) {
+            return "[{\"error\": \"server_error\"}]";
+        }
+
+        return generateToken(clientId, userId, null);
+
+    }
+
+    /**
+     * generate a token given a code, clientID, and state (optional)
+     * @param clientID
+     * @param state
+     * @param code
+     * @return
+     * @throws SQLException
+     */
+    public String generateToken(String clientID, String state, String code) throws SQLException{
         Integer user_id = getUserId(clientID, code);
         deleteNonce(clientID, code);
         if (user_id == null) {
             return "[{\"error\": \"server_error\"}]";
         }
 
-        String insertString = "INSERT INTO oauthTokens (client_id, token, user_id) VALUE (?, \"" + token +"\", ?)";
+        return generateToken(clientID, user_id, state);
+    }
+
+    /**
+     * generate a JSON response with an access_token and refresh_token
+     * @param clientID
+     * @param userId
+     * @param state
+     * @return
+     * @throws SQLException
+     */
+    private String generateToken(String clientID, Integer userId, String state)
+        throws SQLException {
+        stringGenerator sg = new stringGenerator();
+        String token = sg.generateString(20);
+        String refreshToken = sg.generateString(20);
+
+        String insertString = "INSERT INTO oauthTokens (client_id, token, refresh_token, user_id) VALUE " +
+                "(?, \"" + token +"\",\"" + refreshToken + "\", ?)";
         PreparedStatement stmt = conn.prepareStatement(insertString);
 
         stmt.setString(1, clientID);
-        stmt.setInt(2, user_id);
+        stmt.setInt(2, userId);
         stmt.execute();
 
         StringBuilder sb = new StringBuilder();
         sb.append("[{");
         sb.append("\"access_token\":\"" + token + "\",\n");
+        sb.append("\"refresh_token\":\"" + refreshToken + "\",\n");
         sb.append("\"token_type\":\"bearer\",\n");
         sb.append("\"expires_in\":3600\n");
         if (state != null) {
@@ -183,6 +236,52 @@ public class provider {
         sb.append("}]");
 
         return sb.toString();
+    }
+
+    /**
+     * delete an access_token. This is called when a refresh_token has been exchanged for a new access_token.
+     * @param refreshToken
+     */
+    public void deleteAccessToken(String refreshToken) {
+        try {
+            String deleteString = "DELETE FROM oauthTokens WHERE refresh_token = ?";
+            PreparedStatement stmt2 = conn.prepareStatement(deleteString);
+
+            stmt2.setString(1, refreshToken);
+
+            stmt2.execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * verify that a refresh token is still valid
+     * @param refreshToken
+     * @return
+     */
+    public Boolean validateRefreshToken(String refreshToken) {
+        try {
+            String sql = "SELECT ts FROM oauthTokens WHERE refresh_token = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+
+            stmt.setString(1, refreshToken);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                Timestamp ts = rs.getTimestamp("ts");
+                // get a Timestamp instance for 24 hrs ago
+                Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 86400000);
+                // if ts is older 24 hrs, we can't proceed
+                if (ts != null && ts.after(expiredTs)) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     /**
