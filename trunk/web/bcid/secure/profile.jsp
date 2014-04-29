@@ -17,18 +17,20 @@
     $(document).ready(function() {
         // Populate User Profile
         if ("${param.error}" == "") {
-            populateDivFromService(
+            var jqxhr = populateDivFromService(
                 "/id/userService/profile/listAsTable",
                 "listUserProfile",
                 "Unable to load this user's profile from the Server");
+            loadingDialog(jqxhr);
         } else {
             $(document).ajaxStop(function() {
                 $(".error").text("${param.error}");
                 $("#cancelButton").click(function() {
-                    populateDivFromService(
+                    var jqxhr = populateDivFromService(
                         "/id/userService/profile/listAsTable",
                         "listUserProfile",
                         "Unable to load this user's profile from the Server");
+                    loadingDialog(jqxhr);
                 });
                 $("#profile_submit").click(function() {
                     if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
@@ -38,24 +40,27 @@
                     }
                 });
             });
-            populateDivFromService(
+            var jqxhr = populateDivFromService(
                 "/id/userService/profile/listEditorAsTable",
                 "listUserProfile",
-                "Unable to load this user's profile editor from the Server")
+                "Unable to load this user's profile editor from the Server");
+            loadingDialog(jqxhr);
         }
         $(document).ajaxStop(function() {
             $("a", "#profile").click( function() {
-                populateDivFromService(
+                var jqxhr = populateDivFromService(
                     "/id/userService/profile/listEditorAsTable",
                     "listUserProfile",
                     "Unable to load this user's profile editor from the Server");
+                loadingDialog(jqxhr);
                 $(document).ajaxStop(function() {
                     $(".error").text("${param.error}");
                     $("#cancelButton").click(function() {
-                        populateDivFromService(
+                        var jqxhr = populateDivFromService(
                             "/id/userService/profile/listAsTable",
                             "listUserProfile",
                             "Unable to load this user's profile from the Server");
+                        loadingDialog(jqxhr);
                     });
                     $("#profile_submit").click(function() {
                         if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {

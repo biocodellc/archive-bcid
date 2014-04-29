@@ -15,6 +15,7 @@ function dataGroupEditorSubmit() {
                 populateBCIDPage();
             }
         });
+    loadingDialog(posting);
 }
 
 /** Process submit button for Data Group Creator **/
@@ -117,7 +118,7 @@ function populateDivFromService(url,elementID,failMessage)  {
     if (elementID.indexOf('#') == -1) {
         elementID = '#' + elementID
     }
-    var jqxhr = $.ajax(url, function() {})
+    return jqxhr = $.ajax(url, function() {})
         .done(function(data) {
            $(elementID).html(data);
         })
@@ -273,16 +274,18 @@ function populateProjectSubsections(id) {
     // load config table from REST service
     var projectID = $(id).data('project_id');
     if (id.indexOf("config") != -1) {
-        populateDivFromService(
+        var jqxhr = populateDivFromService(
             '/id/projectService/configAsTable/' + projectID,
             id,
             'Unable to load this project\'s configuration from server.');
+        loadingDialog(jqxhr);
         $( document ).one("ajaxStop", function() {
             $("#edit_config", id).click(function() {
-                populateDivFromService(
+                var jqxhr = populateDivFromService(
                     '/id/projectService/configEditorAsTable/' + projectID,
                     id,
                     'Unable to load this project\'s configuration editor.');
+                loadingDialog(jqxhr);
                 });
                 $( document ).one("ajaxStop", function() {
                     $('#configSubmit', id).click(function() {
@@ -291,10 +294,11 @@ function populateProjectSubsections(id) {
                 });
         });
     } else if (id.indexOf("users") != -1) {
-        populateDivFromService(
+        var jqxhr = populateDivFromService(
             '/id/projectService/listProjectUsersAsTable/' + projectID,
             id,
             'Unable to load this project\'s users from server.');
+        loadingDialog(jqxhr);
         $( document ).one("ajaxStop", function() {
             $.each($('a#remove_user', id), function(key, e) {
                 $(e).click(function() {
@@ -328,11 +332,12 @@ function populateProjectSubsections(id) {
                     var username = $(e).data('username');
                     var divId = 'div#' + $(e).closest('div').attr('id');
 
-                    populateDivFromService(
+                    var jqxhr = populateDivFromService(
                         "/id/userService/profile/listEditorAsTable/" + username,
                         divId,
                         "error loading profile editor"
                     );
+                    loadingDialog(jqxhr);
 
                     $(document).one("ajaxStop", function() {
                         $("#profile_submit", divId).click(function() {
@@ -348,10 +353,11 @@ function populateProjectSubsections(id) {
             });
         });
     } else {
-        populateDivFromService(
+        var jqxhr = populateDivFromService(
             '/id/expeditionService/admin/listExpeditionsAsTable/' + projectID,
             id,
             'Unable to load this project\'s expeditions from server.');
+        loadingDialog(jqxhr);
         $( document ).one("ajaxStop", function() {
             $('#expeditionForm', id).click(function() {
                 expeditionsPublicSubmit(id);
@@ -364,7 +370,7 @@ function profileSubmit(username, divId) {
     if ($("input.pwcheck", divId).val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
         $(".error", divId).html("password too weak");
     } else {
-        jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize())
+        var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize())
             .done (function(data) {
                 if (data[0].error != null) {
                     $(".error", divId).html(data[0].error);
@@ -372,6 +378,7 @@ function profileSubmit(username, divId) {
                     populateProjectSubsections(divId);
                 }
             });
+        loadingDialog(jqxhr);
     }
 }
 
@@ -386,29 +393,30 @@ function expeditionsPublicSubmit(divId) {
         var expedition = '&' + element.name + '=' + element.checked;
         data += expedition;
     });
-    $.post('/id/expeditionService/admin/publicExpeditions', data.replace('&', ''))
+    var jqxhr = $.post('/id/expeditionService/admin/publicExpeditions', data.replace('&', ''))
         .done(function() {
             $( document ).one("ajaxStop", function() {
                 populateProjectSubsections(divId);
             });
         });
+    loadingDialog(jqxhr);
 }
 
 function projectUserSubmit(id) {
     var divId = 'div#' + id + "-users";
     if ($('select option:selected', divId).val() == 0) {
         var project_id = $("input[name='project_id']", divId).val()
-        populateDivFromService(
+        var jqxhr = populateDivFromService(
             '/id/userService/createFormAsTable',
             divId,
             'error fetching create user form');
+        loadingDialog(jqxhr);
         $( document ).one("ajaxStop", function() {
             $("input[name=project_id]", divId).val(project_id);
             $("#createFormButton", divId).click(function() {
                 createUserSubmit(project_id, divId);
             });
             $("#createFormCancelButton", divId).click(function() {
-                //$(divId).data('project_id', $("input[name='project_id']", divId).val())
                 populateProjectSubsections(divId);
             });
         });
@@ -422,6 +430,7 @@ function projectUserSubmit(id) {
                     });
                 }
             });
+        loadingDialog(jqxhr);
     }
 }
 
@@ -437,6 +446,7 @@ function createUserSubmit(project_id, divId) {
                     populateProjectSubsections(divId);
                 }
             });
+        loadingDialog(jqxhr);
     }
 }
 
@@ -454,6 +464,7 @@ function projectRemoveUser(e) {
                 });
             }
         });
+    loadingDialog(jqxhr);
 }
 
 function projectConfigSubmit(project_id, divId) {
@@ -465,6 +476,7 @@ function projectConfigSubmit(project_id, divId) {
                 populateProjectSubsections(divId);
             }
         });
+    loadingDialog(jqxhr);
 }
 
 function populateExpeditionPage(username) {
@@ -475,6 +487,7 @@ function populateExpeditionPage(username) {
                 loadExpeditions(this.id)
             });
         });
+    loadingDialog(jqxhr);
 }
 
 function loadExpeditions(id) {
@@ -537,35 +550,40 @@ function listExpeditions(divId) {
                 loadExpeditions(this.id);
             });
         });
+    loadingDialog(jqxhr);
 }
 
 function populateResourcesOrDatasets(divId) {
     // load config table from REST service
     var expeditionId= $(divId).data('expedition_id');
     if (divId.indexOf("resources") != -1) {
-        populateDivFromService(
+        var jqxhr = populateDivFromService(
             '/id/expeditionService/resourcesAsTable/' + expeditionId,
             divId,
             'Unable to load this expedition\'s resources from server.');
+        loadingDialog(jqxhr);
     } else {
-        populateDivFromService(
+        var jqxhr = populateDivFromService(
             '/id/expeditionService/datasetsAsTable/' + expeditionId,
             divId,
             'Unable to load this expedition\'s datasets from server.');
+        loadingDialog(jqxhr);
     }
 }
 
 function populateBCIDPage() {
-    populateDivFromService(
+    var jqxhr = populateDivFromService(
         "/id/groupService/listUserBCIDsAsTable",
         "listUserBCIDsAsTable",
         "Unable to load this user's BCIDs from Server");
+    loadingDialog(jqxhr);
     $(document).one("ajaxStop", function() {
         $("a.edit").click(function() {
-            populateDivFromService(
+            var jqxhr = populateDivFromService(
                 "/id/groupService/dataGroupEditorAsTable?ark=" + this.dataset.ark,
                 "listUserBCIDsAsTable",
                 "Unable to load the BCID editor from Server");
+            loadingDialog(jqxhr);
         });
         $(document).one("ajaxStop", function() {
             populateSelect("resourceTypesMinusDataset");
@@ -593,4 +611,24 @@ function resetPassSubmit() {
                 window.location.href = "/bcid/reset.jsp?error=" + data.error;
             }
         });
+    loadingDialog(jqxhr);
+}
+
+// function for displaying a loading dialog while waiting for a response from the server
+function loadingDialog(promise) {
+    var dialog = $("<div>Loading ...</div>");
+    dialog.dialog({
+        dialogClass: "ui-loading",
+        modal: true,
+        autoOpen: true,
+        resizable: false,
+        width: 175,
+        height: 60,
+        draggable: false,
+    });
+
+    // close the dialog when the ajax call has returned
+    promise.always(function(){
+        dialog.dialog("close");
+    });
 }
