@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.Calendar;
 
 /**
- * Created by rjewing on 2/7/14.
+ * Class to check whether a user has certain permissions, such as if they are a project admin
  */
 public class authorizer {
     protected Connection conn;

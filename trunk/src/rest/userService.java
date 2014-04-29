@@ -12,20 +12,27 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
- * Created by rjewing on 2/11/14.
+ * The REST Interface for dealing with users. Includes user creation and profile updating.
  */
 @Path("userService")
 public class userService {
 
+    /**
+     * Service to create a new user.
+     * @param username
+     * @param password
+     * @param firstName
+     * @param lastName
+     * @param email
+     * @param institution
+     * @param projectId
+     * @return
+     * @throws IOException
+     */
     @POST
     @Path("/create")
     @Produces(MediaType.APPLICATION_JSON)
@@ -90,6 +97,10 @@ public class userService {
         return "[{\"error\": \"server error creating user\"}]";
     }
 
+    /**
+     * Returns an HTML table in order to create a user.
+     * @return
+     */
     @GET
     @Path("/createFormAsTable")
     public String createFormAsTable() {
@@ -103,14 +114,13 @@ public class userService {
     }
 
     /**
-     * project admin update a users profile
+     * Service for a project admin to update a member user's profile
      * @param firstName
      * @param lastName
      * @param email
      * @param institution
      * @param new_password
      * @param username
-     * @param request
      * @return
      */
     @POST
@@ -186,7 +196,7 @@ public class userService {
     }
 
     /**
-     * update a users profile
+     * Service for a user to update their profile.
      * @param firstName
      * @param lastName
      * @param email
@@ -194,8 +204,6 @@ public class userService {
      * @param old_password
      * @param new_password
      * @param return_to
-     * @param request
-     * @param response
      * @throws IOException
      */
     @POST
@@ -293,9 +301,8 @@ public class userService {
     }
 
     /**
-     * load a users profile for a project admin to edit
+     * Returns an HTML table for editin a user's profile. Project admin use only.
      * @param username
-     * @param request
      * @return
      */
     @GET
@@ -319,8 +326,7 @@ public class userService {
     }
 
     /**
-     * load a users profile for the user to edit
-     * @param request
+     * returns an HTML table for editing a user's profile.
      * @return
      * @throws IOException
      */
@@ -348,7 +354,7 @@ public class userService {
     }
 
     /**
-     * Return HTML response showing the user's profile
+     * Return a HTML table displaying the user's profile
      *
      * @return String with HTML response
      */
@@ -373,6 +379,11 @@ public class userService {
         return "Exception encountered attempting to construct profile.";
     }
 
+    /**
+     * Service for oauth client apps to retrieve a user's profile information.
+     * @param access_token
+     * @return
+     */
     @GET
     @Path("/oauth")
     @Produces(MediaType.APPLICATION_JSON)

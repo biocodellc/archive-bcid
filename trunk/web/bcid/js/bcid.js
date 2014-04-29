@@ -184,6 +184,7 @@ function getQueryParam(sParam) {
     }
 }
 
+// function to populate the bcid projects.jsp page
 function populateProjectPage(username) {
     var jqxhr = listProjects(username, '/id/projectService/admin/list', false);
     jqxhr.done(function() {
@@ -194,6 +195,7 @@ function populateProjectPage(username) {
         });
 }
 
+// function to retrieve a user's projects and populate the page
 function listProjects(username, url, expedition) {
     var jqxhr = $.getJSON(url)
             .done(function(data) {
@@ -255,6 +257,7 @@ function listProjects(username, url, expedition) {
 
 }
 
+// function to apply the jquery slideToggle effect.
 function projectToggle(id) {
     if ($('.toggle-content#'+id).is(':hidden')) {
         $('.img-arrow', '#'+id).attr("src","../images/down-arrow.png");
@@ -270,6 +273,8 @@ function projectToggle(id) {
     $('.toggle-content#'+id).slideToggle('slow');
 }
 
+// function to populate the subsections of the projects.jsp page. Populates the configuration, expeditions, and users
+// subsections
 function populateProjectSubsections(id) {
     // load config table from REST service
     var projectID = $(id).data('project_id');
@@ -366,6 +371,7 @@ function populateProjectSubsections(id) {
     }
 }
 
+// function to submit the user's profile editor form
 function profileSubmit(username, divId) {
     if ($("input.pwcheck", divId).val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
         $(".error", divId).html("password too weak");
@@ -382,6 +388,7 @@ function profileSubmit(username, divId) {
     }
 }
 
+// function to submit the project's expeditions form. used to update the expedition public attribute.
 function expeditionsPublicSubmit(divId) {
     var inputs = $('form input[name]', divId);
     var data = '';
@@ -402,6 +409,7 @@ function expeditionsPublicSubmit(divId) {
     loadingDialog(jqxhr);
 }
 
+// function to add an existing user to a project or retrieve the create user form.
 function projectUserSubmit(id) {
     var divId = 'div#' + id + "-users";
     if ($('select option:selected', divId).val() == 0) {
@@ -434,6 +442,7 @@ function projectUserSubmit(id) {
     }
 }
 
+// function to submit the create user form.
 function createUserSubmit(project_id, divId) {
     if ($(".label", "#pwindicator").text() == "weak") {
         $(".error", divId).html("password too weak");
@@ -450,6 +459,7 @@ function createUserSubmit(project_id, divId) {
     }
 }
 
+// function to remove the user as a member of a project.
 function projectRemoveUser(e) {
     var userId = $(e).data('user_id');
     var projectId = $(e).closest('table').data('project_id');
@@ -467,6 +477,7 @@ function projectRemoveUser(e) {
     loadingDialog(jqxhr);
 }
 
+// function to submit the project configuration editor form
 function projectConfigSubmit(project_id, divId) {
     var jqxhr = $.post("/id/projectService/updateConfig/" + project_id, $('form', divId).serialize())
         .done(function(data) {
@@ -479,6 +490,7 @@ function projectConfigSubmit(project_id, divId) {
     loadingDialog(jqxhr);
 }
 
+// function to populate the expeditions.jsp page
 function populateExpeditionPage(username) {
     var jqxhr = listProjects(username, '/id/projectService/listUserProjects', true);
     jqxhr.done(function() {
@@ -490,6 +502,7 @@ function populateExpeditionPage(username) {
     loadingDialog(jqxhr);
 }
 
+// function to load the expeditions.jsp subsections
 function loadExpeditions(id) {
     if ($('.toggle-content#'+id).is(':hidden')) {
         $('.img-arrow', '#'+id).attr("src","../images/down-arrow.png");
@@ -506,6 +519,7 @@ function loadExpeditions(id) {
     $('.toggle-content#'+id).slideToggle('slow');
 }
 
+// retrieve the expeditions for a project and display them on the page
 function listExpeditions(divId) {
     var projectID = $(divId).data('project_id');
     var jqxhr = $.getJSON('/id/expeditionService/list/' + projectID)
@@ -553,6 +567,7 @@ function listExpeditions(divId) {
     loadingDialog(jqxhr);
 }
 
+// function to populate the expedition resources or datasets subsection of expeditions.jsp
 function populateResourcesOrDatasets(divId) {
     // load config table from REST service
     var expeditionId= $(divId).data('expedition_id');
@@ -571,6 +586,7 @@ function populateResourcesOrDatasets(divId) {
     }
 }
 
+// function to populate the bcids.jsp page
 function populateBCIDPage() {
     var jqxhr = populateDivFromService(
         "/id/groupService/listUserBCIDsAsTable",
@@ -602,6 +618,7 @@ function populateBCIDPage() {
     });
 }
 
+// function to submit the reset password form
 function resetPassSubmit() {
     var jqxhr = $.post("/id/authenticationService/sendResetToken/", $('form').serialize())
         .done(function(data) {

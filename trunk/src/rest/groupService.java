@@ -253,6 +253,11 @@ public class groupService {
         return "Exception encountered attempting to list expeditions";
     }
 
+    /**
+     * returns an HTML table used to edit a bcid's configuration.
+     * @param prefix
+     * @return
+     */
     @GET
     @Path("/dataGroupEditorAsTable")
     @Produces(MediaType.TEXT_HTML)
@@ -278,6 +283,17 @@ public class groupService {
         return "Server error loading BCID editor.";
     }
 
+    /**
+     * Service to update a bcid's configuration.
+     * @param doi
+     * @param webaddress
+     * @param title
+     * @param resourceTypeString
+     * @param resourceTypesMinusDataset
+     * @param stringSuffixPassThrough
+     * @param prefix
+     * @return
+     */
     @POST
     @Path("/dataGroup/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)

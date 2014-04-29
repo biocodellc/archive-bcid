@@ -2,7 +2,6 @@ package util;
 
 /**
  * Generate a random string
- * Created by rjewing on 2/15/14.
  */
 public class stringGenerator {
     protected static java.util.Random r = new java.util.Random();

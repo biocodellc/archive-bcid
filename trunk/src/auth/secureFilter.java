@@ -8,7 +8,6 @@ import java.io.IOException;
 
 /**
  * Filter which checks for the user in the session, if no user is present, the redirect to login page
- * Created by rjewing on 1/17/14.
  */
 public class secureFilter implements Filter {
     private FilterConfig fc = null;

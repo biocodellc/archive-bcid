@@ -5,7 +5,6 @@ import bcid.database;
 import bcid.projectMinter;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -109,6 +108,11 @@ public class projectService {
         return project.listUserAdminProjects(username);
     }
 
+    /**
+     * return an HTML table of a project's configuration.
+     * @param project_id
+     * @return
+     */
     @GET
     @Path("/configAsTable/{project_id}")
     @Produces(MediaType.TEXT_HTML)
@@ -128,6 +132,11 @@ public class projectService {
         return "[{\"error\": \"You must be this project's admin in order to view its configuration\"}]";
     }
 
+    /**
+     * return an HTML table used for editing a project's configuration.
+     * @param projectId
+     * @return
+     */
     @GET
     @Path("/configEditorAsTable/{project_id}")
     @Produces(MediaType.TEXT_HTML)
@@ -145,6 +154,14 @@ public class projectService {
         return "server error loading project config editor";
     }
 
+    /**
+     * Service used for updating a project's configuration.
+     * @param projectID
+     * @param title
+     * @param validationXML
+     * @param publicProject
+     * @return
+     */
     @POST
     @Path("/updateConfig/{project_id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -200,6 +217,13 @@ public class projectService {
 
     }
 
+    /**
+     * Service used to remove a user as a member of a project.
+     * @param projectId
+     * @param userId
+     * @return
+     * @throws IOException
+     */
     @GET
     @Path("/removeUser/{project_id}/{user_id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -231,6 +255,14 @@ public class projectService {
         return "[{\"error\": \"server error\"}]";
 
     }
+
+    /**
+     * Service used to add a user as a member of a project.
+     * @param projectId
+     * @param userId
+     * @return
+     * @throws IOException
+     */
     @POST
     @Path("/addUser")
     @Produces(MediaType.APPLICATION_JSON)
@@ -266,6 +298,12 @@ public class projectService {
         return "[{\"error\": \"server error\"}]";
     }
 
+    /**
+     * return an HTML table listing all members of a project
+     * @param projectId
+     * @return
+     * @throws Exception
+     */
     @GET
     @Path("/listProjectUsersAsTable/{project_id}")
     @Produces(MediaType.TEXT_HTML)
@@ -283,6 +321,11 @@ public class projectService {
         return p.listProjectUsersAsTable(projectId);
     }
 
+    /**
+     * Service used to retrieve a JSON representation of the project's a user is a member of.
+     * @param accessToken
+     * @return
+     */
     @GET
     @Path("/listUserProjects")
     @Produces(MediaType.APPLICATION_JSON)

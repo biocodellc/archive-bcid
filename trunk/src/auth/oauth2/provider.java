@@ -8,7 +8,7 @@ import java.sql.*;
 import java.util.Calendar;
 
 /**
- * Created by rjewing on 2/15/14.
+ * This class handles all aspects of Oauth2 support.
  */
 public class provider {
     protected Connection conn;
@@ -18,6 +18,11 @@ public class provider {
         conn = db.getConn();
     }
 
+    /**
+     * check that the given clientId is valid
+     * @param clientId
+     * @return
+     */
     public Boolean validClientId(String clientId) {
         try {
             String selectString = "SELECT count(*) as count FROM oauthClients WHERE client_id = ?";
@@ -35,6 +40,12 @@ public class provider {
         return false;
     }
 
+    /**
+     * get the callback url stored for the given clientID
+     * @param clientID
+     * @return
+     * @throws SQLException
+     */
     public String getCallback(String clientID) throws SQLException {
         String selectString = "SELECT callback FROM oauthClients WHERE client_id = ?";
         PreparedStatement stmt = conn.prepareStatement(selectString);
@@ -48,6 +59,14 @@ public class provider {
         return null;
     }
 
+    /**
+     * generate a random 20 character code that can be exchanged for an access token by the client app
+     * @param clientID
+     * @param redirectURL
+     * @param username
+     * @return
+     * @throws Exception
+     */
     public String generateCode(String clientID, String redirectURL, String username) throws Exception {
         stringGenerator sg = new stringGenerator();
         String code = sg.generateString(20);
@@ -66,16 +85,30 @@ public class provider {
         return code;
     }
 
+    /**
+     * generate a new clientId for a oauth client app
+     * @return
+     */
     public String generateClientId() {
         stringGenerator sg = new stringGenerator();
         return sg.generateString(20);
     }
 
+    /**
+     * generate a client secret for a oauth client app
+     * @return
+     */
     public String generateClientSecret() {
         stringGenerator sg = new stringGenerator();
         return sg.generateString(75);
     }
 
+    /**
+     * verify that the given clientId and client secret match what is stored in the db
+     * @param clientId
+     * @param clientSecret
+     * @return
+     */
     public Boolean validateClient(String clientId, String clientSecret) {
         try {
             String selectString = "SELECT count(*) as count FROM oauthClients WHERE client_id = ? AND client_secret = ?";
@@ -94,6 +127,13 @@ public class provider {
         return false;
     }
 
+    /**
+     * verify that the given code was issued for the same client id that is trying to exchange the code for an access token
+     * @param clientID
+     * @param code
+     * @param redirectURL
+     * @return
+     */
     public Boolean validateCode(String clientID, String code, String redirectURL) {
         try {
             String selectString = "SELECT ts FROM oauthNonces WHERE client_id = ? AND code = ? AND redirect_uri = ?";
@@ -120,6 +160,12 @@ public class provider {
         return false;
     }
 
+    /**
+     * get the id of the user that the given oauth code represents
+     * @param clientId
+     * @param code
+     * @return
+     */
     private Integer getUserId(String clientId, String code) {
         Integer user_id = null;
         try {
@@ -140,6 +186,12 @@ public class provider {
         return user_id;
     }
 
+    /**
+     * Remove the given oauth code from the db. This is called when the code is exchanged for an access token,
+     * as oauth codes are only usable once.
+     * @param clientId
+     * @param code
+     */
     private void deleteNonce(String clientId, String code) {
         try {
             String deleteString = "DELETE FROM oauthNonces WHERE client_id = ? AND code = ?";
@@ -155,7 +207,7 @@ public class provider {
     }
 
     /**
-     * generate a token given a refresh token
+     * generate a new access token given a refresh token
      * @param refreshToken
      * @return
      * @throws SQLException
@@ -185,7 +237,7 @@ public class provider {
     }
 
     /**
-     * generate a token given a code, clientID, and state (optional)
+     * generate an access token given a code, clientID, and state (optional)
      * @param clientID
      * @param state
      * @param code
@@ -203,7 +255,7 @@ public class provider {
     }
 
     /**
-     * generate a JSON response with an access_token and refresh_token
+     * generate an oauth compliant JSON response with an access_token and refresh_token
      * @param clientID
      * @param userId
      * @param state
@@ -285,7 +337,7 @@ public class provider {
     }
 
     /**
-     * verify that a token is still valid
+     * Verify that an access token is still valid. Access tokens are only good for 1 hour.
      * @param token the access_token issued to the client
      * @return username the token represents, null if invalid token
      */
@@ -316,7 +368,8 @@ public class provider {
     }
 
     /**
-     * given a hostname, register a client app for oauth use
+     * Given a hostname, register a client app for oauth use. Will generate a new client id and client secret
+     * for the client app
      * @param args
      */
     public static void main(String args[]) {
