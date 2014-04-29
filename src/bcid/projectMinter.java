@@ -187,7 +187,6 @@ public class projectMinter {
      */
     public String listUserAdminProjects(String username) {
         StringBuilder sb = new StringBuilder();
-       // sb.append("[{");
 
         try {
             database db = new database();
@@ -214,23 +213,20 @@ public class projectMinter {
             }
             sb.append("\t]\n}");
 
-          //  while (rs.next()) {
-          //      sb.append("\"" + rs.getInt("project_id") + "\":\"" + rs.getString("project_title") + "\",");
-           // }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-      //  if (sb.length() > 2) {
-      //      sb.deleteCharAt(sb.lastIndexOf(","));
-       // }
-        //sb.append("}]");
         return sb.toString();
     }
 
+    /**
+     * return a JSON representation of the projects that a user is a member of
+     * @param username
+     * @return
+     */
     public String listUsersProjects(String username) {
         StringBuilder sb = new StringBuilder();
-        // sb.append("[{");
 
         try {
             database db = new database();
@@ -257,20 +253,19 @@ public class projectMinter {
             }
             sb.append("\t]\n}");
 
-            //  while (rs.next()) {
-            //     sb.append("\"" + rs.getInt("p.project_id") + "\":\"" + rs.getString("p.project_title") + "\",");
-            //}
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        //if (sb.length() > 2) {
-        //   sb.deleteCharAt(sb.lastIndexOf(","));
-        //}
-        //sb.append("}]");
         return sb.toString();
     }
 
+    /**
+     * return an HTML table of a project's configuration.
+     * @param project_id
+     * @param username
+     * @return
+     */
     public String getProjectConfigAsTable(Integer project_id, String username) {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getProjectConfig(project_id, username);
@@ -312,6 +307,12 @@ public class projectMinter {
         }
     }
 
+    /**
+     * return an HTML table in order to edit a project's configuration
+     * @param projectId
+     * @param username
+     * @return
+     */
     public String getProjectConfigEditorAsTable(Integer projectId, String username) {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getProjectConfig(projectId, username);
@@ -360,6 +361,12 @@ public class projectMinter {
         }
     }
 
+    /**
+     * Update the project's configuration with the values in the Hashtable.
+     * @param updateTable
+     * @param projectId
+     * @return
+     */
     public Boolean updateConfig(Hashtable<String, String> updateTable, Integer projectId) {
         try {
             database db = new database();
@@ -446,6 +453,12 @@ public class projectMinter {
         return config;
     }
 
+    /**
+     * Check if a user is a given project's admin
+     * @param userId
+     * @param projectId
+     * @return
+     */
     public Boolean userProjectAdmin(Integer userId, Integer projectId) {
         try {
             String sql = "SELECT count(*) as count FROM projects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
@@ -461,6 +474,12 @@ public class projectMinter {
         return false;
     }
 
+    /**
+     * Remove a user from a project. Once removed, a user can no longer create/view expeditions in the project.
+     * @param userId
+     * @param projectId
+     * @return
+     */
     public Boolean removeUser(Integer userId, Integer projectId) {
         try {
             String sql = "DELETE FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
@@ -474,6 +493,12 @@ public class projectMinter {
         return false;
     }
 
+    /**
+     * Add a user as a member to the project. This user can then create expeditions in this project.
+     * @param userId
+     * @param projectId
+     * @return
+     */
     public Boolean addUserToProject(Integer userId, Integer projectId) {
         PreparedStatement stmt;
         Boolean success;
@@ -495,6 +520,11 @@ public class projectMinter {
         return success;
     }
 
+    /**
+     * return an HTML table of all the members of a given project.
+     * @param projectId
+     * @return
+     */
     public String listProjectUsersAsTable(Integer projectId) {
         StringBuilder sb = new StringBuilder();
 

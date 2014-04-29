@@ -569,6 +569,12 @@ public class dataGroupMinter extends dataGroupEncoder {
         return false;
     }
 
+    /**
+     * return an HTML table to edit a bcid's config
+     * @param username
+     * @param prefix
+     * @return
+     */
     public String bcidEditorAsTable(String username, String prefix) {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getDataGroupConfig(prefix, username);

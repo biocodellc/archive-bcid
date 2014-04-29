@@ -16,12 +16,18 @@ import java.io.IOException;
 import java.net.URI;
 
 /**
- * REST interface to log a user in
- * Created by rjewing on 1/14/14.
+ * REST interface for handling user authentication
  */
 @Path("authenticationService")
 public class authenticationService {
 
+    /**
+     * Service to log a user into the bcid system
+     * @param usr
+     * @param pass
+     * @param return_to the url to return to after login
+     * @throws IOException
+     */
     @POST
     @Path("/login")
     @Produces(MediaType.TEXT_HTML)
@@ -89,6 +95,10 @@ public class authenticationService {
         res.sendRedirect("/bcid/login.jsp?error");
     }
 
+    /**
+     * Service to log a user out of the bcid system
+     * @throws IOException
+     */
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_HTML)
@@ -103,6 +113,15 @@ public class authenticationService {
         return;
     }
 
+    /**
+     * Service for a client app to log a user into the bcid system via oauth.
+     * @param clientId
+     * @param redirectURL
+     * @param state
+     * @param request
+     * @param response
+     * @throws IOException
+     */
     @GET
     @Path("/oauth/authorize")
     @Produces(MediaType.TEXT_HTML)
@@ -165,6 +184,17 @@ public class authenticationService {
         }
         return;
     }
+
+    /**
+     * Service for a client app to exchange an oauth code for an access token
+     * @param code
+     * @param clientId
+     * @param clientSecret
+     * @param redirectURL
+     * @param state
+     * @return
+     * @throws IOException
+     */
     @POST
     @Path("/oauth/access_token")
     @Produces(MediaType.APPLICATION_JSON)
@@ -201,6 +231,14 @@ public class authenticationService {
         return Response.status(500).entity("[{}]").build();
     }
 
+    /**
+     * Service for an oauth client app to exchange a refresh token for a valid access token.
+     * @param clientId
+     * @param clientSecret
+     * @param refreshToken
+     * @return
+     * @throws IOException
+     */
     @POST
     @Path("/oauth/refresh")
     @Produces(MediaType.APPLICATION_JSON)
@@ -235,6 +273,13 @@ public class authenticationService {
         return Response.status(500).entity("[{}]").build();
     }
 
+    /**
+     * Service for a user to exchange their reset token in order to update their password
+     * @param password
+     * @param token
+     * @param response
+     * @throws IOException
+     */
     @POST
     @Path("/reset")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -273,6 +318,11 @@ public class authenticationService {
         return;
     }
 
+    /**
+     * Service for a user to request that a password reset token is sent to their email
+     * @param username
+     * @return
+     */
     @POST
     @Path("/sendResetToken")
     @Produces(MediaType.APPLICATION_JSON)

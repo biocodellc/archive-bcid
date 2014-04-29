@@ -3,7 +3,6 @@ package bcid;
 import ezid.EZIDService;
 import util.SettingsManager;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.ws.rs.core.MultivaluedMap;
 import java.sql.*;
 import java.text.DateFormat;
@@ -510,6 +509,12 @@ public class expeditionMinter {
 
     }
 
+    /**
+     * Return a JSON response of the user's expeditions in a project
+     * @param projectId
+     * @param username
+     * @return
+     */
     public String listExpeditions(Integer projectId, String username) {
         StringBuilder sb = new StringBuilder();
 
@@ -545,6 +550,11 @@ public class expeditionMinter {
         return sb.toString();
     }
 
+    /**
+     * Return an HTML table of an expedition's resources
+     * @param expeditionId
+     * @return
+     */
     public String listExpeditionResourcesAsTable(Integer expeditionId) {
         StringBuilder sb = new StringBuilder();
         sb.append("<table>\n");
@@ -600,6 +610,11 @@ public class expeditionMinter {
         return sb.toString();
     }
 
+    /**
+     * return an HTML table of an expedition's datasets
+     * @param expeditionId
+     * @return
+     */
     public String listExpeditionDatasetsAsTable(Integer expeditionId) {
         StringBuilder sb = new StringBuilder();
         sb.append("<table>\n");
@@ -654,6 +669,13 @@ public class expeditionMinter {
         return sb.toString();
     }
 
+    /**
+     * Return an HTML Table of the expeditions associated with a project. Includes who owns the expedition,
+     * the expedition title, and whether the expedition is public
+     * @param projectId
+     * @param username the project's admins username
+     * @return
+     */
     public String listExpeditionsAsTable(Integer projectId, String username) {
         StringBuilder sb = new StringBuilder();
         sb.append("<form method=\"POST\">\n");
@@ -717,6 +739,12 @@ public class expeditionMinter {
         return sb.toString();
     }
 
+    /**
+     * Update the public attribute of each expedition in the expeditions MultivaluedMap
+     * @param expeditions
+     * @param projectId
+     * @return
+     */
     public Boolean updateExpeditionsPublicStatus(MultivaluedMap<String, String> expeditions, Integer projectId) {
         List<String> updateExpeditions = new ArrayList<String>();
         try {

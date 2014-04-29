@@ -111,6 +111,17 @@ public class expeditionService {
 
     }
 
+    /**
+     * Service for a user to mint a new expedition
+     * @param expedition_code
+     * @param expedition_title
+     * @param project_id
+     * @param isPublic
+     * @param accessToken (optional) the access token that represents the user who you are minting an expedition
+     *                    on behalf.
+     * @return
+     * @throws Exception
+     */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.TEXT_HTML)
@@ -235,6 +246,11 @@ public class expeditionService {
         }
     }
 
+    /**
+     * Return a JSON representation of the project's that a user is a member of
+     * @param projectId
+     * @return
+     */
     @GET
     @Path("/list/{project_id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -257,6 +273,11 @@ public class expeditionService {
         return "[{\"error\": \"server error\"}]";
     }
 
+    /**
+     * Returns an HTML table of an expedition's resources
+     * @param expeditionId
+     * @return
+     */
     @GET
     @Path("resourcesAsTable/{expedition_id}")
     @Produces(MediaType.TEXT_HTML)
@@ -280,6 +301,11 @@ public class expeditionService {
 
     }
 
+    /**
+     * Service to retrieve an expedition's datasets as an HTML table.
+     * @param expeditionId
+     * @return
+     */
     @GET
     @Path("datasetsAsTable/{expedition_id}")
     @Produces(MediaType.TEXT_HTML)
@@ -302,6 +328,11 @@ public class expeditionService {
         return "Server Error";
     }
 
+    /**
+     * Service to retrieve all of the project's expeditions. For use by project admin only.
+     * @param projectId
+     * @return
+     */
     @GET
     @Path("/admin/listExpeditionsAsTable/{project_id}")
     @Produces(MediaType.TEXT_HTML)
@@ -325,6 +356,11 @@ public class expeditionService {
         return "Server error fetching expeditions.";
     }
 
+    /**
+     * Service to retrive all of the project's expeditions that are public.
+     * @param data
+     * @return
+     */
     @POST
     @Path("/admin/publicExpeditions")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)

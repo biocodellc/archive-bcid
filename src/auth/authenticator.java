@@ -11,14 +11,12 @@ import java.util.Calendar;
 import java.util.Hashtable;
 
 import org.apache.commons.cli.*;
-import sun.print.resources.serviceui_sv;
 import util.SettingsManager;
 import util.sendEmail;
 import util.stringGenerator;
 
 /**
- * Used for all authentication duties
- * Created by rjewing on 1/14/14.
+ * Used for all authentication duties such as login, changing passwords, creating users, resetting passwords, etc.
  */
 public class authenticator {
     private database db;
@@ -116,6 +114,12 @@ public class authenticator {
         return false;
     }
 
+    /**
+     * Update the user's password associated with the given token.
+     * @param token
+     * @param password
+     * @return
+     */
     public Boolean resetPass(String token, String password) {
         try {
             String username = null;
@@ -142,7 +146,7 @@ public class authenticator {
     }
 
     /**
-     * create a hash of a password string
+     * create a hash of a password string to be stored in the db
      * @param password
      * @return
      */
@@ -221,6 +225,13 @@ public class authenticator {
         return false;
     }
 
+    /**
+     * In the case where a user has forgotten their password, generate a token that can be used to create a new
+     * password. This method will send to the user's registered email a link that can be used to change their password.
+     * @param username
+     * @return
+     * @throws Exception
+     */
     public String sendResetToken(String username) throws Exception{
         String email = null;
         String sql = "SELECT email FROM users WHERE username = ?";

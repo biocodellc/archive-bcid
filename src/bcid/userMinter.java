@@ -8,7 +8,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 /**
- * Created by rjewing on 2/11/14.
+ * Class to manage user creation and profile information.
  */
 public class userMinter {
     protected Connection conn;
@@ -18,6 +18,12 @@ public class userMinter {
         conn = db.getConn();
     }
 
+    /**
+     * create a new user given their profile information and add them to a project
+     * @param userInfo
+     * @param projectId
+     * @return
+     */
     public String createUser(Hashtable<String, String> userInfo, Integer projectId) {
         authenticator auth = new authenticator();
         Boolean success = auth.createUser(userInfo);
@@ -42,6 +48,10 @@ public class userMinter {
         return "[{\"error\": \"error creating new user\"}]";
     }
 
+    /**
+     * return an HTML table used for new user creation
+     * @return
+     */
     public String getCreateForm() {
         StringBuilder sb = new StringBuilder();
         sb.append("\t<form id=\"submitForm\" method=\"POST\">\n");
@@ -153,7 +163,7 @@ public class userMinter {
     }
 
     /**
-     * return JSON on user profile information
+     * return a JSON representation of a user's profile information
      * @param username
      * @return
      */
@@ -318,6 +328,11 @@ public class userMinter {
         return null;
     }
 
+    /**
+     * return a JSON representation of a user's profile for oauth client apps
+     * @param token
+     * @return
+     */
     public String getOauthProfile(String token) {
         try {
             provider p = new provider();
