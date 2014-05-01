@@ -60,5 +60,6 @@ We also support access to the following rest services on behalf of the user. Jus
 
     * /id/expeditionService/validateExpedition/{project_id}/{expedition_code}
     * /id/expeditionService/validateExpedition/
+    * /id/expeditionService/list/{project_id}
     * /id/groupService
     * /id/projectService/listUsersProjects/
