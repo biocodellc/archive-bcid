@@ -318,7 +318,7 @@ public class provider {
      */
     public Boolean validateRefreshToken(String refreshToken) {
         try {
-            String sql = "SELECT ts FROM oauthTokens WHERE refresh_token = ?";
+            String sql = "SELECT current_timestamp() as current,ts FROM oauthTokens WHERE refresh_token = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, refreshToken);
@@ -327,8 +327,12 @@ public class provider {
 
             if (rs.next()) {
                 Timestamp ts = rs.getTimestamp("ts");
-                // get a Timestamp instance for 24 hrs ago
-                Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 86400000);
+
+                  // Get the current time from the database (in case the application server is in a different timezone)
+                Timestamp currentTs = rs.getTimestamp("current");
+                // get a Timestamp instance for  for 24 hrs ago
+                Timestamp expiredTs = new Timestamp(currentTs.getTime() - 86400000);
+
                 // if ts is older 24 hrs, we can't proceed
                 if (ts != null && ts.after(expiredTs)) {
                     return true;
@@ -347,7 +351,7 @@ public class provider {
      */
     public String validateToken(String token) {
         try {
-            String selectString = "SELECT t.ts as ts, u.username as username "+
+            String selectString = "SELECT current_timestamp() as current,t.ts as ts, u.username as username "+
                     "FROM oauthTokens t, users u WHERE t.token=? && u.user_id = t.user_id";
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
@@ -357,8 +361,12 @@ public class provider {
             if (rs.next()) {
 
                 Timestamp ts = rs.getTimestamp("ts");
+
+                 // Get the current time from the database (in case the application server is in a different timezone)
+                Timestamp currentTs = rs.getTimestamp("current");
                 // get a Timestamp instance for 1 hr ago
-                Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 3600000);
+                Timestamp expiredTs = new Timestamp(currentTs.getTime() - 3600000);
+                //Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 3600000);
                 // if ts is older then 1 hr, we can't proceed
                 if (ts != null && ts.after(expiredTs)) {
                     return rs.getString("username");
