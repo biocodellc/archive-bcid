@@ -137,6 +137,7 @@ public class provider {
     public Boolean validateCode(String clientID, String code, String redirectURL) {
         try {
             String selectString = "SELECT ts FROM oauthNonces WHERE client_id = ? AND code = ? AND redirect_uri = ?";
+            //System.out.println("validateCode = " + selectString + "client_id=\"" + clientID + "\" code=\"" + code + "\" \"redirectURL=\"" + redirectURL + "\"");
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, clientID);
@@ -147,8 +148,11 @@ public class provider {
 
             if (rs.next()) {
                 Timestamp ts = rs.getTimestamp("ts");
-                // get a Timestamp instance for 10 mins ago
-                Timestamp expiredTs = new Timestamp(Calendar.getInstance().getTime().getTime() - 600000);
+                // Get the current time from the database (in case the application server is in a different timezone)
+                Timestamp currentTs = rs.getTimestamp("current");
+                // 10 minutes previous
+                Timestamp expiredTs = new Timestamp(currentTs.getTime() - 600000);
+
                 // if ts is older then 10 mins, we can't proceed
                 if (ts != null && ts.after(expiredTs)) {
                     return true;
