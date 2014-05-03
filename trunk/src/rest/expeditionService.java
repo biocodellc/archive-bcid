@@ -255,12 +255,22 @@ public class expeditionService {
     @Path("/list/{project_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public String listExpeditions(@PathParam("project_id") Integer projectId,
-                                  @Context HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
+                                  @QueryParam("access_token") String accessToken,
+                                  @Context HttpServletRequest request)
+        throws Exception {
+        String username;
+
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
 
         if (username == null) {
-            return "[{\"error\": \"You must be logged in to view your expeditions.\"}]";
+            return "{\"error\": \"You must be logged in to view your expeditions.\"}";
         }
 
         try {
@@ -270,7 +280,7 @@ public class expeditionService {
             e.printStackTrace();
         }
 
-        return "[{\"error\": \"server error\"}]";
+        return "{\"error\": \"server error\"}";
     }
 
     /**
