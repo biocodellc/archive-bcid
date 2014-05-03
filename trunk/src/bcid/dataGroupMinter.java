@@ -1,5 +1,8 @@
 package bcid;
 
+import util.SettingsManager;
+
+import javax.ws.rs.core.Response;
 import java.math.BigInteger;
 import java.net.URI;
 import java.sql.*;
@@ -28,6 +31,7 @@ public class dataGroupMinter extends dataGroupEncoder {
     protected boolean ezidRequest;
     protected boolean ezidMade;
     protected String who = "";
+    protected URI webAddress;
 
     /**
      * Default to ezidRequest = false using default Constructor
@@ -44,6 +48,10 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     public Boolean getSuffixPassThrough() {
         return suffixPassThrough;
+    }
+
+    public URI getWebAddress() {
+        return webAddress;
     }
 
     /**
@@ -107,7 +115,8 @@ public class dataGroupMinter extends dataGroupEncoder {
                 "d.doi as doi," +
                 "d.title as title," +
                 "d.ts as ts, " +
-                "CONCAT_WS(' ',u.firstName, u.lastName) as who" +
+                "CONCAT_WS(' ',u.firstName, u.lastName) as who, " +
+                "d.webAddress as webAddress" +
                 " FROM datasets d, users u " +
                 " WHERE d.datasets_id = '" + datasets_id.toString() + "'" +
                 " AND d.users_id = u.user_id";
@@ -127,6 +136,12 @@ public class dataGroupMinter extends dataGroupEncoder {
         this.datasets_id = datasets_id;
         this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
         setBow(naan);
+
+        try {
+            this.webAddress = new URI(rs.getString("webAddress"));
+        } catch (NullPointerException e) {
+            this.webAddress = null;
+        }
     }
 
     /**
@@ -397,7 +412,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      */
     public String getEZIDLink(String pPrefix, String username, String linkText) {
         if (!username.equals("demo")) {
-            return "(<a href='http://n2t.net/" + pPrefix + "'>" + linkText +"</a>)";
+            return "(<a href='http://n2t.net/" + pPrefix + "'>" + linkText + "</a>)";
         } else {
             return "";
             //return "<a href='http://biscicol.org/id/" + pPrefix + "'>http://biscicol.org/id/" + pPrefix + "</a>";
@@ -412,7 +427,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      */
     public String getEZIDMetadataLink(String pPrefix, String username, String linkText) {
         if (!username.equals("demo")) {
-            return "(<a href='http://ezid.cdlib.org/id/" + pPrefix + "'>" + linkText+ "</a>)";
+            return "(<a href='http://ezid.cdlib.org/id/" + pPrefix + "'>" + linkText + "</a>)";
         } else {
             return "";
             //return "(<a href='" + resolverTargetPrefix + pPrefix + "'>metadata</a>)";
@@ -455,10 +470,13 @@ public class dataGroupMinter extends dataGroupEncoder {
             e.printStackTrace();
         }
 
+
+
     }
 
     /**
      * fetch a BCID's configuration given a prefix and username
+     *
      * @param prefix
      * @param username
      * @return
@@ -507,6 +525,7 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     /**
      * update a BCID's configuration
+     *
      * @param config a Hashtable<String, String> which has the datasets table fields to be updated as key, new value pairs
      * @param prefix the ark:// for the BICD
      * @return
@@ -524,7 +543,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             }
 
             // Dynamically create our UPDATE statement depending on which fields the user wants to update
-            for (Enumeration e = config.keys(); e.hasMoreElements();){
+            for (Enumeration e = config.keys(); e.hasMoreElements(); ) {
                 String key = e.nextElement().toString();
                 sql += key + " = ?";
 
@@ -540,7 +559,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             // place the parametrized values into the SQL statement
             {
                 int i = 1;
-                for (Enumeration e = config.keys(); e.hasMoreElements();) {
+                for (Enumeration e = config.keys(); e.hasMoreElements(); ) {
                     String key = e.nextElement().toString();
                     if (key.equals("suffixPassthrough")) {
                         if (config.get(key).equalsIgnoreCase("true")) {
@@ -571,6 +590,7 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     /**
      * return an HTML table to edit a bcid's config
+     *
      * @param username
      * @param prefix
      * @return
@@ -631,7 +651,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         sb.append("\t\t</tr>\n");
 
         sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td><input type=\"hidden\" name=\"prefix\" value=\""+ prefix +"\"></td>\n");
+        sb.append("\t\t\t<td><input type=\"hidden\" name=\"prefix\" value=\"" + prefix + "\"></td>\n");
         sb.append("\t\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"dataGroupEditorSubmit();\" /><input type=\"button\" id=\"cancelButton\" value=\"Cancel\" /></td>\n");
         sb.append("\t\t</tr>\n");
 
