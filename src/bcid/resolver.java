@@ -1,15 +1,12 @@
 package bcid;
 
-import bcid.Renderer.HTMLTableRenderer;
 import bcid.Renderer.JSONRenderer;
-import bcid.Renderer.RDFRenderer;
 import bcid.Renderer.Renderer;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import util.SettingsManager;
 import util.timer;
 
-import javax.swing.text.html.HTMLDocument;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -26,8 +23,8 @@ public class resolver extends database {
     String ark = null;
     String scheme = "ark:";
     String naan = null;
-    String shoulder = null;
-    String blade = null;
+    String shoulder = null;     // The data group
+    String sourceID = null;        // The local identifier
     BigInteger element_id = null;
     Integer datagroup_id = null;
     static SettingsManager sm;
@@ -64,10 +61,10 @@ public class resolver extends database {
             String bits[] = ark.split("/", 3);
             // just want the first chunk between the "/"'s
             naan = bits[1];
-            // Now decipher the shoulder and blade in the next bit
-            setShoulderAndBlade(bits[2]);
-            // Call isDataGroup() to set datagroup_id
-            isDataGroup();
+            // Now decipher the shoulder and sourceID in the next bit
+            setShoulderAndSourceID(bits[2]);
+            // Call setDataGroup() to set datagroup_id
+            setDataGroup();
         } catch (Exception e) {
             System.out.println("The ark = " + ark);
             throw new Exception("Invalid ARK", e);
@@ -79,7 +76,7 @@ public class resolver extends database {
      * looks up a expedition specific BCID given the expedition code and an concept Alias
      *
      * @param expedition_code defines the BCID expedition_code to lookup
-     * @param conceptAlias defines the alias to narrow this,  a one-word reference denoting a BCID
+     * @param conceptAlias    defines the alias to narrow this,  a one-word reference denoting a BCID
      * @return returns the BCID for this expedition and conceptURI combination
      */
     public resolver(String expedition_code, Integer project_id, String conceptAlias) throws Exception {
@@ -133,31 +130,31 @@ public class resolver extends database {
     }
 
     /**
-     * Set the shoulder and blade variables for this ARK
+     * Set the shoulder and sourceID variables for this ARK
      *
      * @param a
      */
-    private void setShoulderAndBlade(String a) {
+    private void setShoulderAndSourceID(String a) {
         boolean reachedShoulder = false;
         StringBuilder sbShoulder = new StringBuilder();
-        StringBuilder sbBlade = new StringBuilder();
+        StringBuilder sbSourceID = new StringBuilder();
 
         for (int i = 0; i < a.length(); i++) {
             char c = a.charAt(i);
             if (!reachedShoulder)
                 sbShoulder.append(c);
             else
-                sbBlade.append(c);
+                sbSourceID.append(c);
             if (Character.isDigit(c))
                 reachedShoulder = true;
         }
         shoulder = sbShoulder.toString();
-        blade = sbBlade.toString();
+        sourceID = sbSourceID.toString();
 
-        // String the slash between the shoulder and the blade
+        // String the slash between the shoulder and the sourceID
         if (!sm.retrieveValue("divider").equals("")) {
-            if (blade.startsWith(sm.retrieveValue("divider"))) {
-                blade = blade.substring(1);
+            if (sourceID.startsWith(sm.retrieveValue("divider"))) {
+                sourceID = sourceID.substring(1);
             }
         }
     }
@@ -174,30 +171,25 @@ public class resolver extends database {
 
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
-            bcid = new bcid(blade,datagroup_id);
+            bcid = new bcid(sourceID, datagroup_id);
 
-            // Set resolution target to that specified by the datagroup ID webAddress, only if it exists
-            // and only if it does not specify suffixPassThrough.  If it specifies suffix passthrough
-            // the assumption here is we only want to resolve suffixes but not the dataset itself.
-            // TODO: update documentation with this behaviour!
-
-            /**
-             * GROUP RESOLUTION
-             */
             // Group has a specified resolution target
             if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().toString().trim().equals("")) {
-                // Group specifies suffix passthrough
-                if (bcid.getDatasetsSuffixPassthrough()) {
-                    resolution = bcid.getMetadataTarget();
-                    // Group does not specify suffix passthrough
-                } else {
-                    resolution = bcid.getResolutionTarget();
-
+                // A resolution target is specified AND there is a sourceID
+                if (sourceID != null && bcid.getResolutionTarget() != null && !sourceID.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
+                    resolution = new URI(bcid.getResolutionTarget() + sourceID);
                 }
-                // Determine if this has some suffix on the datagroup and if so, then provide re-direct to
-                // location specified in the system
-                if (blade != null && bcid.getResolutionTarget() != null && !blade.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
-                    resolution = new URI(bcid.getResolutionTarget() + blade);
+                // If the database indicates this is a suffixPassthrough dataset then return the MetadataTarget
+                else if (bcid.getDatasetsSuffixPassthrough()) {
+                    resolution = bcid.getMetadataTarget();
+                }
+                // If there is some resolution target then return that
+                else if (bcid.getResolutionTarget() != null) {
+                    resolution = bcid.getResolutionTarget();
+                }
+                // All other cases just return metadata
+                else {
+                    resolution = bcid.getMetadataTarget();
                 }
             }
             // This is a group and no resolution target is specified then just return metadata.
@@ -218,7 +210,7 @@ public class resolver extends database {
         GenericIdentifier bcid = null;
 
         // First  option is check if dataset, then look at other options after this is determined
-        if (isDataGroup()) {
+        if (setDataGroup()) {
 
             bcid = new bcid(datagroup_id);
             // Has a registered, resolvable suffix
@@ -228,8 +220,8 @@ public class resolver extends database {
             // Has a suffix, but not resolvable
             //else {
             try {
-                if (blade != null && bcid.getResolutionTarget() != null) {
-                    bcid = new bcid(blade, bcid.getResolutionTarget(), datagroup_id);
+                if (sourceID != null && bcid.getResolutionTarget() != null) {
+                    bcid = new bcid(sourceID, bcid.getResolutionTarget(), datagroup_id);
                 }
             } catch (URISyntaxException e) {
                 e.printStackTrace();
@@ -245,21 +237,21 @@ public class resolver extends database {
      *
      * @return
      */
-    private boolean isLocalID() {
-        String select = "SELECT identifiers_id FROM identifiers " +
-                "where i.localid = " + ark;
-        Statement stmt = null;
-        try {
-            stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(select);
-            rs.next();
-            // TODO: enable returning multiple possible identifiers here
-            element_id = new BigInteger(rs.getString("identifiers_id"));
-            return true;
-        } catch (SQLException e) {
-            return false;
-        }
-    }
+    /* private boolean isLocalID() {
+     String select = "SELECT identifiers_id FROM identifiers " +
+             "where i.localid = " + ark;
+     Statement stmt = null;
+     try {
+         stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(select);
+         rs.next();
+         // TODO: enable returning multiple possible identifiers here
+         element_id = new BigInteger(rs.getString("identifiers_id"));
+         return true;
+     } catch (SQLException e) {
+         return false;
+     }
+ }   */
 
     /**
      * Resolve an EZID version of this ARK
@@ -305,12 +297,19 @@ public class resolver extends database {
         return sb.toString();
     }
 
+    private boolean isDataGroup() {
+        if (datagroup_id != null)
+            return true;
+        else
+            return false;
+    }
+
     /**
      * Check if this is a dataset and set the datasets_id
      *
      * @return
      */
-    private boolean isDataGroup() {
+    private boolean setDataGroup() {
         // Test Dataset is #1
         if (shoulder.equals("fk4") && naan.equals("99999")) {
             datagroup_id = 1;
@@ -350,11 +349,11 @@ public class resolver extends database {
      * @return
      */
     private boolean isResolvableSuffix(Integer d) {
-        // Only attempt this method if the blade has some content, else we know there is no suffix
-        if (blade != null && !blade.equals("")) {
+        // Only attempt this method if the sourceID has some content, else we know there is no suffix
+        if (sourceID != null && !sourceID.equals("")) {
             // Establish database connection so we can lookup suffixes here
             try {
-                String select = "SELECT identifiers_id FROM identifiers where datasets_id = " + d + " && localid = '" + blade + "'";
+                String select = "SELECT identifiers_id FROM identifiers where datasets_id = " + d + " && localid = '" + sourceID + "'";
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(select);
                 rs.next();
@@ -376,54 +375,54 @@ public class resolver extends database {
      *
      * @return
      */
-    private boolean isElement(int datasets_id) {
+    /*  private boolean isElement(int datasets_id) {
 
-        String bow = scheme + "/" + naan + "/";
-        String prefix = bow + shoulder;
-        // if prefix and ark the same then just return false!
-        if (prefix.equals(ark)) {
-            return false;
-        }
-        BigInteger bigInt = null;
+         String bow = scheme + "/" + naan + "/";
+         String prefix = bow + shoulder;
+         // if prefix and ark the same then just return false!
+         if (prefix.equals(ark)) {
+             return false;
+         }
+         BigInteger bigInt = null;
 
-        // Look at Check Digit, a BCID should validate here... if the check-digit doesn't work its not a BCID
-        // We do the check-digit function first since this is faster than looking it up in the database and
-        // if it is bad, we will know right away.
-        try {
-            bigInt = new elementEncoder(prefix).decode(ark);
-        } catch (Exception e) {
-            return false;
-        }
+         // Look at Check Digit, a BCID should validate here... if the check-digit doesn't work its not a BCID
+         // We do the check-digit function first since this is faster than looking it up in the database and
+         // if it is bad, we will know right away.
+         try {
+             bigInt = new elementEncoder(prefix).decode(ark);
+         } catch (Exception e) {
+             return false;
+         }
 
-        // Now, see if this exists in the database
-        try {
-            element_id = bigInt;
-            // First test is to see if this is a valid number
-            if (bigInt.signum() == 1) {
-                // Now test to see if this actually exists in the database.
-                try {
-                    String select = "SELECT count(*) as count FROM identifiers where identifiers_id = " + bigInt +
-                            " && datasets_id = " + datasets_id;
-                    Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery(select);
-                    rs.next();
-                    if (rs.getInt("count") > 0)
-                        return true;
-                    else
-                        return false;
-                } catch (Exception e) {
-                    return false;
-                }
+         // Now, see if this exists in the database
+         try {
+             element_id = bigInt;
+             // First test is to see if this is a valid number
+             if (bigInt.signum() == 1) {
+                 // Now test to see if this actually exists in the database.
+                 try {
+                     String select = "SELECT count(*) as count FROM identifiers where identifiers_id = " + bigInt +
+                             " && datasets_id = " + datasets_id;
+                     Statement stmt = conn.createStatement();
+                     ResultSet rs = stmt.executeQuery(select);
+                     rs.next();
+                     if (rs.getInt("count") > 0)
+                         return true;
+                     else
+                         return false;
+                 } catch (Exception e) {
+                     return false;
+                 }
 
-            } else {
-                return false;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
+             } else {
+                 return false;
+             }
+         } catch (Exception e) {
+             e.printStackTrace();
+             return false;
+         }
+     }
+    */
 
     /**
      * Main function for testing.
@@ -456,10 +455,36 @@ public class resolver extends database {
          */
 
         try {
-            r = new resolver("ark:/21547/JJ2f0297774e9a88955493f1af17b1cd7c0");
+            String expected = "";
+            // suffixpassthrough = 1; no webAddress specified; has a SourceID
+            r = new resolver("ark:/87286/U264c82d19-6562-4174-a5ea-e342eae353e8");
+            expected = "http://biscicol.org/id/metadata/ark:/21547/U264c82d19-6562-4174-a5ea-e342eae353e8";
             System.out.println(r.resolveARK());
-            //r = new resolver("ark:/21547/R2");
 
+            // suffixPassthrough = 1; webaddress specified; has a SourceID
+            r = new resolver("ark:/21547/R2MBIO56");
+            expected = "http://biocode.berkeley.edu/specimens/MBIO56";
+            System.out.println(r.resolveARK());
+
+            // suffixPassthrough = 1; webaddress specified; no SourceID
+            r = new resolver("ark:/21547/R2");
+            expected = "http://biscicol.org/id/metadata/ark:/21547/R2";
+            System.out.println(r.resolveARK());
+
+            // suffixPassthrough = 0; no webaddress specified; no SourceID
+            r = new resolver("ark:/21547/W2");
+            expected = "http://biscicol.org/id/metadata/ark:/21547/W2";
+            System.out.println(r.resolveARK());
+
+            // suffixPassthrough = 0; webaddress specified; no SourceID
+            r = new resolver("ark:/21547/Gk2");
+            expected =  "http://biscicol.org:3030/ds?graph=urn:uuid:77806834-a34f-499a-a29f-aaac51e6c9f8";
+            System.out.println(r.resolveARK());
+
+               // suffixPassthrough = 0; webaddress specified;  sourceID specified (still pass it through
+            r = new resolver("ark:/21547/Gk2FOO");
+            expected =  "http://biscicol.org:3030/ds?graph=urn:uuid:77806834-a34f-499a-a29f-aaac51e6c9f8FOO";
+            System.out.println(r.resolveARK());
 
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));

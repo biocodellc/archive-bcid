@@ -47,15 +47,6 @@ public class bcid extends GenericIdentifier {
     // HashMap to store metadata values
     private HashMap<String, String> map = new HashMap<String, String>();
 
-    /**
-     * Create an element given a source identifier, and a resource type identifier
-     *
-     * @param sourceID
-     * @param dataset_id
-     */
-    public bcid(String sourceID, Integer dataset_id) {
-        this(sourceID, null, dataset_id);
-    }
 
     static SettingsManager sm;
 
@@ -69,35 +60,45 @@ public class bcid extends GenericIdentifier {
     }
 
     /**
-     * Create an element given a source identifier, web address for resolution, and a resource type identifier
+     * Create data group
+     *
+     * @param datasets_id
+     */
+    public bcid(Integer datasets_id) {
+        setDatasets_id(datasets_id);
+    }
+
+
+    /**
+     * Create an element given a source identifier, and a resource type identifier
+     *
+     * @param sourceID
+     * @param dataset_id
+     */
+    public bcid(String sourceID, Integer dataset_id) {
+        setDatasets_id(dataset_id);
+        try {
+            if (sourceID != null && !sourceID.equals("")) {
+                identifier = new URI(dataset.identifier + sm.retrieveValue("divider") + sourceID);
+            } else {
+                identifier = dataset.identifier;
+            }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Create an element given a source identifier, web address for resolution, and a dataset_id
+     * This method is meant for CREATING bcids.
      *
      * @param sourceID
      * @param webAddress
      * @param dataset_id
      */
     public bcid(String sourceID, URI webAddress, Integer dataset_id) {
-
-        try {
-            dataset = new dataGroupMinter(dataset_id);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        when = new dates().now();
+        setDatasets_id(dataset_id);
         this.webAddress = webAddress;
-        this.sourceID = sourceID;
-        this.dataset_id = dataset_id;
-        this.what = dataset.getResourceType();
-        this.title = dataset.title;
-        this.datasetsTs = dataset.ts;
-        this.datasetsPrefix = dataset.getPrefix();
-        this.doi = dataset.doi;
-        this.level = this.UNREGISTERED_ELEMENT;
-        this.who = dataset.who;
-        identifiersEzidRequest = false;
-        identifiersEzidMade = false;
-        datasetsEzidMade = dataset.ezidMade;
-        datasetsEzidRequest = dataset.ezidRequest;
-        datasetsSuffixPassthrough = dataset.getSuffixPassThrough();
         try {
             if (sourceID != null && !sourceID.equals("")) {
                 identifier = new URI(dataset.identifier + sm.retrieveValue("divider") + sourceID);
@@ -117,8 +118,8 @@ public class bcid extends GenericIdentifier {
                 e.printStackTrace();
             }
         }
-
     }
+
 
     /**
      * Create an element by passing in an BigInteger for the specific slot in the database and a string representation of this
@@ -129,105 +130,158 @@ public class bcid extends GenericIdentifier {
      * @param identifiers_id indicating the integer of this identifier in the BCID system
      * @param ark            is the Full identifier
      */
-    public bcid(BigInteger identifiers_id, String ark) {
-        try {
-            database db = new database();
-            Statement stmt = db.conn.createStatement();
-            String datasets = "SELECT " +
-                    "   d.ezidMade," +
-                    "   d.ezidRequest," +
-                    "   d.prefix,d.ts," +
-                    "   d.title," +
-                    "   i.ezidMade," +
-                    "   i.ezidRequest," +
-                    "   d.suffixPassthrough," +
-                    "   i.localid," +
-                    "   i.webaddress," +
-                    "   d.resourceType," +
-                    "   i.ts," +
-                    //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
-                    "   CONCAT_WS(' ',u.firstName, u.lastName) " +
-                    " FROM datasets d, identifiers i, users u " +
-                    " WHERE d.datasets_id = i.datasets_id && " +
-                    " d.users_id = u.user_id && " +
-                    " i.identifiers_id = " + identifiers_id.toString();
-            ResultSet rs = stmt.executeQuery(datasets);
-            rs.next();
-            int count = 1;
-            datasetsEzidMade = rs.getBoolean(count++);
-            datasetsEzidRequest = rs.getBoolean(count++);
-            datasetsPrefix = rs.getString(count++);
-            datasetsTs = rs.getString(count++);
-            title = rs.getString(count++);
-            identifiersEzidMade = rs.getBoolean(count++);
-            identifiersEzidRequest = rs.getBoolean(count++);
-            datasetsSuffixPassthrough = rs.getBoolean(count++);
-            sourceID = rs.getString(count++);
-            String webaddress = rs.getString(count++);
-            if (webaddress != null) {
-                webAddress = new URI(webaddress);
-            }
-            what = rs.getString(count++);
-            when = rs.getString(count++);
-            who = rs.getString(count++);
-            this.identifier = new URI(ark);
-            this.level = this.ELEMENT;
+    /* public bcid(BigInteger identifiers_id, String ark) {
+       try {
+           database db = new database();
+           Statement stmt = db.conn.createStatement();
+           String datasets = "SELECT " +
+                   "   d.ezidMade," +
+                   "   d.ezidRequest," +
+                   "   d.prefix,d.ts," +
+                   "   d.title," +
+                   "   i.ezidMade," +
+                   "   i.ezidRequest," +
+                   "   d.suffixPassthrough," +
+                   "   i.localid," +
+                   "   i.webaddress," +
+                   "   d.resourceType," +
+                   "   i.ts," +
+                   //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
+                   "   CONCAT_WS(' ',u.firstName, u.lastName) " +
+                   " FROM datasets d, identifiers i, users u " +
+                   " WHERE d.datasets_id = i.datasets_id && " +
+                   " d.users_id = u.user_id && " +
+                   " i.identifiers_id = " + identifiers_id.toString();
+           ResultSet rs = stmt.executeQuery(datasets);
+           rs.next();
+           int count = 1;
+           datasetsEzidMade = rs.getBoolean(count++);
+           datasetsEzidRequest = rs.getBoolean(count++);
+           datasetsPrefix = rs.getString(count++);
+           datasetsTs = rs.getString(count++);
+           title = rs.getString(count++);
+           identifiersEzidMade = rs.getBoolean(count++);
+           identifiersEzidRequest = rs.getBoolean(count++);
+           datasetsSuffixPassthrough = rs.getBoolean(count++);
+           sourceID = rs.getString(count++);
+           String webaddress = rs.getString(count++);
+           if (webaddress != null) {
+               webAddress = new URI(webaddress);
+           }
+           what = rs.getString(count++);
+           when = rs.getString(count++);
+           who = rs.getString(count++);
+           this.identifier = new URI(ark);
+           this.level = this.ELEMENT;
 
-        } catch (Exception e) {
+       } catch (Exception e) {
+           e.printStackTrace();
+       }
+   } */
+
+
+    /**
+     * Internal function for setting the source ID (local identifier that has been passed in)
+     *
+     * @param sourceID
+     */
+    private void setSourceID(String sourceID) {
+        try {
+            if (sourceID != null && !sourceID.equals("")) {
+                identifier = new URI(dataset.identifier + sm.retrieveValue("divider") + sourceID);
+            } else {
+                identifier = dataset.identifier;
+            }
+        } catch (URISyntaxException e) {
             e.printStackTrace();
+        }
+
+        // Reformat webAddress in this constructor if there is a sourceID
+        if (sourceID != null && webAddress != null && !sourceID.toString().trim().equals("") && !webAddress.toString().trim().equals("")) {
+            //System.out.println("HERE" + webAddress);
+            try {
+                this.webAddress = new URI(webAddress + sourceID);
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     /**
-     * Create data group
+     * Internal functional for setting the datasets_id that has been passed in
      *
-     * @param datasets_id
+     * @param pDatasets_id
      */
-    public bcid(Integer datasets_id) {
+    private void setDatasets_id(Integer pDatasets_id) {
+        /*  try {
+          database db = new database();
+          Statement stmt = db.conn.createStatement();
+          String datasets = "SELECT d.ezidMade," +
+                  "   d.ezidRequest," +
+                  "   d.prefix," +
+                  "   d.ts," +
+                  "   d.title," +
+                  "   d.resourceType," +
+                  "   d.suffixPassthrough," +
+                  "   d.doi," +
+                  "   d.webAddress," +
+                  //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
+                  "   CONCAT_WS(' ',u.firstName, u.lastName) " +
+                  " FROM datasets d, users u " +
+                  " WHERE " +
+                  " d.datasets_id = " + datasets_id + " && " +
+                  " d.users_id = u.user_id";
+
+          ResultSet rs = stmt.executeQuery(datasets);
+          rs.next();
+          int count = 1;
+          datasetsEzidMade = rs.getBoolean(count++);
+          datasetsEzidRequest = rs.getBoolean(count++);
+          datasetsPrefix = rs.getString(count++);
+          datasetsTs = rs.getString(count++);
+          title = rs.getString(count++);
+          what = rs.getString(count++);
+          datasetsSuffixPassthrough = rs.getBoolean(count++);
+          doi = rs.getString(count++);
+          try {
+              webAddress = new URI(rs.getString(count++));
+          } catch (NullPointerException e) {
+              webAddress = null;
+          }
+          who = rs.getString(count++);
+          identifier = new URI(datasetsPrefix);
+          //what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
+          when = datasetsTs;
+          level = this.GROUP;
+
+      } catch (Exception e) {
+          e.printStackTrace();
+      }  */
+
+
+        // Create a dataset representation based on the dataset_id
         try {
-            database db = new database();
-            Statement stmt = db.conn.createStatement();
-            String datasets = "SELECT d.ezidMade," +
-                    "   d.ezidRequest," +
-                    "   d.prefix," +
-                    "   d.ts," +
-                    "   d.title," +
-                    "   d.resourceType," +
-                    "   d.suffixPassthrough," +
-                    "   d.doi," +
-                    "   d.webAddress," +
-                    //"   concat_ws('',u.fullname,' &lt;',u.email,'&gt;') as username " +
-                    "   CONCAT_WS(' ',u.firstName, u.lastName) " +
-                    " FROM datasets d, users u " +
-                    " WHERE " +
-                    " d.datasets_id = " + datasets_id + " && " +
-                    " d.users_id = u.user_id";
-
-            ResultSet rs = stmt.executeQuery(datasets);
-            rs.next();
-            int count = 1;
-            datasetsEzidMade = rs.getBoolean(count++);
-            datasetsEzidRequest = rs.getBoolean(count++);
-            datasetsPrefix = rs.getString(count++);
-            datasetsTs = rs.getString(count++);
-            title = rs.getString(count++);
-            what = rs.getString(count++);
-            datasetsSuffixPassthrough = rs.getBoolean(count++);
-            doi = rs.getString(count++);
-            try {
-                webAddress = new URI(rs.getString(count++));
-            } catch (NullPointerException e) {
-                webAddress = null;
-            }
-            who = rs.getString(count++);
-            identifier = new URI(datasetsPrefix);
-            //what = new ResourceTypes().get(ResourceTypes.DATASET).uri;
-            when = datasetsTs;
-            level = this.GROUP;
-
+            dataset = new dataGroupMinter(pDatasets_id);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        when = new dates().now();
+
+        this.webAddress = dataset.getWebAddress();
+        this.dataset_id = pDatasets_id;
+        this.what = dataset.getResourceType();
+        this.title = dataset.title;
+        this.datasetsTs = dataset.ts;
+        this.datasetsPrefix = dataset.getPrefix();
+        this.doi = dataset.doi;
+        this.level = this.UNREGISTERED_ELEMENT;
+        this.who = dataset.who;
+        identifiersEzidRequest = false;
+        identifiersEzidMade = false;
+        datasetsEzidMade = dataset.ezidMade;
+        datasetsEzidRequest = dataset.ezidRequest;
+        datasetsSuffixPassthrough = dataset.getSuffixPassThrough();
+
     }
 
     /**
@@ -261,10 +315,10 @@ public class bcid extends GenericIdentifier {
     }
 
     public URI getMetadataTarget() throws URISyntaxException {
-       // if (sourceID != null)
-       //     return new URI(resolverMetadataPrefix + identifier + sourceID);
-       // else
-            return new URI(resolverMetadataPrefix + identifier);
+        // if (sourceID != null)
+        //     return new URI(resolverMetadataPrefix + identifier + sourceID);
+        // else
+        return new URI(resolverMetadataPrefix + identifier);
 
     }
 
