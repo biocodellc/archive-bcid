@@ -171,7 +171,7 @@ function populateSelect(a) {
 
 // Take the resolver results and populate a table
 function resolverResults() {
-    window.location.replace("/id/metadata/" + $("#identifier").val());
+    window.location.replace("/id/" + $("#identifier").val());
 }
 
 function getQueryParam(sParam) {

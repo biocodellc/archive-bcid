@@ -57,6 +57,7 @@ public class resolverService {
             URI seeOtherUri = null;
             try {
                 seeOtherUri = new resolver(element).resolveARK();
+                System.out.println(seeOtherUri);
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
