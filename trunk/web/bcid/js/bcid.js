@@ -388,6 +388,36 @@ function profileSubmit(username, divId) {
     }
 }
 
+// get profile editor
+function getProfileEditor() {
+    var jqxhr = populateDivFromService(
+        "/id/userService/profile/listEditorAsTable",
+        "listUserProfile",
+        "Unable to load this user's profile editor from the Server")
+        .done(function() {
+            $("#cancelButton").click(function() {
+                var jqxhr2 = populateDivFromService(
+                    "/id/userService/profile/listAsTable",
+                    "listUserProfile",
+                    "Unable to load this user's profile from the Server")
+                    .done(function() {
+                        $("a", "#profile").click( function() {
+                            getProfileEditor();
+                        });
+                    });
+                loadingDialog(jqxhr2);
+            });
+            $("#profile_submit").click(function() {
+                if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
+                    $(".error").html("password too weak");
+                } else {
+                    $("form").submit();
+                }
+            });
+    });
+    loadingDialog(jqxhr);
+}
+
 // function to submit the project's expeditions form. used to update the expedition public attribute.
 function expeditionsPublicSubmit(divId) {
     var inputs = $('form input[name]', divId);
