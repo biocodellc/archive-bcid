@@ -166,6 +166,7 @@ function populateSelect(a) {
                 $("." + a).html(options);
             }
         });
+    return jqxhr;
 }
 
 // Take the resolver results and populate a table
@@ -616,36 +617,43 @@ function populateResourcesOrDatasets(divId) {
     }
 }
 
+// load bcid editor
+function getBCIDEditor(element) {
+    var jqxhr = populateDivFromService(
+        "/id/groupService/dataGroupEditorAsTable?ark=" + element.dataset.ark,
+        "listUserBCIDsAsTable",
+        "Unable to load the BCID editor from Server"
+    ).done(function() {
+        populateSelect("resourceTypesMinusDataset"
+        ).done(function() {
+            var options = $('option')
+            $.each(options, function() {
+                if ($('select').data('resource_type') == this.text) {
+                    $('select').val(this.value);
+                }
+            })
+        });
+        $("#cancelButton").click(function() {
+            populateBCIDPage();
+        });
+    });
+    loadingDialog(jqxhr);
+
+}
+
 // function to populate the bcids.jsp page
 function populateBCIDPage() {
     var jqxhr = populateDivFromService(
         "/id/groupService/listUserBCIDsAsTable",
         "listUserBCIDsAsTable",
-        "Unable to load this user's BCIDs from Server");
-    loadingDialog(jqxhr);
-    $(document).one("ajaxStop", function() {
+        "Unable to load this user's BCIDs from Server"
+    ).done(function() {
         $("a.edit").click(function() {
-            var jqxhr = populateDivFromService(
-                "/id/groupService/dataGroupEditorAsTable?ark=" + this.dataset.ark,
-                "listUserBCIDsAsTable",
-                "Unable to load the BCID editor from Server");
-            loadingDialog(jqxhr);
-        });
-        $(document).one("ajaxStop", function() {
-            populateSelect("resourceTypesMinusDataset");
-            $("#cancelButton").click(function() {
-                populateBCIDPage();
-            });
-            $(document).one("ajaxStop", function() {
-                var options = $('option')
-                $.each(options, function() {
-                    if ($('select').data('resource_type') == this.text) {
-                        $('select').val(this.value);
-                    }
-                });
-            });
+            getBCIDEditor(this);
         });
     });
+    loadingDialog(jqxhr);
+    return jqxhr;
 }
 
 // function to submit the reset password form
