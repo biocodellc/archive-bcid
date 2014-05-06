@@ -20,60 +20,21 @@
             var jqxhr = populateDivFromService(
                 "/id/userService/profile/listAsTable",
                 "listUserProfile",
-                "Unable to load this user's profile from the Server");
+                "Unable to load this user's profile from the Server")
+                .done(function() {
+                    $("a", "#profile").click( function() {
+                        getProfileEditor();
+                    });
+                });
             loadingDialog(jqxhr);
         } else {
-            $(document).ajaxStop(function() {
-                $(".error").text("${param.error}");
-                $("#cancelButton").click(function() {
-                    var jqxhr = populateDivFromService(
-                        "/id/userService/profile/listAsTable",
-                        "listUserProfile",
-                        "Unable to load this user's profile from the Server");
-                    loadingDialog(jqxhr);
-                });
-                $("#profile_submit").click(function() {
-                    if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
-                        $(".error").html("password too weak");
-                    } else {
-                        $("form").submit();
-                    }
-                });
-            });
-            var jqxhr = populateDivFromService(
-                "/id/userService/profile/listEditorAsTable",
-                "listUserProfile",
-                "Unable to load this user's profile editor from the Server");
-            loadingDialog(jqxhr);
+            getProfileEditor();
         }
-        $(document).ajaxStop(function() {
-            $("a", "#profile").click( function() {
-                var jqxhr = populateDivFromService(
-                    "/id/userService/profile/listEditorAsTable",
-                    "listUserProfile",
-                    "Unable to load this user's profile editor from the Server");
-                loadingDialog(jqxhr);
-                $(document).ajaxStop(function() {
-                    $(".error").text("${param.error}");
-                    $("#cancelButton").click(function() {
-                        var jqxhr = populateDivFromService(
-                            "/id/userService/profile/listAsTable",
-                            "listUserProfile",
-                            "Unable to load this user's profile from the Server");
-                        loadingDialog(jqxhr);
-                    });
-                    $("#profile_submit").click(function() {
-                        if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
-                            $(".error").html("password too weak");
-                        } else {
-                            $("form").submit();
-                        }
-                    });
-                });
-            });
 
+        $(document).ajaxStop(function() {
+            $(".error").text("${param.error}");
         });
-    })
+    });
 </script>
 
 <%@ include file="../footer.jsp" %>
