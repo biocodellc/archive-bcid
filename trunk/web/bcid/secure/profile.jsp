@@ -30,10 +30,6 @@
         } else {
             getProfileEditor();
         }
-
-        $(document).ajaxStop(function() {
-            $(".error").text("${param.error}");
-        });
     });
 </script>
 

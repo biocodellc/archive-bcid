@@ -180,80 +180,80 @@ function getQueryParam(sParam) {
     for (var i = 0; i < sURLVariables.length; i++) {
         var sParameterName = sURLVariables[i].split('=');
         if (sParameterName[0] == sParam) {
-            return sParameterName[1];
+            return decodeURIComponent(sParameterName[1]);
         }
     }
 }
 
 // function to populate the bcid projects.jsp page
 function populateProjectPage(username) {
-    var jqxhr = listProjects(username, '/id/projectService/admin/list', false);
-    jqxhr.done(function() {
-            // attach toggle function to each project
-            $(".expand-content").click(function() {
-                projectToggle(this.id)
-            });
+    var jqxhr = listProjects(username, '/id/projectService/admin/list', false
+    ).done(function() {
+        // attach toggle function to each project
+        $(".expand-content").click(function() {
+            projectToggle(this.id)
         });
+    });
 }
 
 // function to retrieve a user's projects and populate the page
 function listProjects(username, url, expedition) {
-    var jqxhr = $.getJSON(url)
-            .done(function(data) {
-                if (!expedition) {
-                    var html = '<h2>Manage Projects (' + username + ')</h2>\n';
-                } else {
-                    var html = '<h2>Manage Expeditions (' + username + ')</h2>\n';
-                }
-                var expandTemplate = '<br>\n<a class="expand-content" id="{project}-{section}" href="javascript:void(0);">\n'
-                                    + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
-                                    + '</a>\n';
-                $.each(data.projects, function(index, element) {
-                    key=element.project_id;
-                    val=element.project_title;
-                    var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
+    var jqxhr = $.getJSON(url
+    ).done(function(data) {
+        if (!expedition) {
+            var html = '<h2>Manage Projects (' + username + ')</h2>\n';
+        } else {
+            var html = '<h2>Manage Expeditions (' + username + ')</h2>\n';
+        }
+        var expandTemplate = '<br>\n<a class="expand-content" id="{project}-{section}" href="javascript:void(0);">\n'
+                            + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'
+                            + '</a>\n';
+        $.each(data.projects, function(index, element) {
+            key=element.project_id;
+            val=element.project_title;
+            var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
-                    html += expandTemplate.replace('{text}', element.project_title).replace('-{section}', '');
-                    html += '<div id="{project}" class="toggle-content">';
-                    if (!expedition) {
-                        html += expandTemplate.replace('{text}', 'Configuration').replace('{section}', 'config').replace('<br>\n', '');
-                        html += '<div id="{project}-config" class="toggle-content">Loading Project Configuration...</div>';
-                        html += expandTemplate.replace('{text}', 'Expeditions').replace('{section}', 'expeditions');
-                        html += '<div id="{project}-expeditions" class="toggle-content">Loading Expeditions...</div>';
-                        html +=  expandTemplate.replace('{text}', 'Users').replace('{section}', 'users');
-                        html += '<div id="{project}-users" class="toggle-content">Loading Users...</div>';
-                    } else {
-                        html += 'Loading...';
-                    }
-                    html += '</div>\n';
+            html += expandTemplate.replace('{text}', element.project_title).replace('-{section}', '');
+            html += '<div id="{project}" class="toggle-content">';
+            if (!expedition) {
+                html += expandTemplate.replace('{text}', 'Configuration').replace('{section}', 'config').replace('<br>\n', '');
+                html += '<div id="{project}-config" class="toggle-content">Loading Project Configuration...</div>';
+                html += expandTemplate.replace('{text}', 'Expeditions').replace('{section}', 'expeditions');
+                html += '<div id="{project}-expeditions" class="toggle-content">Loading Expeditions...</div>';
+                html +=  expandTemplate.replace('{text}', 'Users').replace('{section}', 'users');
+                html += '<div id="{project}-users" class="toggle-content">Loading Users...</div>';
+            } else {
+                html += 'Loading...';
+            }
+            html += '</div>\n';
 
-                    // add current project to element id
-                    html = html.replace(new RegExp('{project}', 'g'), project);
-                });
-                if (html.indexOf("expand-content") == -1) {
-                    if (!expedition) {
-                        html += 'You are not an admin for any project.';
-                    } else {
-                        html += 'You do not belong to any projects.'
-                    }
-                }
-                $(".sectioncontent").html(html);
+            // add current project to element id
+            html = html.replace(new RegExp('{project}', 'g'), project);
+        });
+        if (html.indexOf("expand-content") == -1) {
+            if (!expedition) {
+                html += 'You are not an admin for any project.';
+            } else {
+                html += 'You do not belong to any projects.'
+            }
+        }
+        $(".sectioncontent").html(html);
 
-                // store project id with element, so we don't have to retrieve project id later with an ajax call
-                $.each(data.projects, function(index, element) {
-                    key=element.project_id;
-                    val=element.project_title;
-                    var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
+        // store project id with element, so we don't have to retrieve project id later with an ajax call
+        $.each(data.projects, function(index, element) {
+            key=element.project_id;
+            val=element.project_title;
+            var project = val.replace(new RegExp('[#. ]', 'g'), '_') + '_' + key;
 
-                    if (!expedition) {
-                        $('div#' + project +'-config').data('project_id', key);
-                        $('div#' + project +'-users').data('project_id', key);
-                        $('div#' + project + '-expeditions').data('project_id', key);
-                    } else {
-                        $('div#' + project).data('project_id', key);
-                    }
-                });
-            });
+            if (!expedition) {
+                $('div#' + project +'-config').data('project_id', key);
+                $('div#' + project +'-users').data('project_id', key);
+                $('div#' + project + '-expeditions').data('project_id', key);
+            } else {
+                $('div#' + project).data('project_id', key);
+            }
+        });
+    });
     return jqxhr;
 
 }
@@ -274,102 +274,120 @@ function projectToggle(id) {
     $('.toggle-content#'+id).slideToggle('slow');
 }
 
+// populate the config subsection of projects.jsp from REST service
+function populateConfig(id, projectID) {
+    var jqxhr = populateDivFromService(
+        '/id/projectService/configAsTable/' + projectID,
+        id,
+        'Unable to load this project\'s configuration from server.'
+    ).done(function() {
+        $("#edit_config", id).click(function() {
+            var jqxhr2 = populateDivFromService(
+                '/id/projectService/configEditorAsTable/' + projectID,
+                id,
+                'Unable to load this project\'s configuration editor.'
+            ).done(function() {
+                $('#configSubmit', id).click(function() {
+                    projectConfigSubmit(projectID, id);
+                 });
+            });
+            loadingDialog(jqxhr2);
+        });
+    });
+    loadingDialog(jqxhr);
+    return jqxhr;
+}
+
+// show a confirmation dialog before removing a user from a project
+function confirmRemoveUserDialog(element) {
+    var username = $(element).data('username');
+    $('#confirm').html($('#confirm').html().replace('{user}', username));
+    $('#confirm').dialog({
+        modal: true,
+        autoOpen: true,
+        title: "Remove User",
+        resizable: false,
+        width: 'auto',
+        draggable: false,
+        buttons:{ "Yes": function() {
+                                        projectRemoveUser(element);
+                                        $(this).dialog("close");
+                                        $(this).dialog("destroy");
+                                        $('#confirm').html("Are you sure you wish to remove {user}?");
+                                    },
+                  "Cancel": function(){
+                                        $(this).dialog("close");
+                                        $('#confirm').html("Are you sure you wish to remove {user}?");
+                                        $(this).dialog("destroy");
+                                      }
+                }
+        });
+}
+
+// populate the users subsection of projects.jsp from REST service
+function populateUsers(id, projectID) {
+    var jqxhr = populateDivFromService(
+        '/id/projectService/listProjectUsersAsTable/' + projectID,
+        id,
+        'Unable to load this project\'s users from server.'
+    ).done(function() {
+        $.each($('a#remove_user', id), function(key, e) {
+            $(e).click(function() {
+                confirmRemoveUserDialog(e);
+            });
+        });
+        $.each($('a#edit_profile', id), function(key, e) {
+            $(e).click(function() {
+                var username = $(e).data('username');
+                var divId = 'div#' + $(e).closest('div').attr('id');
+
+                var jqxhr2 = populateDivFromService(
+                    "/id/userService/profile/listEditorAsTable/" + username,
+                    divId,
+                    "error loading profile editor"
+                ).done(function() {
+                    $("#profile_submit", divId).click(function() {
+                        profileSubmit(username, divId);
+                    })
+                    $("#cancelButton").click(function() {
+                        populateProjectSubsections(divId);
+                    })
+                });
+                loadingDialog(jqxhr2);
+
+
+            });
+        });
+    });
+    loadingDialog(jqxhr);
+    return jqxhr;
+}
+
 // function to populate the subsections of the projects.jsp page. Populates the configuration, expeditions, and users
 // subsections
 function populateProjectSubsections(id) {
-    // load config table from REST service
     var projectID = $(id).data('project_id');
+    var jqxhr;
     if (id.indexOf("config") != -1) {
-        var jqxhr = populateDivFromService(
-            '/id/projectService/configAsTable/' + projectID,
-            id,
-            'Unable to load this project\'s configuration from server.');
-        loadingDialog(jqxhr);
-        $( document ).one("ajaxStop", function() {
-            $("#edit_config", id).click(function() {
-                var jqxhr = populateDivFromService(
-                    '/id/projectService/configEditorAsTable/' + projectID,
-                    id,
-                    'Unable to load this project\'s configuration editor.');
-                loadingDialog(jqxhr);
-                });
-                $( document ).one("ajaxStop", function() {
-                    $('#configSubmit', id).click(function() {
-                        projectConfigSubmit(projectID, id);
-                     });
-                });
-        });
+        // load project config table from REST service
+        jqxhr = populateConfig(id, projectID);
     } else if (id.indexOf("users") != -1) {
-        var jqxhr = populateDivFromService(
-            '/id/projectService/listProjectUsersAsTable/' + projectID,
-            id,
-            'Unable to load this project\'s users from server.');
-        loadingDialog(jqxhr);
-        $( document ).one("ajaxStop", function() {
-            $.each($('a#remove_user', id), function(key, e) {
-                $(e).click(function() {
-                    var username = $(e).data('username');
-                    $('#confirm').html($('#confirm').html().replace('{user}', username));
-                    $('#confirm').dialog({
-                        modal: true,
-                        autoOpen: true,
-                        title: "Remove User",
-                        resizable: false,
-                        width: 'auto',
-                        draggable: false,
-                        buttons:{ "Yes": function() {
-                                                        projectRemoveUser(e);
-                                                        $(this).dialog("close");
-                                                        $(this).dialog("destroy");
-                                                        $('#confirm').html("Are you sure you wish to remove {user}?");
-                                                    },
-                                  "Cancel": function(){
-                                                        $(this).dialog("close");
-                                                        $('#confirm').html("Are you sure you wish to remove {user}?");
-                                                        $(this).dialog("destroy");
-                                                      }
-                                }
-                        });
-
-                });
-            });
-            $.each($('a#edit_profile', id), function(key, e) {
-                $(e).click(function() {
-                    var username = $(e).data('username');
-                    var divId = 'div#' + $(e).closest('div').attr('id');
-
-                    var jqxhr = populateDivFromService(
-                        "/id/userService/profile/listEditorAsTable/" + username,
-                        divId,
-                        "error loading profile editor"
-                    );
-                    loadingDialog(jqxhr);
-
-                    $(document).one("ajaxStop", function() {
-                        $("#profile_submit", divId).click(function() {
-                            profileSubmit(username, divId);
-                        })
-                        $("#cancelButton").click(function() {
-                            populateProjectSubsections(divId);
-                        })
-                    });
-
-
-                });
-            });
-        });
+        // load the project users table from REST service
+        jqxhr = populateUsers(id, projectID);
     } else {
-        var jqxhr = populateDivFromService(
+        // load the project expeditions table from REST service
+        jqxhr = populateDivFromService(
             '/id/expeditionService/admin/listExpeditionsAsTable/' + projectID,
             id,
-            'Unable to load this project\'s expeditions from server.');
-        loadingDialog(jqxhr);
-        $( document ).one("ajaxStop", function() {
+            'Unable to load this project\'s expeditions from server.'
+        ).done(function() {
             $('#expeditionForm', id).click(function() {
                 expeditionsPublicSubmit(id);
             });
         });
+        loadingDialog(jqxhr);
     }
+    return jqxhr;
 }
 
 // function to submit the user's profile editor form
@@ -377,14 +395,14 @@ function profileSubmit(username, divId) {
     if ($("input.pwcheck", divId).val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
         $(".error", divId).html("password too weak");
     } else {
-        var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize())
-            .done (function(data) {
-                if (data[0].error != null) {
-                    $(".error", divId).html(data[0].error);
-                } else {
-                    populateProjectSubsections(divId);
-                }
-            });
+        var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize()
+        ).done (function(data) {
+            if (data[0].error != null) {
+                $(".error", divId).html(data[0].error);
+            } else {
+                populateProjectSubsections(divId);
+            }
+        });
         loadingDialog(jqxhr);
     }
 }
@@ -394,27 +412,28 @@ function getProfileEditor() {
     var jqxhr = populateDivFromService(
         "/id/userService/profile/listEditorAsTable",
         "listUserProfile",
-        "Unable to load this user's profile editor from the Server")
-        .done(function() {
-            $("#cancelButton").click(function() {
-                var jqxhr2 = populateDivFromService(
-                    "/id/userService/profile/listAsTable",
-                    "listUserProfile",
-                    "Unable to load this user's profile from the Server")
-                    .done(function() {
-                        $("a", "#profile").click( function() {
-                            getProfileEditor();
-                        });
+        "Unable to load this user's profile editor from the Server"
+    ).done(function() {
+        $(".error").text(getQueryParam("error"));
+        $("#cancelButton").click(function() {
+            var jqxhr2 = populateDivFromService(
+                "/id/userService/profile/listAsTable",
+                "listUserProfile",
+                "Unable to load this user's profile from the Server")
+                .done(function() {
+                    $("a", "#profile").click( function() {
+                        getProfileEditor();
                     });
-                loadingDialog(jqxhr2);
-            });
-            $("#profile_submit").click(function() {
-                if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
-                    $(".error").html("password too weak");
-                } else {
-                    $("form").submit();
-                }
-            });
+                });
+            loadingDialog(jqxhr2);
+        });
+        $("#profile_submit").click(function() {
+            if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
+                $(".error").html("password too weak");
+            } else {
+                $("form").submit();
+            }
+        });
     });
     loadingDialog(jqxhr);
 }
@@ -431,12 +450,10 @@ function expeditionsPublicSubmit(divId) {
         var expedition = '&' + element.name + '=' + element.checked;
         data += expedition;
     });
-    var jqxhr = $.post('/id/expeditionService/admin/publicExpeditions', data.replace('&', ''))
-        .done(function() {
-            $( document ).one("ajaxStop", function() {
-                populateProjectSubsections(divId);
-            });
-        });
+    var jqxhr = $.post('/id/expeditionService/admin/publicExpeditions', data.replace('&', '')
+    ).done(function() {
+        populateProjectSubsections(divId);
+    });
     loadingDialog(jqxhr);
 }
 
@@ -448,9 +465,8 @@ function projectUserSubmit(id) {
         var jqxhr = populateDivFromService(
             '/id/userService/createFormAsTable',
             divId,
-            'error fetching create user form');
-        loadingDialog(jqxhr);
-        $( document ).one("ajaxStop", function() {
+            'error fetching create user form'
+        ).done(function() {
             $("input[name=project_id]", divId).val(project_id);
             $("#createFormButton", divId).click(function() {
                 createUserSubmit(project_id, divId);
@@ -459,16 +475,17 @@ function projectUserSubmit(id) {
                 populateProjectSubsections(divId);
             });
         });
+        loadingDialog(jqxhr);
     } else {
-        var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize())
-            .done(function(data) {
-                populateProjectSubsections(divId);
-                if (data[0].error != null) {
-                    $( document ).one("ajaxStop", function() {
-                        $(".error", divId).html(data[0].error);
-                    });
-                }
-            });
+        var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize()
+        ).done(function(data) {
+            var jqxhr2 = populateProjectSubsections(divId);
+            if (data[0].error != null) {
+                jqxhr2.done(function() {
+                    $(".error", divId).html(data[0].error);
+                });
+            }
+        });
         loadingDialog(jqxhr);
     }
 }
@@ -478,14 +495,14 @@ function createUserSubmit(project_id, divId) {
     if ($(".label", "#pwindicator").text() == "weak") {
         $(".error", divId).html("password too weak");
     } else {
-        var jqxhr = $.post("/id/userService/create", $('form', divId).serialize())
-            .done(function(data) {
-                if (data[0].error != null) {
-                    $(".error", divId).html(data[0].error);
-                } else {
-                    populateProjectSubsections(divId);
-                }
-            });
+        var jqxhr = $.post("/id/userService/create", $('form', divId).serialize()
+        ).done(function(data) {
+            if (data[0].error != null) {
+                $(".error", divId).html(data[0].error);
+            } else {
+                populateProjectSubsections(divId);
+            }
+        });
         loadingDialog(jqxhr);
     }
 }
@@ -496,40 +513,40 @@ function projectRemoveUser(e) {
     var projectId = $(e).closest('table').data('project_id');
     var divId = 'div#' + $(e).closest('div').attr('id');
 
-    var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId)
-        .done (function(data) {
-            populateProjectSubsections(divId);
-            if (data[0].error != null) {
-                $( document ).one("ajaxStop", function() {
-                    $(".error", divId).html(data[0].error);
-                });
-            }
-        });
+    var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId
+    ).done (function(data) {
+        var jqxhr2 = populateProjectSubsections(divId);
+        if (data[0].error != null) {
+            jqxhr2.done(function() {
+                $(".error", divId).html(data[0].error);
+            });
+        }
+    });
     loadingDialog(jqxhr);
 }
 
 // function to submit the project configuration editor form
 function projectConfigSubmit(project_id, divId) {
-    var jqxhr = $.post("/id/projectService/updateConfig/" + project_id, $('form', divId).serialize())
-        .done(function(data) {
-            if (data[0].error != null) {
-                $(".error", divId).html(data[0].error);
-            } else {
-                populateProjectSubsections(divId);
-            }
-        });
+    var jqxhr = $.post("/id/projectService/updateConfig/" + project_id, $('form', divId).serialize()
+    ).done(function(data) {
+        if (data[0].error != null) {
+            $(".error", divId).html(data[0].error);
+        } else {
+            populateProjectSubsections(divId);
+        }
+    });
     loadingDialog(jqxhr);
 }
 
 // function to populate the expeditions.jsp page
 function populateExpeditionPage(username) {
-    var jqxhr = listProjects(username, '/id/projectService/listUserProjects', true);
-    jqxhr.done(function() {
-            // attach toggle function to each project
-            $(".expand-content").click(function() {
-                loadExpeditions(this.id)
-            });
+    var jqxhr = listProjects(username, '/id/projectService/listUserProjects', true
+    ).done(function() {
+        // attach toggle function to each project
+        $(".expand-content").click(function() {
+            loadExpeditions(this.id)
         });
+    });
     loadingDialog(jqxhr);
 }
 
