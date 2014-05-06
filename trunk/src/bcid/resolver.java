@@ -457,15 +457,15 @@ public class resolver extends database {
         try {
             String expected = "";
             // suffixpassthrough = 1; no webAddress specified; has a SourceID
-            r = new resolver("ark:/87286/U264c82d19-6562-4174-a5ea-e342eae353e8");
+            /*r = new resolver("ark:/87286/U264c82d19-6562-4174-a5ea-e342eae353e8");
             expected = "http://biscicol.org/id/metadata/ark:/21547/U264c82d19-6562-4174-a5ea-e342eae353e8";
             System.out.println(r.resolveARK());
-
+                  */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
             r = new resolver("ark:/21547/R2MBIO56");
             expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             System.out.println(r.resolveARK());
-
+                 /*
             // suffixPassthrough = 1; webaddress specified; no SourceID
             r = new resolver("ark:/21547/R2");
             expected = "http://biscicol.org/id/metadata/ark:/21547/R2";
@@ -485,7 +485,7 @@ public class resolver extends database {
             r = new resolver("ark:/21547/Gk2FOO");
             expected =  "http://biscicol.org:3030/ds?graph=urn:uuid:77806834-a34f-499a-a29f-aaac51e6c9f8FOO";
             System.out.println(r.resolveARK());
-
+                 */
             // EZIDService service = new EZIDService();
             // service.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
             //System.out.println(r.);
