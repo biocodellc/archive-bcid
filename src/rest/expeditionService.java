@@ -257,12 +257,18 @@ public class expeditionService {
     public String listExpeditions(@PathParam("project_id") Integer projectId,
                                   @QueryParam("access_token") String accessToken,
                                   @Context HttpServletRequest request)
-        throws Exception {
+         {
         String username;
 
         // if accessToken != null, then OAuth client is accessing on behalf of a user
         if (accessToken != null) {
-            provider p = new provider();
+            provider p = null;
+            try {
+                p = new provider();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "{\"error\": \"Problem connecting to oauth.\"}";
+            }
             username = p.validateToken(accessToken);
         } else {
             HttpSession session = request.getSession();

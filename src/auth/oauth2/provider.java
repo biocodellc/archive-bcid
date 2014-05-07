@@ -112,6 +112,10 @@ public class provider {
     public Boolean validateClient(String clientId, String clientSecret) {
         try {
             String selectString = "SELECT count(*) as count FROM oauthClients WHERE client_id = ? AND client_secret = ?";
+
+            System.out.println("clientId = \'" + clientId + "\' clientSecret=\'" + clientSecret + "\'");
+
+
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, clientId);
@@ -421,7 +425,7 @@ public class provider {
 
             System.out.println("Successfully registered oauth2 client app at host: " + host
                     + ".\nYou will need the following information:\n\nclient_id: "
-                    + clientId + "\nclientSecret: " + clientSecret);
+                    + clientId + "\nclient_secret: " + clientSecret);
         } catch (Exception e) {
             e.printStackTrace();
             return;

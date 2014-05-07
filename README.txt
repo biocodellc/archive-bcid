@@ -18,11 +18,15 @@ port 443 is https and usually open on various restricted subnets so use this to 
 -A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j DNAT --to-destination :3030
 
 
-###############################################
-#
-#  Glassfish Stuff
-#
-###############################################
+
+###################
+#  Oauth
+###################
+See auth/oauth2/provider to setup a client_id/client_secret
+
+###################
+#  Glassfish
+###################
 # Install Glassfish
 download to /usr/local/src/
 extract
