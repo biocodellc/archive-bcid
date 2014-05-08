@@ -203,7 +203,7 @@ function listProjects(username, url, expedition) {
         if (!expedition) {
             var html = '<h2>Manage Projects (' + username + ')</h2>\n';
         } else {
-            var html = '<h2>Manage Expeditions (' + username + ')</h2>\n';
+            var html = '<h2>Manage Datasets (' + username + ')</h2>\n';
         }
         var expandTemplate = '<br>\n<a class="expand-content" id="{project}-{section}" href="javascript:void(0);">\n'
                             + '\t <img src="../images/right-arrow.png" id="arrow" class="img-arrow">{text}'

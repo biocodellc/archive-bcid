@@ -56,7 +56,7 @@
                             <c:if test="${projectAdmin == null}">
                                 <li><a href='#' class='disabled'>Manage Projects</a></li>
                             </c:if>
-                            <li><a href='/bcid/secure/expeditions.jsp' class='enabled'>Manage Expeditions</a></li>
+                            <li><a href='/bcid/secure/expeditions.jsp' class='enabled'>Manage Datasets</a></li>
                             <li><a href='/bcid/secure/profile.jsp' class='enabled'>User Profile</a></li>
                         </ul>
                     </c:if>
@@ -67,7 +67,7 @@
                             <li><a href='#' class='disabled'>BCID Creator</a></li>
                             <li><a href='#' class='disabled'>Manage BCIDs</a></li>
                             <li><a href='#' class='disabled'>Manage Projects</a></li>
-                            <li><a href='#' class='disabled'>Manage Expeditions</a></li>
+                            <li><a href='#' class='disabled'>Manage Datasets</a></li>
                             <li><a href='#' class='disabled'>User Profile</a></li>
                          </ul>
                     </c:if>

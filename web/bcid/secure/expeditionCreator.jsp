@@ -3,9 +3,9 @@
 <div id="doiMinter" class="section">
 
     <div class="sectioncontent">
-        <h2>Expedition Creator</h2>
+        <h2>Dataset Creator</h2>
 
-        Currently, expedition creation is limited to the REST/application programming interface.  Please check with the system manager to have a expedition created for you.
+        Currently, dataset creation is limited to the Biocode-FIMS application or the REST/application programming interface
 
         <!--
         <ul>
