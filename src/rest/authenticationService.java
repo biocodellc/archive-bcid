@@ -3,6 +3,7 @@ package rest;
 import auth.authenticator;
 import auth.authorizer;
 import auth.oauth2.provider;
+import util.errorInfo;
 import util.queryParams;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +22,9 @@ import java.net.URI;
 @Path("authenticationService")
 public class authenticationService {
 
+    @Context
+    static HttpServletRequest request;
+
     /**
      * Service to log a user into the bcid system
      * @param usr
@@ -34,7 +38,6 @@ public class authenticationService {
     public void login(@FormParam("username") String usr,
                       @FormParam("password") String pass,
                       @QueryParam("return_to") String return_to,
-                      @Context HttpServletRequest req,
                       @Context HttpServletResponse res)
         throws IOException{
 
@@ -43,7 +46,7 @@ public class authenticationService {
             // Verify that the entered and stored passwords match
             Boolean isAuthenticated = authenticator.login(usr, pass);
 
-            HttpSession session = req.getSession();
+            HttpSession session = request.getSession();
 
             if (isAuthenticated) {
                 // Place the user in the session
@@ -64,7 +67,7 @@ public class authenticationService {
                 // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
                 if (!authenticator.userSetPass(usr)) {
                     if (return_to != null) {
-                        res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password" + new queryParams().getQueryParams(req.getParameterMap(), false));
+                        res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password" + new queryParams().getQueryParams(request.getParameterMap(), false));
                         return;
                     } else {
                         res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password");
@@ -75,7 +78,7 @@ public class authenticationService {
                 // redirect to return_to uri if provided
                 if (return_to != null) {
 
-                    res.sendRedirect(return_to + new queryParams().getQueryParams(req.getParameterMap(), true));
+                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
                     return;
                 } else {
                     res.sendRedirect("/bcid/index.jsp");
@@ -89,7 +92,7 @@ public class authenticationService {
         }
 
         if (return_to != null) {
-            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(req.getParameterMap(), false));
+            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
             return;
         }
         res.sendRedirect("/bcid/login.jsp?error");
@@ -102,11 +105,10 @@ public class authenticationService {
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_HTML)
-    public void logout(@Context HttpServletRequest req,
-                       @Context HttpServletResponse res)
+    public void logout(@Context HttpServletResponse res)
             throws IOException{
 
-        HttpSession session = req.getSession();
+        HttpSession session = request.getSession();
 
         session.invalidate();
         res.sendRedirect("/bcid/index.jsp");
@@ -118,9 +120,8 @@ public class authenticationService {
      * @param clientId
      * @param redirectURL
      * @param state
-     * @param request
      * @param response
-     * @throws IOException
+     * @throws Exception
      */
     @GET
     @Path("/oauth/authorize")
@@ -128,60 +129,46 @@ public class authenticationService {
     public void authorize(@QueryParam("client_id") String clientId,
                           @QueryParam("redirect_uri") String redirectURL,
                           @QueryParam("state") String state,
-                          @Context HttpServletRequest request,
                           @Context HttpServletResponse response)
-        throws IOException {
+        throws Exception {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
-        try {
-            provider p = new provider();
+        provider p = new provider();
 
-            if (redirectURL == null) {
-                String callback = p.getCallback(clientId);
+        if (redirectURL == null) {
+            String callback = p.getCallback(clientId);
 
-                if (callback != null) {
-                    response.sendRedirect(callback + "?error=invalid_request");
-                    return;
-                }
-                response.sendError(400, "invalid_request");
+            if (callback != null) {
+                response.sendRedirect(callback + "?error=invalid_request");
                 return;
             }
+            response.sendError(400, "invalid_request");
+            return;
+        }
 
-            if (clientId == null || !p.validClientId(clientId)) {
-                redirectURL += "?error=unauthorized_client";
-                response.sendRedirect(redirectURL);
-                return;
-            }
-
-            if (username == null) {
-                // need the user to login
-                response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
-                                      + request.getQueryString());
-                return;
-            }
-            //TODO ask user if they want to share profile information with requesting party
-
-            String code = p.generateCode(clientId, redirectURL, username.toString());
-
-            redirectURL += "?code=" + code;
-
-            if (state != null) {
-                redirectURL += "&state=" + state;
-            }
+        if (clientId == null || !p.validClientId(clientId)) {
+            redirectURL += "?error=unauthorized_client";
             response.sendRedirect(redirectURL);
             return;
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        // If we are here, there was a server error
-        if (redirectURL == null) {
-            response.sendError(500);
-        } else {
-            response.sendRedirect(redirectURL + "?error=server_error");
+        if (username == null) {
+            // need the user to login
+            response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
+                                  + request.getQueryString());
+            return;
         }
+        //TODO ask user if they want to share profile information with requesting party
+
+        String code = p.generateCode(clientId, redirectURL, username.toString());
+
+        redirectURL += "?code=" + code;
+
+        if (state != null) {
+            redirectURL += "&state=" + state;
+        }
+        response.sendRedirect(redirectURL);
         return;
     }
 
@@ -202,22 +189,21 @@ public class authenticationService {
                                  @FormParam("client_id") String clientId,
                                  @FormParam("client_secret") String clientSecret,
                                  @FormParam("redirect_uri") String redirectURL,
-                                 @FormParam("state") String state)
-        throws IOException {
+                                 @FormParam("state") String state) {
         try {
             provider p = new provider();
 
             if (redirectURL == null) {
-                return Response.status(400).entity("[{\"error\": \"invalid_request\"}]").build();
+                return Response.status(400).entity("{\"error\": \"invalid_request\"}").build();
             }
             URI url = new URI(redirectURL);
 
             if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
-                return Response.status(400).entity("[{\"error\": \"invalid_client\"}]").location(url).build();
+                return Response.status(400).entity("{\"error\": \"invalid_client\"}").location(url).build();
             }
 
             if (code == null || !p.validateCode(clientId, code, redirectURL)) {
-                return Response.status(400).entity("[{\"error\": \"invalid_grant\"}]").location(url).build();
+                return Response.status(400).entity("{\"error\": \"invalid_grant\"}").location(url).build();
             }
 
             return Response.ok(p.generateToken(clientId, state, code))
@@ -227,8 +213,8 @@ public class authenticationService {
                     .build();
         } catch (Exception e) {
             e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
-        return Response.status(500).entity("[{}]").build();
     }
 
     /**
@@ -244,17 +230,16 @@ public class authenticationService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response refresh(@FormParam("client_id") String clientId,
                             @FormParam("client_secret") String clientSecret,
-                            @FormParam("refresh_token") String refreshToken)
-        throws IOException {
+                            @FormParam("refresh_token") String refreshToken) {
         try {
             provider p = new provider();
 
             if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
-                return Response.status(400).entity("[{\"error\": \"invalid_client\"}]").build();
+                return Response.status(400).entity("{\"error\": \"invalid_client\"}").build();
             }
 
             if (refreshToken == null || !p.validateRefreshToken(refreshToken)) {
-                return Response.status(400).entity("[{\"error\": \"invalid_grant\"}]").build();
+                return Response.status(400).entity("{\"error\": \"invalid_grant\"}").build();
             }
 
             String accessToken = p.generateToken(refreshToken);
@@ -269,8 +254,8 @@ public class authenticationService {
 
         } catch (Exception e) {
             e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
-        return Response.status(500).entity("[{}]").build();
     }
 
     /**
@@ -278,7 +263,7 @@ public class authenticationService {
      * @param password
      * @param token
      * @param response
-     * @throws IOException
+     * @throws Exception
      */
     @POST
     @Path("/reset")
@@ -286,7 +271,7 @@ public class authenticationService {
     public void resetPassword(@FormParam("password") String password,
                               @FormParam("token") String token,
                               @Context HttpServletResponse response)
-        throws IOException {
+        throws Exception {
         if (token == null) {
             response.sendRedirect("/bcid/resetPass.jsp?error=Invalid Reset Token");
             return;
@@ -297,25 +282,18 @@ public class authenticationService {
             return;
         }
 
-        try {
-            authorizer authorizer = new authorizer();
-            authenticator authenticator = new authenticator();
+        authorizer authorizer = new authorizer();
+        authenticator authenticator = new authenticator();
 
-            if (!authorizer.validResetToken(token)) {
-                response.sendRedirect("/bcid/resetPass.jsp?error=Expired Reset Token");
-                return;
-            }
-
-            if (authenticator.resetPass(token, password)) {
-                response.sendRedirect("/bcid/login.jsp");
-                return;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (!authorizer.validResetToken(token)) {
+            response.sendRedirect("/bcid/resetPass.jsp?error=Expired Reset Token");
+            return;
         }
 
-        response.sendRedirect("/bcid/resetPass.jsp?error=Server Error");
-        return;
+        if (authenticator.resetPass(token, password)) {
+            response.sendRedirect("/bcid/login.jsp");
+            return;
+        }
     }
 
     /**
@@ -343,7 +321,7 @@ public class authenticationService {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toJSON();
         }
-        return "{\"error\": \"server error\"}";
     }
 }

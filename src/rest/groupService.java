@@ -16,6 +16,7 @@ import bcid.ResourceTypes;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import util.SettingsManager;
+import util.errorInfo;
 import util.sendEmail;
 
 import javax.servlet.ServletContext;
@@ -66,7 +67,7 @@ public class groupService {
                          @FormParam("resourceTypesMinusDataset") Integer resourceTypesMinusDataset,
                          @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                          @QueryParam("access_token") String accessToken,
-                         @Context HttpServletRequest request) throws Exception {
+                         @Context HttpServletRequest request) {
 
         // If resourceType is specified by an integer, then use that to set the String resourceType.
         // If the user omits
@@ -80,94 +81,86 @@ public class groupService {
 
         String username;
 
-        // if accessToken != null, then OAuth client is accessing on behalf of a user
-        if (accessToken != null) {
-            provider p = new provider();
-            username = p.validateToken(accessToken);
-        } else {
-            HttpSession session = request.getSession();
-            username = (String) session.getAttribute("user");
-        }
-
-        if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).build();
-        }
-
-        Boolean suffixPassthrough = false;
-        // Format Input variables
         try {
-            if (stringSuffixPassThrough.equalsIgnoreCase("true") || stringSuffixPassThrough.equalsIgnoreCase("on")) {
-                suffixPassthrough = true;
+            // if accessToken != null, then OAuth client is accessing on behalf of a user
+            if (accessToken != null) {
+                provider p = new provider();
+                username = p.validateToken(accessToken);
+            } else {
+                HttpSession session = request.getSession();
+                username = (String) session.getAttribute("user");
             }
-        } catch (NullPointerException e) {
-            suffixPassthrough = false;
-        }
 
-        // Initialize settings manager
-        SettingsManager sm = SettingsManager.getInstance();
-        try {
+            if (username == null) {
+                // status=401 means unauthorized user
+                return Response.status(401).build();
+            }
+
+            Boolean suffixPassthrough = false;
+            // Format Input variables
+            try {
+                if (stringSuffixPassThrough.equalsIgnoreCase("true") || stringSuffixPassThrough.equalsIgnoreCase("on")) {
+                    suffixPassthrough = true;
+                }
+            } catch (NullPointerException e) {
+                suffixPassthrough = false;
+            }
+
+            // Initialize settings manager
+            SettingsManager sm = SettingsManager.getInstance();
             sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok("ERROR: " + e.getMessage()).build();
-        }
 
-        // Create a Dataset
-        database db = new database();
-        // Check for remote-user
-        Integer user_id = db.getUserId(username);
+            // Create a Dataset
+            database db = new database();
+            // Check for remote-user
+            Integer user_id = db.getUserId(username);
 
-        // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
-        // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
-        boolean ezidRequest = true;
-        if (username.equals("demo")) {
-            ezidRequest = false;
-        }
+            // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
+            // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
+            boolean ezidRequest = true;
+            if (username.equals("demo")) {
+                ezidRequest = false;
+            }
 
-        // Mint the data group
-        dataGroupMinter minterDataset = new dataGroupMinter(ezidRequest, suffixPassthrough);
-        minterDataset.mint(
-                new Integer(sm.retrieveValue("bcidNAAN")),
-                user_id,
-                resourceTypeString,
-                doi,
-                webaddress,
-                graph,
-                title);
-        minterDataset.close();
-        String datasetPrefix = minterDataset.getPrefix();
+            // Mint the data group
+            dataGroupMinter minterDataset = new dataGroupMinter(ezidRequest, suffixPassthrough);
+            minterDataset.mint(
+                    new Integer(sm.retrieveValue("bcidNAAN")),
+                    user_id,
+                    resourceTypeString,
+                    doi,
+                    webaddress,
+                    graph,
+                    title);
+            minterDataset.close();
+            String datasetPrefix = minterDataset.getPrefix();
 
-        // Create EZIDs right away for Dataset level Identifiers
-        // TODO: fix the ezidAccount registration here--- it seems to be hanging things up
-        // Initialize ezid account
+            // Create EZIDs right away for Dataset level Identifiers
+            // TODO: fix the ezidAccount registration here--- it seems to be hanging things up
+            // Initialize ezid account
 
-        ezidAccount = new EZIDService();
-        try {
+            ezidAccount = new EZIDService();
             // Setup EZID account/login information
             ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
 
-        } catch (EZIDException e) {
+            manageEZID creator = new manageEZID();
+            creator.createDatasetsEZIDs(ezidAccount);
+
+            // Send an Email that this completed
+            sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
+                    sm.retrieveValue("mailPassword"),
+                    sm.retrieveValue("mailFrom"),
+                    sm.retrieveValue("mailTo"),
+                    "New Dataset Group",
+                    new resolver(minterDataset.getPrefix()).printMetadata(new TextRenderer()));
+            sendEmail.start();
+
+            return Response.ok(datasetPrefix).build();
+        } catch(Exception e) {
             e.printStackTrace();
-            return Response.ok("ERROR: " + e.getMessage()).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok("ERROR: " + e.getMessage()).build();
+            return Response.ok("ERROR: " + new errorInfo(e, request).toJSON()).build();
         }
 
-        manageEZID creator = new manageEZID();
-        creator.createDatasetsEZIDs(ezidAccount);
-
-        // Send an Email that this completed
-        sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
-                sm.retrieveValue("mailPassword"),
-                sm.retrieveValue("mailFrom"),
-                sm.retrieveValue("mailTo"),
-                "New Dataset Group",
-                new resolver(minterDataset.getPrefix()).printMetadata(new TextRenderer()));
-        sendEmail.start();
-
-        return Response.ok(datasetPrefix).build();
 
     }
 
@@ -204,6 +197,7 @@ public class groupService {
             d = new dataGroupMinter();
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toJSON();
         }
 
         return d.datasetList(username);
@@ -226,6 +220,7 @@ public class groupService {
             d = new dataGroupMinter();
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
 
         return d.datasetTable(username);
@@ -249,8 +244,8 @@ public class groupService {
             return p.expeditionTable(username);
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            return new errorInfo(e, request).toHTMLTable();
         }
-        return "Exception encountered attempting to list expeditions";
     }
 
     /**
@@ -279,8 +274,8 @@ public class groupService {
             return d.bcidEditorAsTable(username.toString(), prefix);
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
-        return "Server error loading BCID editor.";
     }
 
     /**
@@ -312,7 +307,7 @@ public class groupService {
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         if (username == null) {
-            return "[{\"error\": \"You must be logged in to edit BCIDs.\"}]";
+            return "{\"error\": \"You must be logged in to edit BCIDs.\"}";
         }
 
         // get this BCID's config
@@ -323,7 +318,7 @@ public class groupService {
 
             if (config.containsKey("error")) {
                 // Some error occured when fetching BCID configuration
-                return "[{\"error\": \"" + config.get("error") + "\"}]";
+                return "{\"error\": \"" + config.get("error") + "\"}";
             }
 
             if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
@@ -361,8 +356,9 @@ public class groupService {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toJSON();
         }
-        // if we are here, there was a server error
-        return "[{\"error\": \"server error.\"}]";
+        // if we are here, there was an error during d.updateDataGroupConfig
+        return "{\"error\": \"server error.\"}";
     }
 }

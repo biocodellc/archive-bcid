@@ -6,6 +6,7 @@ import net.sf.json.JSONArray;
 import util.SettingsManager;
 import ezid.EZIDException;
 import ezid.EZIDService;
+import util.errorInfo;
 import util.sendEmail;
 
 
@@ -111,64 +112,59 @@ public class elementService {
     @POST
     @Path("/creator")
     @Produces(MediaType.APPLICATION_JSON)
-    public String creator(@FormParam("datasetList") Integer dataset_id,
-                          @FormParam("title") String title,
-                          @FormParam("resourceTypesMinusDataset") Integer resourceType,
-                          @FormParam("data") String data,
-                          @FormParam("doi") String doi,
-                          @FormParam("webaddress") String webaddress,
-                          @FormParam("graph") String graph,
-                          @FormParam("suffixPassThrough") String stringSuffixPassThrough,
-                          @Context HttpServletRequest request) {
+    public Response creator(@FormParam("datasetList") Integer dataset_id,
+                            @FormParam("title") String title,
+                            @FormParam("resourceTypesMinusDataset") Integer resourceType,
+                            @FormParam("data") String data,
+                            @FormParam("doi") String doi,
+                            @FormParam("webaddress") String webaddress,
+                            @FormParam("graph") String graph,
+                            @FormParam("suffixPassThrough") String stringSuffixPassThrough,
+                            @Context HttpServletRequest request) {
 
-        dataGroupMinter dataset = null;
-        database db = null;
-        Boolean suffixPassthrough = false;
-        HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
-
-
-        // Initialize database
         try {
+            dataGroupMinter dataset = null;
+            database db = null;
+            Boolean suffixPassthrough = false;
+            HttpSession session = request.getSession();
+            String username = session.getAttribute("user").toString();
+
+
+            // Initialize database
             db = new database();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        }
 
-        // Get the user_id
-        Integer user_id = db.getUserId(username);
+            // Get the user_id
+            Integer user_id = db.getUserId(username);
 
-        // Request creation of new dataset
-        if (dataset_id == 0) {
+            // Request creation of new dataset
+            if (dataset_id == 0) {
 
-            // Format Input variables
-            try {
-                if (stringSuffixPassThrough.equalsIgnoreCase("true") || stringSuffixPassThrough.equalsIgnoreCase("on")) {
-                    suffixPassthrough = true;
+                // Format Input variables
+                try {
+                    if (stringSuffixPassThrough.equalsIgnoreCase("true") || stringSuffixPassThrough.equalsIgnoreCase("on")) {
+                        suffixPassthrough = true;
+                    }
+                } catch (NullPointerException e) {
+                    suffixPassthrough = false;
                 }
-            } catch (NullPointerException e) {
-                suffixPassthrough = false;
-            }
 
-            // Some input form validation
-            // TODO: create a generic way of validating this input form content
-            if (dataset_id != 0 &&
-                    (resourceType == 0 ||
-                            resourceType == ResourceTypes.SPACER1 ||
-                            resourceType == ResourceTypes.SPACER2 ||
-                            resourceType == ResourceTypes.SPACER3 ||
-                            resourceType == ResourceTypes.SPACER4 ||
-                            resourceType == ResourceTypes.SPACER5 ||
-                            resourceType == ResourceTypes.SPACER6 ||
-                            resourceType == ResourceTypes.SPACER7)
-                    ) {
-                return "[\"Error: Must choose a valid concept!\"]";
-            }
-            // TODO: check for valid local ID's, no reserved characters
+                // Some input form validation
+                // TODO: create a generic way of validating this input form content
+                if (dataset_id != 0 &&
+                        (resourceType == 0 ||
+                                resourceType == ResourceTypes.SPACER1 ||
+                                resourceType == ResourceTypes.SPACER2 ||
+                                resourceType == ResourceTypes.SPACER3 ||
+                                resourceType == ResourceTypes.SPACER4 ||
+                                resourceType == ResourceTypes.SPACER5 ||
+                                resourceType == ResourceTypes.SPACER6 ||
+                                resourceType == ResourceTypes.SPACER7)
+                        ) {
+                    return Response.ok("{\"error: Must choose a valid concept!\"}").build();
+                }
+                // TODO: check for valid local ID's, no reserved characters
 
-            // Create a new dataset
-            try {
+                // Create a new dataset
                 dataset = new dataGroupMinter(true, suffixPassthrough);
                 // we don't know DOI or webaddress from this call, so we set them to NULL
                 dataset.mint(
@@ -179,66 +175,43 @@ public class elementService {
                         webaddress,
                         graph,
                         title);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new WebApplicationException(Response.Status.BAD_REQUEST);
-            }
-            // Load an existing dataset we've made already
-        } else {
-            try {
+                // Load an existing dataset we've made already
+            } else {
                 dataset = new dataGroupMinter(dataset_id);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new WebApplicationException(Response.Status.BAD_REQUEST);
+
+                // TODO: check that dataset.users_id matches the user that is logged in!
+
             }
 
-            // TODO: check that dataset.users_id matches the user that is logged in!
-
-        }
-
-        // Parse input file
-        ArrayList elements = null;
-        try {
+            // Parse input file
+            ArrayList elements = null;
             elements = new inputFileParser(data, dataset).elementArrayList;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        }
 
-        // Create a bcid Minter instance
-        elementMinter minter = null;
-        try {
+            // Create a bcid Minter instance
+            elementMinter minter = null;
             minter = new elementMinter(dataset.getDatasets_id());
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        }
 
-        // Mint the list of identifiers
-        String datasetUUID = null;
-        try {
+            // Mint the list of identifiers
+            String datasetUUID = null;
             datasetUUID = minter.mintList(elements);
+
+            // Array of identifiers, or an error message
+            String returnVal = JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString();
+
+
+            // Send an Email that this completed
+            sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
+                    sm.retrieveValue("mailPassword"),
+                    sm.retrieveValue("mailFrom"),
+                    sm.retrieveValue("mailTo"),
+                    "New Elements From " + username,
+                    returnVal);
+            sendEmail.start();
+
+            return Response.ok(returnVal).build();
         } catch (Exception e) {
             e.printStackTrace();
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
-
-        // Array of identifiers, or an error message
-        String returnVal = JSONArray.fromObject(minter.getIdentifiers(datasetUUID)).toString();
-
-
-        // Send an Email that this completed
-        sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
-                sm.retrieveValue("mailPassword"),
-                sm.retrieveValue("mailFrom"),
-                sm.retrieveValue("mailTo"),
-                "New Elements From " + username,
-                returnVal);
-        sendEmail.start();
-
-        return returnVal;
     }
 }

@@ -2,6 +2,7 @@ package bcid;
 
 import ezid.EZIDService;
 import util.SettingsManager;
+import util.errorInfo;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.sql.*;
@@ -602,7 +603,7 @@ public class expeditionMinter {
         } catch (Exception e) {
             e.printStackTrace();
             sb.append("\t<tr>\n");
-            sb.append("\t\t<td class=\"error\" colspan=\"2\">Server Error</td>\n");
+            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
             sb.append("\t</tr>\n");
         }
 
@@ -661,7 +662,7 @@ public class expeditionMinter {
         } catch (Exception e) {
             e.printStackTrace();
             sb.append("\t<tr>\n");
-            sb.append("\t\t<td class=\"error\" colspan=\"2\">Server Error</td>\n");
+            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
             sb.append("\t</tr>\n");
         }
 
@@ -729,7 +730,7 @@ public class expeditionMinter {
         } catch (Exception e) {
             e.printStackTrace();
             sb.append("\t<tr>\n");
-            sb.append("\t\t<td class=\"error\" colspan=\"2\">Server Error</td>\n");
+            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
             sb.append("\t</tr>\n");
         }
 

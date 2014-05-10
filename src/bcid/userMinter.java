@@ -38,14 +38,14 @@ public class userMinter {
                 if (p.addUserToProject(userId, projectId)) {
                     return "[{\"success\": \"successfully created new user\"}]";
                 } else {
-                    return "[{\"error\": \"error adding user to project\"}]";
+                    return "{\"error\": \"error adding user to project\"}";
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                return "[{\"error\": \"error adding user to project\"}]";
+                return "{\"error\": \"error adding user to project\"}";
             }
         }
-        return "[{\"error\": \"error creating new user\"}]";
+        return "{\"error\": \"error creating new user\"}";
     }
 
     /**
@@ -361,7 +361,7 @@ public class userMinter {
             e.printStackTrace();
         }
 
-        return "[{\"error\": \"invalid_grant\"}]";
+        return "{\"error\": \"invalid_grant\"}";
     }
 
     /**

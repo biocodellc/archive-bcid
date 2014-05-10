@@ -236,7 +236,7 @@ public class provider {
         }
 
         if (userId == null) {
-            return "[{\"error\": \"server_error\"}]";
+            return "{\"error\": \"server_error\"}";
         }
 
         return generateToken(clientId, userId, null);
@@ -255,7 +255,7 @@ public class provider {
         Integer user_id = getUserId(clientID, code);
         deleteNonce(clientID, code);
         if (user_id == null) {
-            return "[{\"error\": \"server_error\"}]";
+            return "{\"error\": \"server_error\"}";
         }
 
         return generateToken(clientID, user_id, state);
