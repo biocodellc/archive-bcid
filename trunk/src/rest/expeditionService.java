@@ -8,6 +8,7 @@ import bcid.expeditionMinter;
 
 
 import util.SettingsManager;
+import util.errorInfo;
 import util.sendEmail;
 
 import javax.servlet.ServletContext;
@@ -27,6 +28,7 @@ public class expeditionService {
 
     @Context
     static ServletContext context;
+    @Context HttpServletRequest request;
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -34,16 +36,12 @@ public class expeditionService {
     @Path("/associate")
     public Response mint(@FormParam("expedition_code") String expedition_code,
                          @FormParam("bcid") String bcid,
-                         @FormParam("project_id") Integer project_id) {
+                         @FormParam("project_id") Integer project_id)
+        throws Exception {
         expeditionMinter expedition = null;
-        try {
-            expedition = new expeditionMinter();
-            expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
+        expedition = new expeditionMinter();
+        expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok("ERROR: " + e.getMessage()).build();
-        }
         return Response.ok("Succesfully associated expedition_code = " + expedition_code + " with bcid = " + bcid).build();
 
     }
@@ -65,30 +63,29 @@ public class expeditionService {
     public Response mint(@PathParam("expedition_code") String expedition_code,
                          @PathParam("project_id") Integer project_id,
                          @QueryParam("access_token") String accessToken,
-                         @Context HttpServletRequest request)
-            throws Exception {
+                         @Context HttpServletRequest request) {
         String username;
 
-        // if accessToken != null, then OAuth client is accessing on behalf of a user
-        if (accessToken != null) {
-            provider p = new provider();
-            username = p.validateToken(accessToken);
-        } else {
-            HttpSession session = request.getSession();
-            username = (String) session.getAttribute("user");
-        }
-
-        if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).build();
-        }
-        // Get the user_id
-        database db = new database();
-        Integer user_id = db.getUserId(username);
-
-        expeditionMinter expedition = null;
-
         try {
+            // if accessToken != null, then OAuth client is accessing on behalf of a user
+            if (accessToken != null) {
+                provider p = new provider();
+                username = p.validateToken(accessToken);
+            } else {
+                HttpSession session = request.getSession();
+                username = (String) session.getAttribute("user");
+            }
+
+            if (username == null) {
+                // status=401 means unauthorized user
+                return Response.status(401).build();
+            }
+            // Get the user_id
+            database db = new database();
+            Integer user_id = db.getUserId(username);
+
+            expeditionMinter expedition = null;
+
             // Mint a expedition
             expedition = new expeditionMinter();
             //System.out.println("checking user_id = " + user_id + " & expedition_code = " + expedition_code);
@@ -106,9 +103,8 @@ public class expeditionService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.status(500).build();
+            return Response.ok("error: " + new errorInfo(e, request).toJSON()).build();
         }
-
     }
 
     /**
@@ -159,31 +155,19 @@ public class expeditionService {
         Integer expedition_id = null;
         expeditionMinter expedition = null;
 
-        try {
-            // Mint a expedition
-            expedition = new expeditionMinter();
-            expedition_id = expedition.mint(
-                    expedition_code,
-                    expedition_title,
-                    user_id,
-                    project_id,
-                    isPublic
-                    );
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok("ERROR: " + e.getMessage()).build();
-        }
-
+        // Mint a expedition
+        expedition = new expeditionMinter();
+        expedition_id = expedition.mint(
+                expedition_code,
+                expedition_title,
+                user_id,
+                project_id,
+                isPublic
+                );
 
         // Initialize settings manager
         SettingsManager sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.ok("ERROR: " + e.getMessage()).build();
-        }
+        sm.loadProperties();
 
         // Send an Email that this completed
         sendEmail sendEmail = new sendEmail(
@@ -212,7 +196,8 @@ public class expeditionService {
     @Produces(MediaType.TEXT_HTML)
     public Response fetchAlias(@PathParam("expedition") String expedition,
                                @PathParam("project_id") Integer project_id,
-                               @PathParam("resourceAlias") String resourceAlias) throws Exception {
+                               @PathParam("resourceAlias") String resourceAlias)
+            throws Exception {
 
         resolver r = new resolver(expedition, project_id, resourceAlias);
         String response = r.getArk();
@@ -228,21 +213,26 @@ public class expeditionService {
      *
      * @param expedition
      * @return
-     * @throws Exception
      */
     @GET
     @Path("/deepRoots/{project_id}/{expedition}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response fetchDeepRoots(@PathParam("expedition") String expedition,
-                                   @PathParam("project_id") Integer project_id) throws Exception {
-        expeditionMinter expeditionMinter = new expeditionMinter();
+                                   @PathParam("project_id") Integer project_id) {
+        try {
+            expeditionMinter expeditionMinter = new expeditionMinter();
 
-        String response = expeditionMinter.getDeepRoots(expedition, project_id);
+            String response = expeditionMinter.getDeepRoots(expedition, project_id);
 
-        if (response == null) {
-            return Response.status(204).build();
-        } else {
-            return Response.ok(response).build();
+            if (response == null) {
+                return Response.status(204).build();
+            } else {
+                return Response.ok(response).build();
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
@@ -255,38 +245,29 @@ public class expeditionService {
     @Path("/list/{project_id}")
     @Produces(MediaType.APPLICATION_JSON)
     public String listExpeditions(@PathParam("project_id") Integer projectId,
-                                  @QueryParam("access_token") String accessToken,
-                                  @Context HttpServletRequest request)
-         {
+                                  @QueryParam("access_token") String accessToken) {
         String username;
 
-        // if accessToken != null, then OAuth client is accessing on behalf of a user
-        if (accessToken != null) {
-            provider p = null;
-            try {
-                p = new provider();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "{\"error\": \"Problem connecting to oauth.\"}";
-            }
-            username = p.validateToken(accessToken);
-        } else {
-            HttpSession session = request.getSession();
-            username = (String) session.getAttribute("user");
-        }
-
-        if (username == null) {
-            return "{\"error\": \"You must be logged in to view your expeditions.\"}";
-        }
-
         try {
+            // if accessToken != null, then OAuth client is accessing on behalf of a user
+            if (accessToken != null) {
+                provider p = new provider();
+                username = p.validateToken(accessToken);
+            } else {
+                HttpSession session = request.getSession();
+                username = (String) session.getAttribute("user");
+            }
+
+            if (username == null) {
+                return "{\"error\": \"You must be logged in to view your expeditions.\"}";
+            }
+
             expeditionMinter e = new expeditionMinter();
             return e.listExpeditions(projectId, username.toString());
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toJSON();
         }
-
-        return "{\"error\": \"server error\"}";
     }
 
     /**
@@ -297,8 +278,7 @@ public class expeditionService {
     @GET
     @Path("resourcesAsTable/{expedition_id}")
     @Produces(MediaType.TEXT_HTML)
-    public String listResourcesAsTable(@PathParam("expedition_id") Integer expeditionId,
-                                       @Context HttpServletRequest request) {
+    public String listResourcesAsTable(@PathParam("expedition_id") Integer expeditionId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
@@ -311,10 +291,8 @@ public class expeditionService {
             return e.listExpeditionResourcesAsTable(expeditionId);
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
-
-        return "Server Error";
-
     }
 
     /**
@@ -325,8 +303,7 @@ public class expeditionService {
     @GET
     @Path("datasetsAsTable/{expedition_id}")
     @Produces(MediaType.TEXT_HTML)
-    public String listDatasetsAsTable(@PathParam("expedition_id") Integer expeditionId,
-                                      @Context HttpServletRequest request) {
+    public String listDatasetsAsTable(@PathParam("expedition_id") Integer expeditionId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
@@ -339,9 +316,8 @@ public class expeditionService {
             return e.listExpeditionDatasetsAsTable(expeditionId);
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
-
-        return "Server Error";
     }
 
     /**
@@ -352,8 +328,7 @@ public class expeditionService {
     @GET
     @Path("/admin/listExpeditionsAsTable/{project_id}")
     @Produces(MediaType.TEXT_HTML)
-    public String listExpeditionAsTable(@PathParam("project_id") Integer projectId,
-                                        @Context HttpServletRequest request) {
+    public String listExpeditionAsTable(@PathParam("project_id") Integer projectId) {
         HttpSession session = request.getSession();
         Object admin = session.getAttribute("projectAdmin");
         String username = session.getAttribute("user").toString();
@@ -367,46 +342,47 @@ public class expeditionService {
             return e.listExpeditionsAsTable(projectId, username);
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
-
-        return "Server error fetching expeditions.";
     }
 
     /**
-     * Service to retrive all of the project's expeditions that are public.
+     * Service to retrieve all of the project's expeditions that are public.
      * @param data
      * @return
      */
     @POST
     @Path("/admin/publicExpeditions")
+    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String publicExpeditions(MultivaluedMap<String, String> data,
-                                    @Context HttpServletRequest request) {
-        HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
-        Integer projectId = new Integer(data.remove("project_id").get(0));
-
-        if (username == null) {
-            return "[{\"error\": \"You must be logged in to update an expedition's public status.\"}]";
-        }
-
+    public String publicExpeditions(MultivaluedMap<String, String> data) {
         try {
+            HttpSession session = request.getSession();
+            Object username = session.getAttribute("user");
+            Integer projectId = new Integer(data.remove("project_id").get(0));
+
+            if (username == null) {
+                return "{\"error\": \"You must be logged in to update an expedition's public status.\"}";
+            }
+
             database db = new database();
             projectMinter p = new projectMinter();
             Integer userId = db.getUserId(username.toString());
 
             if (!p.userProjectAdmin(userId, projectId)) {
-                return "[{\"error\": \"You must be this project's admin in order to update a project expedition's public status.\"}]";
+                return "{\"error\": \"You must be this project's admin in order to update a project expedition's public status.\"}";
             }
             expeditionMinter e = new expeditionMinter();
 
             if (e.updateExpeditionsPublicStatus(data, projectId)) {
                 return "[{\"success\": \"successfully updated.\"}]";
+            } else {
+                return "{\"error\": \"Error updating expedition status.'\"}";
             }
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toJSON();
         }
-        return "[{\"error\": \"server error\"}]";
     }
 
 }

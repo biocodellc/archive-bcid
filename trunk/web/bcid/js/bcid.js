@@ -9,8 +9,8 @@ function dataGroupCreatorSubmit() {
 function dataGroupEditorSubmit() {
     var posting = $.post( "/id/groupService/dataGroup/update", $("#dataGroupEditForm").serialize())
         .done(function(data) {
-            if (data[0].error != null) {
-                $(".error").html(data[0].error);
+            if (data.error != null) {
+                $(".error").html(data.error);
             } else {
                 populateBCIDPage();
             }
@@ -397,8 +397,8 @@ function profileSubmit(username, divId) {
     } else {
         var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize()
         ).done (function(data) {
-            if (data[0].error != null) {
-                $(".error", divId).html(data[0].error);
+            if (data.error != null) {
+                $(".error", divId).html(data.error);
             } else {
                 populateProjectSubsections(divId);
             }
@@ -480,9 +480,9 @@ function projectUserSubmit(id) {
         var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize()
         ).done(function(data) {
             var jqxhr2 = populateProjectSubsections(divId);
-            if (data[0].error != null) {
+            if (data.error != null) {
                 jqxhr2.done(function() {
-                    $(".error", divId).html(data[0].error);
+                    $(".error", divId).html(data.error);
                 });
             }
         });
@@ -497,8 +497,8 @@ function createUserSubmit(project_id, divId) {
     } else {
         var jqxhr = $.post("/id/userService/create", $('form', divId).serialize()
         ).done(function(data) {
-            if (data[0].error != null) {
-                $(".error", divId).html(data[0].error);
+            if (data.error != null) {
+                $(".error", divId).html(data.error);
             } else {
                 populateProjectSubsections(divId);
             }
@@ -516,9 +516,9 @@ function projectRemoveUser(e) {
     var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId
     ).done (function(data) {
         var jqxhr2 = populateProjectSubsections(divId);
-        if (data[0].error != null) {
+        if (data.error != null) {
             jqxhr2.done(function() {
-                $(".error", divId).html(data[0].error);
+                $(".error", divId).html(data.error);
             });
         }
     });
@@ -529,8 +529,8 @@ function projectRemoveUser(e) {
 function projectConfigSubmit(project_id, divId) {
     var jqxhr = $.post("/id/projectService/updateConfig/" + project_id, $('form', divId).serialize()
     ).done(function(data) {
-        if (data[0].error != null) {
-            $(".error", divId).html(data[0].error);
+        if (data.error != null) {
+            $(".error", divId).html(data.error);
         } else {
             populateProjectSubsections(divId);
         }

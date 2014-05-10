@@ -29,9 +29,9 @@ public class serviceErrorReporter {
      */
     protected String json() {
         if (context == null) {
-            return "[{\"Error\":{\"Message\":\"" + e.getMessage() + "\"}}]";
+            return "{\"error\":{\"Message\":\"" + e.getClass().toString() + ": " + e.getMessage() + "\"}}";
         } else {
-            return "[{\"Error\":{\"Message\":\"" + context + ": " + e.getMessage() + "\"}}]";
+            return "{\"error\":{\"Message\":\"" + context + ": " + e.getMessage() + "\"}}";
         }
     }
 }

@@ -3,8 +3,10 @@ package rest;
 import bcid.Renderer.RDFRenderer;
 import bcid.resolver;
 import util.SettingsManager;
+import util.errorInfo;
 
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -23,6 +25,8 @@ public class resolverService {
     String scheme = "ark:";
     @Context
     static ServletContext context;
+    @Context
+    static HttpServletRequest request;
 
     /**
      * User passes in an identifier of the form scheme:/naan/shoulder_identifier
@@ -50,7 +54,7 @@ public class resolverService {
                 return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
             } catch (Exception e) {
                 e.printStackTrace();
-                return Response.serverError().build();
+                return Response.serverError().entity(new errorInfo(e, request).toJSON()).build();
             }
         // All other Accept Headers, or none specified, then attempt a redirect
         } else {

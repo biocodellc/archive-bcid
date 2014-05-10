@@ -4,6 +4,7 @@ import auth.authenticator;
 import bcid.database;
 import bcid.projectMinter;
 import bcid.userMinter;
+import util.errorInfo;
 import util.queryParams;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Hashtable;
 
@@ -20,6 +22,9 @@ import java.util.Hashtable;
  */
 @Path("userService")
 public class userService {
+
+    @Context
+    static HttpServletRequest request;
 
     /**
      * Service to create a new user.
@@ -31,7 +36,6 @@ public class userService {
      * @param institution
      * @param projectId
      * @return
-     * @throws IOException
      */
     @POST
     @Path("/create")
@@ -42,16 +46,13 @@ public class userService {
                              @FormParam("lastName") String lastName,
                              @FormParam("email") String email,
                              @FormParam("institution") String institution,
-                             @FormParam("project_id") Integer projectId,
-                             @Context HttpServletRequest request,
-                             @Context HttpServletResponse response)
-        throws IOException {
+                             @FormParam("project_id") Integer projectId) {
 
         HttpSession session = request.getSession();
 
         if (session.getAttribute("projectAdmin") == null) {
             // only project admins are able to create users
-            return "[{\"error\": \"only project admins are able to create users\"}]";
+            return "{\"error\": \"only project admins are able to create users\"}";
         }
 
         if ((username == null || username.isEmpty()) ||
@@ -60,12 +61,12 @@ public class userService {
                 (lastName == null || lastName.isEmpty()) ||
                 (email == null || email.isEmpty()) ||
                 (institution == null) || institution.isEmpty()) {
-            return "[{\"error\": \"all fields are required\"}]";
+            return "{\"error\": \"all fields are required\"}";
         }
 
         // check that a valid email is given
         if (!email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
-            return "[{\"error\": \"please enter a valid email\"}]";
+            return "{\"error\": \"please enter a valid email\"}";
         }
 
         Hashtable<String, String> userInfo = new Hashtable<String, String>();
@@ -83,18 +84,18 @@ public class userService {
             database db = new database();
 
             if (u.checkUsernameExists(username)) {
-                return "[{\"error\": \"username already exists\"}]";
+                return "{\"error\": \"username already exists\"}";
             }
             // check if the user is this project's admin
             if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
-                return "[{\"error\": \"you can't add a user to a project that you're not an admin\"}]";
+                return "{\"error\": \"you can't add a user to a project that you're not an admin\"}";
             }
 
             return u.createUser(userInfo, projectId);
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toJSON();
         }
-        return "[{\"error\": \"server error creating user\"}]";
     }
 
     /**
@@ -109,7 +110,7 @@ public class userService {
             return u.getCreateForm();
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error loading create user form";
+            return new errorInfo(e, request).toHTMLTable();
         }
     }
 
@@ -131,14 +132,13 @@ public class userService {
                                      @FormParam("email") String email,
                                      @FormParam("institution") String institution,
                                      @FormParam("new_password") String new_password,
-                                     @PathParam("username") String username,
-                                     @Context HttpServletRequest request) {
+                                     @PathParam("username") String username) {
         HttpSession session = request.getSession();
         String error = "";
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         if (session.getAttribute("projectAdmin") == null) {
-            return "[{\"error\": \"you must be a project admin to edit another user's profile\"}]";
+            return "{\"error\": \"you must be a project admin to edit another user's profile\"}";
         }
 
         // set new password if given
@@ -146,7 +146,7 @@ public class userService {
             authenticator authenticator = new authenticator();
             Boolean success = authenticator.setHashedPass(username, new_password);
             if (!success) {
-                error = "server error";
+                error = "server error hashing password";
             } else {
                 // Make the user change their password next time they login
                 update.put("set_password", "0");
@@ -179,19 +179,19 @@ public class userService {
             if (!update.isEmpty()) {
                 Boolean success = u.updateProfile(update, username);
                 if (!success) {
-                    error = "server error";
+                    error = "server error updating profile";
                 }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            error = "server error";
+            return new errorInfo(e, request).toJSON();
         }
 
         if (error.isEmpty()) {
             return "[{\"success\": \"true\"}]";
         } else {
-            return "[{\"error\": \"" + error + "\"}]";
+            return "{\"error\": \"" + error + "\"}";
         }
     }
 
@@ -217,7 +217,6 @@ public class userService {
                               @FormParam("old_password") String old_password,
                               @FormParam("new_password") String new_password,
                               @QueryParam("return_to") String return_to,
-                              @Context HttpServletRequest request,
                               @Context HttpServletResponse response)
             throws IOException{
 
@@ -236,7 +235,7 @@ public class userService {
             if (valid_pass) {
                 Boolean success = authenticator.setHashedPass(username, new_password);
                 if (!success) {
-                    error = "server error";
+                    error = "server error hashing password";
                 }
                 // Make sure that the set_password field is 1 (true) so they aren't asked to change their password after login
                 else {
@@ -275,12 +274,12 @@ public class userService {
             if (!update.isEmpty()) {
                 Boolean success = u.updateProfile(update, username);
                 if (!success) {
-                    error = "server error";
+                    error = "server error updating profile";
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            error = "server error";
+            error = new errorInfo(e, request).toJSON();
         }
 
         if (error.isEmpty()) {
@@ -301,15 +300,14 @@ public class userService {
     }
 
     /**
-     * Returns an HTML table for editin a user's profile. Project admin use only.
+     * Returns an HTML table for editing a user's profile. Project admin use only.
      * @param username
      * @return
      */
     @GET
     @Path("/profile/listEditorAsTable/{username}")
     @Produces(MediaType.TEXT_HTML)
-    public String getUsersProfile(@PathParam("username") String username,
-                                  @Context HttpServletRequest request) {
+    public String getUsersProfile(@PathParam("username") String username) {
         HttpSession session = request.getSession();
 
         if (session.getAttribute("projectAdmin") == null) {
@@ -321,20 +319,18 @@ public class userService {
             return u.getProfileEditorAsTable(username, true);
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
-        return "error loading profile editor";
     }
 
     /**
      * returns an HTML table for editing a user's profile.
      * @return
-     * @throws IOException
      */
     @GET
     @Path("/profile/listEditorAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String getProfile(@Context HttpServletRequest request)
-            throws IOException {
+    public String getProfile() {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
@@ -349,8 +345,8 @@ public class userService {
             return u.getProfileEditorAsTable(username.toString(), false);
         }   catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
-        return "Error loading profile editor";
     }
 
     /**
@@ -361,7 +357,7 @@ public class userService {
     @GET
     @Path("/profile/listAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String listUserProfile(@Context HttpServletRequest request) {
+    public String listUserProfile() {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
         userMinter u;
@@ -375,8 +371,8 @@ public class userService {
             return u.getProfileHTML(username.toString());
         } catch (Exception e) {
             e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
         }
-        return "Exception encountered attempting to construct profile.";
     }
 
     /**
@@ -387,19 +383,17 @@ public class userService {
     @GET
     @Path("/oauth")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUserData(@QueryParam("access_token") String access_token,
-                              @Context HttpServletResponse response) {
+    public Response getUserData(@QueryParam("access_token") String access_token) {
         if (access_token != null) {
             try {
                 userMinter u = new userMinter();
 
-                return u.getOauthProfile(access_token);
+                return Response.ok(u.getOauthProfile(access_token)).build();
             } catch (Exception e) {
                 e.printStackTrace();
+                return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
             }
         }
-
-        response.setStatus(400);
-        return "[{\"error\": \"invalid_grant\"}]";
+        return Response.status(400).entity("{\"error\": \"invalid_grant\"}").build();
     }
 }
