@@ -158,7 +158,7 @@ CREATE TABLE `oauthNonces` (
   `code` char(20) NOT NULL DEFAULT '' COMMENT 'The generated code the client app can exchange for an access token',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of the nonce creation',
   `user_id` int(11) unsigned NOT NULL COMMENT 'The user_id this Nonce represents',
-  `redirect_uri` varchar(75) NOT NULL DEFAULT '' COMMENT 'The redirect_uri associated with this code',
+  `redirect_uri` varchar(256) NOT NULL DEFAULT '' COMMENT 'The redirect_uri associated with this code',
   PRIMARY KEY (`oauthNonces_id`),
   UNIQUE KEY `oauthNonces_code_client_idx` (`client_id`,`code`),
   KEY `FK_oauthNonces_user_id` (`user_id`),
