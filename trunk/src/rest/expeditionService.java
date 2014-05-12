@@ -62,8 +62,7 @@ public class expeditionService {
     @Path("/validateExpedition/{project_id}/{expedition_code}")
     public Response mint(@PathParam("expedition_code") String expedition_code,
                          @PathParam("project_id") Integer project_id,
-                         @QueryParam("access_token") String accessToken,
-                         @Context HttpServletRequest request) {
+                         @QueryParam("access_token") String accessToken) {
         String username;
 
         try {
@@ -125,8 +124,7 @@ public class expeditionService {
                          @FormParam("expedition_title") String expedition_title,
                          @FormParam("project_id") Integer project_id,
                          @FormParam("public") Boolean isPublic,
-                         @QueryParam("access_token") String accessToken,
-                         @Context HttpServletRequest request)
+                         @QueryParam("access_token") String accessToken)
             throws Exception {
         String username;
 
