@@ -36,9 +36,9 @@ public class errorInfo {
 
     public String toJSON() {
         return "{\"error\": {" +
-                    "\"Request URI\": \"" + requestURI + "\"," +
-                    "\"Status Code\": \"" + statusCode + "\"," +
-                    "\"Exception:\": \"" + throwable + "\"," +
+                    "\"Request_URI\": \"" + requestURI + "\"," +
+                    "\"Status_Code\": \"" + statusCode + "\"," +
+                    "\"Exception\": \"" + throwable + "\"," +
                     "\"Message\": \"" + message + "\"" +
                 "}}";
     }
