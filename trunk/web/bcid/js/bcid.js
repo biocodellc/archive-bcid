@@ -11,7 +11,7 @@ function dataGroupEditorSubmit() {
         .done(function(data) {
             populateBCIDPage();
         }).fail(function(jqxhr) {
-            $(".error").html($.parseJSON(jqxhr.responseText).error);
+            $(".error").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
         });
     loadingDialog(posting);
 }
@@ -47,7 +47,7 @@ function results(posting, a) {
     });
    posting.fail(function(jqxhr) {
         $( a ).html( "<table><tr><th>System error, unable to perform function!!</th></tr><tr><td>" +
-            $.parseJSON(jqxhr.responseText).error + "</td></tr></table>" );
+            JSON.stringify($.parseJSON(jqxhr.responseText).error) + "</td></tr></table>" );
    });
 }
 
@@ -243,7 +243,7 @@ function listProjects(username, url, expedition) {
             }
         });
     }).fail(function(jqxhr) {
-        $(".sectioncontent").html($.parseJSON(jqxhr.responseText).error);
+        $(".sectioncontent").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
     });
     return jqxhr;
 
@@ -390,7 +390,7 @@ function profileSubmit(username, divId) {
         ).done (function() {
             populateProjectSubsections(divId);
         }).fail(function(jqxhr) {
-            $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
+            $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
         });
         loadingDialog(jqxhr);
     }
@@ -443,7 +443,7 @@ function expeditionsPublicSubmit(divId) {
     ).done(function() {
         populateProjectSubsections(divId);
     }).fail(function(jqxhr) {
-        $(divId).html($.parseJSON(jqxhr.responseText).error);
+        $(divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
     });
     loadingDialog(jqxhr);
 }
@@ -473,7 +473,7 @@ function projectUserSubmit(id) {
             var jqxhr2 = populateProjectSubsections(divId);
         }).fail(function(jqxhr) {
             var jqxhr2 = populateProjectSubsections(divId);
-            $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
+            $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
         });
         loadingDialog(jqxhr);
     }
@@ -488,7 +488,7 @@ function createUserSubmit(project_id, divId) {
         ).done(function() {
             populateProjectSubsections(divId);
         }).fail(function(jqxhr) {
-            $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
+            $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
         });
         loadingDialog(jqxhr);
     }
@@ -506,7 +506,7 @@ function projectRemoveUser(e) {
     }).fail(function(jqxhr) {
         var jqxhr2 = populateProjectSubsections(divId)
             .done(function() {
-                $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
+                $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
             });
     });
     loadingDialog(jqxhr);
@@ -518,7 +518,7 @@ function projectConfigSubmit(project_id, divId) {
     ).done(function(data) {
         populateProjectSubsections(divId);
     }).fail(function(jqxhr) {
-        $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
+        $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
     });
     loadingDialog(jqxhr);
 }
@@ -531,6 +531,8 @@ function populateExpeditionPage(username) {
         $(".expand-content").click(function() {
             loadExpeditions(this.id)
         });
+    }).fail(function(jqxhr) {
+        $("#sectioncontent").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
     });
     loadingDialog(jqxhr);
 }
@@ -596,6 +598,8 @@ function listExpeditions(divId) {
             $(".expand-content").click(function() {
                 loadExpeditions(this.id);
             });
+        }).fail(function(jqxhr) {
+            $(divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
         });
     loadingDialog(jqxhr);
 }
@@ -653,6 +657,8 @@ function populateBCIDPage() {
         $("a.edit").click(function() {
             getBCIDEditor(this);
         });
+    }).fail(function(jqxhr) {
+        $("#sectioncontent").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
     });
     loadingDialog(jqxhr);
     return jqxhr;
