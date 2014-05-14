@@ -30,20 +30,24 @@ public class projectService {
      *
      * @param project_id
      * @return
-     * @throws Exception
      */
     @GET
     @Path("/validation/{project_id}")
-    @Produces(MediaType.TEXT_HTML)
-    public Response fetchAlias(@PathParam("project_id") Integer project_id) throws Exception {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response fetchAlias(@PathParam("project_id") Integer project_id) {
 
-        projectMinter project = new projectMinter();
-        String response = project.getValidationXML(project_id);
+        try {
+            projectMinter project = new projectMinter();
+            String response = project.getValidationXML(project_id);
 
-        if (response == null) {
-            return Response.status(204).build();
-        } else {
-            return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
+            if (response == null) {
+                return Response.status(204).build();
+            } else {
+                return Response.ok("{\"validation_xml\": \"" + response + "\"}").header("Access-Control-Allow-Origin", "*").build();
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
@@ -102,20 +106,20 @@ public class projectService {
     @GET
     @Path("/admin/list")
     @Produces(MediaType.APPLICATION_JSON)
-    public String getUserAdminProjects() {
+    public Response getUserAdminProjects() {
         try {
             HttpSession session = request.getSession();
 
             if (session.getAttribute("projectAdmin") == null) {
                 // if not an project admin, then return nothing
-                return "[{}]";
+                return Response.status(401).entity("{}").build();
             }
             String username = session.getAttribute("user").toString();
 
             projectMinter project= new projectMinter();
-            return project.listUserAdminProjects(username);
+            return Response.ok(project.listUserAdminProjects(username)).build();
         } catch (Exception e) {
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
@@ -140,7 +144,7 @@ public class projectService {
                 return new errorInfo(e, request).toHTMLTable();
             }
         }
-        return "{\"error\": \"You must be this project's admin in order to view its configuration\"}";
+        return "You must be this project's admin in order to view its configuration";
     }
 
     /**
@@ -175,22 +179,22 @@ public class projectService {
     @POST
     @Path("/updateConfig/{project_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String updateConfig(@PathParam("project_id") Integer projectID,
-                               @FormParam("title") String title,
-                               @FormParam("validation_xml") String validationXML,
-                               @FormParam("public") String publicProject) {
+    public Response updateConfig(@PathParam("project_id") Integer projectID,
+                                 @FormParam("title") String title,
+                                 @FormParam("validation_xml") String validationXML,
+                                 @FormParam("public") String publicProject) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
         if (username == null){
-            return "{\"error\": \"You must be logged in to edit a project's config.\"}";
+            return Response.status(401).entity("{\"error\": \"You must be logged in to edit a project's config.\"}").build();
         }
         try {
             projectMinter p = new projectMinter();
             database db = new database();
 
             if (!p.userProjectAdmin(db.getUserId(username.toString()), projectID)) {
-                return "{\"error\": \"You must be this project's admin in order to edit the config\"}";
+                return Response.status(401).entity("{\"error\": \"You must be this project's admin in order to edit the config\"}").build();
             }
 
             Hashtable config = p.getProjectConfig(projectID, username.toString());
@@ -214,16 +218,16 @@ public class projectService {
 
             if (!update.isEmpty()) {
                 if (p.updateConfig(update, projectID)) {
-                    return "[{\"success\": \"Successfully update project config.\"}]";
+                    return Response.ok("{\"success\": \"Successfully update project config.\"}").build();
                 }
             } else {
-                return "[{\"success\": \"nothing needed to be updated\"}]";
+                return Response.ok("{\"success\": \"nothing needed to be updated\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
-        return "{\"error\": \"error updating config\"}";
+        return Response.status(500).entity("{\"error\": \"error updating config\"}").build();
 
     }
 
@@ -236,8 +240,8 @@ public class projectService {
     @GET
     @Path("/removeUser/{project_id}/{user_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String removeUser(@PathParam("project_id") Integer projectId,
-                             @PathParam("user_id") Integer userId) {
+    public Response removeUser(@PathParam("project_id") Integer projectId,
+                               @PathParam("user_id") Integer userId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
         Boolean success = false;
@@ -247,19 +251,19 @@ public class projectService {
             database db = new database();
 
             if (username == null || !p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
-                return "{\"error\": \"You are not this project's admin\"}";
+                return Response.status(401).entity("{\"error\": \"You are not this project's admin\"}").build();
             }
 
             success = p.removeUser(userId, projectId);
 
             if (success) {
-                return "[{\"success\": \"User has been successfully removed\"}]";
+                return Response.ok("{\"success\": \"User has been successfully removed\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
-        return "{\"error\": \"error removing user\"}";
+        return Response.status(500).entity("{\"error\": \"error removing user\"}").build();
     }
 
     /**
@@ -271,15 +275,15 @@ public class projectService {
     @POST
     @Path("/addUser")
     @Produces(MediaType.APPLICATION_JSON)
-    public String addUser(@FormParam("project_id") Integer projectId,
-                          @FormParam("user_id") Integer userId) {
+    public Response addUser(@FormParam("project_id") Integer projectId,
+                            @FormParam("user_id") Integer userId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
         Boolean success = false;
 
         // userId of 0 means create new user, using ajax to create user, shouldn't ever receive userId of 0
         if (userId == 0) {
-            return "{\"error\": \"error creating user\"}";
+            return Response.status(400).entity("{\"error\": \"error creating user\"}").build();
         }
 
         try {
@@ -287,19 +291,19 @@ public class projectService {
             database db = new database();
 
             if (username == null || !p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
-                return "{\"error\": \"You are not this project's admin\"}";
+                return Response.status(401).entity("{\"error\": \"You are not this project's admin\"}").build();
             }
             success = p.addUserToProject(userId, projectId);
 
             if (success) {
-                return "{\"success\": \"User has been successfully added to this project\"}";
+                return Response.ok("{\"success\": \"User has been successfully added to this project\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
 
-        return "{\"error\": \"error adding user to project\"}";
+        return Response.status(500).entity("{\"error\": \"error adding user to project\"}").build();
     }
 
     /**
@@ -316,7 +320,7 @@ public class projectService {
         try {
             if (session.getAttribute("projectAdmin") == null) {
                 // only display system users to project admins
-                return "{\"error\": \"You are not an admin to this project\"}";
+                return "You are not an admin to this project";
             }
 
             projectMinter p = new projectMinter();
@@ -354,11 +358,11 @@ public class projectService {
             }
 
             projectMinter p = new projectMinter();
-            return Response.status(200).entity(p.listUsersProjects(username)).build();
+            return Response.ok(p.listUsersProjects(username)).build();
 
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok(new errorInfo(e, request).toJSON()).build();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 }

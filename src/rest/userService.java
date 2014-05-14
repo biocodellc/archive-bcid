@@ -40,19 +40,19 @@ public class userService {
     @POST
     @Path("/create")
     @Produces(MediaType.APPLICATION_JSON)
-    public String createUser(@FormParam("username") String username,
-                             @FormParam("password") String password,
-                             @FormParam("firstName") String firstName,
-                             @FormParam("lastName") String lastName,
-                             @FormParam("email") String email,
-                             @FormParam("institution") String institution,
-                             @FormParam("project_id") Integer projectId) {
+    public Response createUser(@FormParam("username") String username,
+                               @FormParam("password") String password,
+                               @FormParam("firstName") String firstName,
+                               @FormParam("lastName") String lastName,
+                               @FormParam("email") String email,
+                               @FormParam("institution") String institution,
+                               @FormParam("project_id") Integer projectId) {
 
         HttpSession session = request.getSession();
 
         if (session.getAttribute("projectAdmin") == null) {
             // only project admins are able to create users
-            return "{\"error\": \"only project admins are able to create users\"}";
+            return Response.status(401).entity("{\"error\": \"only project admins are able to create users\"}").build();
         }
 
         if ((username == null || username.isEmpty()) ||
@@ -61,12 +61,12 @@ public class userService {
                 (lastName == null || lastName.isEmpty()) ||
                 (email == null || email.isEmpty()) ||
                 (institution == null) || institution.isEmpty()) {
-            return "{\"error\": \"all fields are required\"}";
+            return Response.status(400).entity("{\"error\": \"all fields are required\"}").build();
         }
 
         // check that a valid email is given
         if (!email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
-            return "{\"error\": \"please enter a valid email\"}";
+            return Response.status(400).entity("{\"error\": \"please enter a valid email\"}").build();
         }
 
         Hashtable<String, String> userInfo = new Hashtable<String, String>();
@@ -84,17 +84,17 @@ public class userService {
             database db = new database();
 
             if (u.checkUsernameExists(username)) {
-                return "{\"error\": \"username already exists\"}";
+                return Response.status(400).entity("{\"error\": \"username already exists\"}").build();
             }
             // check if the user is this project's admin
             if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
-                return "{\"error\": \"you can't add a user to a project that you're not an admin\"}";
+                return Response.status(401).entity("{\"error\": \"you can't add a user to a project that you're not an admin\"}").build();
             }
 
-            return u.createUser(userInfo, projectId);
+            return Response.ok(u.createUser(userInfo, projectId)).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
@@ -127,34 +127,33 @@ public class userService {
     @POST
     @Path("/profile/update/{username}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String adminUpdateProfile(@FormParam("firstName") String firstName,
-                                     @FormParam("lastName") String lastName,
-                                     @FormParam("email") String email,
-                                     @FormParam("institution") String institution,
-                                     @FormParam("new_password") String new_password,
-                                     @PathParam("username") String username) {
+    public Response adminUpdateProfile(@FormParam("firstName") String firstName,
+                                       @FormParam("lastName") String lastName,
+                                       @FormParam("email") String email,
+                                       @FormParam("institution") String institution,
+                                       @FormParam("new_password") String new_password,
+                                       @PathParam("username") String username) {
         HttpSession session = request.getSession();
-        String error = "";
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         if (session.getAttribute("projectAdmin") == null) {
-            return "{\"error\": \"you must be a project admin to edit another user's profile\"}";
+            return Response.status(401).entity("{\"error\": \"you must be a project admin to edit another user's profile\"}").build();
         }
 
-        // set new password if given
-        if (!new_password.isEmpty()) {
-            authenticator authenticator = new authenticator();
-            Boolean success = authenticator.setHashedPass(username, new_password);
-            if (!success) {
-                error = "server error hashing password";
-            } else {
-                // Make the user change their password next time they login
-                update.put("set_password", "0");
-            }
-        }
-
-        // Check if any other fields should be updated
         try {
+            // set new password if given
+            if (!new_password.isEmpty()) {
+                authenticator authenticator = new authenticator();
+                Boolean success = authenticator.setHashedPass(username, new_password);
+                if (!success) {
+                    throw new Exception("server error hashing password");
+                } else {
+                    // Make the user change their password next time they login
+                    update.put("set_password", "0");
+                }
+            }
+
+            // Check if any other fields should be updated
             userMinter u = new userMinter();
 
             if (!firstName.equals(u.getFirstName(username))) {
@@ -168,7 +167,7 @@ public class userService {
                 if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
                     update.put("email", email);
                 } else {
-                    error = "please enter a valid email";
+                    return Response.status(400).entity("{\"error\": \"please enter a valid email\"}").build();
                 }
             }
             if (!institution.equals(u.getInstitution(username))) {
@@ -179,19 +178,14 @@ public class userService {
             if (!update.isEmpty()) {
                 Boolean success = u.updateProfile(update, username);
                 if (!success) {
-                    error = "server error updating profile";
+                    throw new Exception("server error updating profile");
                 }
             }
 
+            return Response.ok("{\"success\": \"true\"}").build();
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
-        }
-
-        if (error.isEmpty()) {
-            return "[{\"success\": \"true\"}]";
-        } else {
-            return "{\"error\": \"" + error + "\"}";
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
@@ -218,7 +212,7 @@ public class userService {
                               @FormParam("new_password") String new_password,
                               @QueryParam("return_to") String return_to,
                               @Context HttpServletResponse response)
-            throws IOException{
+            throws Exception{
 
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
@@ -250,36 +244,31 @@ public class userService {
         database db;
 
         // Check if any other fields should be updated
-        try {
-            userMinter u = new userMinter();
+        userMinter u = new userMinter();
 
-            if (!firstName.equals(u.getFirstName(username))) {
-                update.put("firstName", firstName);
+        if (!firstName.equals(u.getFirstName(username))) {
+            update.put("firstName", firstName);
+        }
+        if (!lastName.equals(u.getLastName(username))) {
+            update.put("lastName", lastName);
+        }
+        if (!email.equals(u.getEmail(username))) {
+            // check that a valid email is given
+            if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
+                update.put("email", email);
+            } else {
+                error = "please enter a valid email";
             }
-            if (!lastName.equals(u.getLastName(username))) {
-                update.put("lastName", lastName);
-            }
-            if (!email.equals(u.getEmail(username))) {
-                // check that a valid email is given
-                if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
-                    update.put("email", email);
-                } else {
-                    error = "please enter a valid email";
-                }
-            }
-            if (!institution.equals(u.getInstitution(username))) {
-                update.put("institution", institution);
-            }
+        }
+        if (!institution.equals(u.getInstitution(username))) {
+            update.put("institution", institution);
+        }
 
-            if (!update.isEmpty()) {
-                Boolean success = u.updateProfile(update, username);
-                if (!success) {
-                    error = "server error updating profile";
-                }
+        if (!update.isEmpty()) {
+            Boolean success = u.updateProfile(update, username);
+            if (!success) {
+                error = "server error updating profile";
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            error = new errorInfo(e, request).toJSON();
         }
 
         if (error.isEmpty()) {

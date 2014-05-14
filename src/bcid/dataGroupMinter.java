@@ -313,7 +313,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         Statement stmt = null;
         Integer datasetId = null;
         StringBuilder sb = new StringBuilder();
-        sb.append("[{");
+        sb.append("{");
         sb.append("\"0\":\"Create new group\"");
         try {
             stmt = conn.createStatement();
@@ -323,7 +323,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             while (rs.next()) {
                 sb.append(",\"" + rs.getInt("datasets_id") + "\":\"" + rs.getString("prefix") + "\"");
             }
-            sb.append("}]");
+            sb.append("}");
 
         } catch (SQLException e) {
             return null;

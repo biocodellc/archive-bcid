@@ -191,7 +191,7 @@ public class ResourceTypes {
      */
     public String getAllAsJSON() {
         StringBuilder json = new StringBuilder();
-        json.append("[{");
+        json.append("{");
         Iterator it = list.iterator();
         int count = 0;
         while (it.hasNext()) {
@@ -208,7 +208,7 @@ public class ResourceTypes {
             }
             count++;
         }
-        json.append("}]");
+        json.append("}");
         return json.toString();
     }
 
@@ -221,7 +221,7 @@ public class ResourceTypes {
      */
     public String getAllButDatasetAsJSON() {
         StringBuilder json = new StringBuilder();
-        json.append("[{");
+        json.append("{");
         Iterator it = list.iterator();
         int count = 0;
         while (it.hasNext()) {
@@ -242,7 +242,7 @@ public class ResourceTypes {
                 count++;
             }
         }
-        json.append("}]");
+        json.append("}");
         return json.toString();
     }
 

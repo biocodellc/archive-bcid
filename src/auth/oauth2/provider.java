@@ -284,7 +284,7 @@ public class provider {
         stmt.execute();
 
         StringBuilder sb = new StringBuilder();
-        sb.append("[{");
+        sb.append("{");
         sb.append("\"access_token\":\"" + token + "\",\n");
         sb.append("\"refresh_token\":\"" + refreshToken + "\",\n");
         sb.append("\"token_type\":\"bearer\",\n");
@@ -292,7 +292,7 @@ public class provider {
         if (state != null) {
             sb.append(("\"state\":\"" + state + "\""));
         }
-        sb.append("}]");
+        sb.append("}");
 
         return sb.toString();
     }

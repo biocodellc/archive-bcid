@@ -79,7 +79,7 @@ public class elementService {
             ResourceTypes rts = new ResourceTypes();
             return rts.getAllButDatasetAsJSON();
         } else {
-            return "[{}]";
+            return "{}";
         }
     }
 
@@ -160,7 +160,7 @@ public class elementService {
                                 resourceType == ResourceTypes.SPACER6 ||
                                 resourceType == ResourceTypes.SPACER7)
                         ) {
-                    return Response.ok("{\"error: Must choose a valid concept!\"}").build();
+                    return Response.status(400).entity("{\"error: Must choose a valid concept!\"}").build();
                 }
                 // TODO: check for valid local ID's, no reserved characters
 

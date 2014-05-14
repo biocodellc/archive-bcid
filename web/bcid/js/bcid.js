@@ -9,11 +9,9 @@ function dataGroupCreatorSubmit() {
 function dataGroupEditorSubmit() {
     var posting = $.post( "/id/groupService/dataGroup/update", $("#dataGroupEditForm").serialize())
         .done(function(data) {
-            if (data.error != null) {
-                $(".error").html(data.error);
-            } else {
-                populateBCIDPage();
-            }
+            populateBCIDPage();
+        }).fail(function(jqxhr) {
+            $(".error").html($.parseJSON(jqxhr.responseText).error);
         });
     loadingDialog(posting);
 }
@@ -40,15 +38,16 @@ function results(posting, a) {
     posting.done(function( data ) {
         var content = "<table>";
         content += "<tr><th>Results</th></tr>"
-        content += "<tr><td>"+data+"</td></tr>";
+        content += "<tr><td>"+ data.prefix +"</td></tr>";
         //$.each(data, function(k,v) {
         //    content += "<tr><td>"+v+"</td></tr>";
         //})
         content += "</table>";
         $( a ).html( content );
     });
-   posting.fail(function() {
-        $( a ).html( "<table><tr><th>System error, unable to perform function!!</th></tr></table>" );
+   posting.fail(function(jqxhr) {
+        $( a ).html( "<table><tr><th>System error, unable to perform function!!</th></tr><tr><td>" +
+            $.parseJSON(jqxhr.responseText).error + "</td></tr></table>" );
    });
 }
 
@@ -141,24 +140,14 @@ function populateResourceTypes(a) {
 
 // Populate the SELECT box with resourceTypes from the server
 function populateSelect(a) {
-    // Dataset Service Call
-    if (a == "datasetList") {
-        var url = "/id/groupService/list/";
-    // Project Service Call
-    } else if (a == "adminProjects") {
-        var url = "/id/projectService/admin/list/";
-    } else if (a == "userList") {
-        var url = "/id/userService/list/";
     // bcid Service Call
-    } else {
-        var url = "/id/elementService/select/" + a;
-    }
+    var url = "/id/elementService/select/" + a;
 
     // get JSON from server and loop results
     var jqxhr = $.getJSON(url, function() {})
         .done(function(data) {
             var options = '';
-            $.each(data[0], function(key, val) {
+            $.each(data, function(key, val) {
                 options+='<option value="' + key + '">' +val + '</option>';
             });
             $("#" + a).html(options);
@@ -253,6 +242,8 @@ function listProjects(username, url, expedition) {
                 $('div#' + project).data('project_id', key);
             }
         });
+    }).fail(function(jqxhr) {
+        $(".sectioncontent").html($.parseJSON(jqxhr.responseText).error);
     });
     return jqxhr;
 
@@ -396,12 +387,10 @@ function profileSubmit(username, divId) {
         $(".error", divId).html("password too weak");
     } else {
         var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize()
-        ).done (function(data) {
-            if (data.error != null) {
-                $(".error", divId).html(data.error);
-            } else {
-                populateProjectSubsections(divId);
-            }
+        ).done (function() {
+            populateProjectSubsections(divId);
+        }).fail(function(jqxhr) {
+            $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
         });
         loadingDialog(jqxhr);
     }
@@ -453,6 +442,8 @@ function expeditionsPublicSubmit(divId) {
     var jqxhr = $.post('/id/expeditionService/admin/publicExpeditions', data.replace('&', '')
     ).done(function() {
         populateProjectSubsections(divId);
+    }).fail(function(jqxhr) {
+        $(divId).html($.parseJSON(jqxhr.responseText).error);
     });
     loadingDialog(jqxhr);
 }
@@ -480,11 +471,9 @@ function projectUserSubmit(id) {
         var jqxhr = $.post("/id/projectService/addUser", $('form', divId).serialize()
         ).done(function(data) {
             var jqxhr2 = populateProjectSubsections(divId);
-            if (data.error != null) {
-                jqxhr2.done(function() {
-                    $(".error", divId).html(data.error);
-                });
-            }
+        }).fail(function(jqxhr) {
+            var jqxhr2 = populateProjectSubsections(divId);
+            $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
         });
         loadingDialog(jqxhr);
     }
@@ -496,12 +485,10 @@ function createUserSubmit(project_id, divId) {
         $(".error", divId).html("password too weak");
     } else {
         var jqxhr = $.post("/id/userService/create", $('form', divId).serialize()
-        ).done(function(data) {
-            if (data.error != null) {
-                $(".error", divId).html(data.error);
-            } else {
-                populateProjectSubsections(divId);
-            }
+        ).done(function() {
+            populateProjectSubsections(divId);
+        }).fail(function(jqxhr) {
+            $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
         });
         loadingDialog(jqxhr);
     }
@@ -516,11 +503,11 @@ function projectRemoveUser(e) {
     var jqxhr = $.getJSON("/id/projectService/removeUser/" + projectId + "/" + userId
     ).done (function(data) {
         var jqxhr2 = populateProjectSubsections(divId);
-        if (data.error != null) {
-            jqxhr2.done(function() {
-                $(".error", divId).html(data.error);
+    }).fail(function(jqxhr) {
+        var jqxhr2 = populateProjectSubsections(divId)
+            .done(function() {
+                $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
             });
-        }
     });
     loadingDialog(jqxhr);
 }
@@ -529,11 +516,9 @@ function projectRemoveUser(e) {
 function projectConfigSubmit(project_id, divId) {
     var jqxhr = $.post("/id/projectService/updateConfig/" + project_id, $('form', divId).serialize()
     ).done(function(data) {
-        if (data.error != null) {
-            $(".error", divId).html(data.error);
-        } else {
-            populateProjectSubsections(divId);
-        }
+        populateProjectSubsections(divId);
+    }).fail(function(jqxhr) {
+        $(".error", divId).html($.parseJSON(jqxhr.responseText).error);
     });
     loadingDialog(jqxhr);
 }

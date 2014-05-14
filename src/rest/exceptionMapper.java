@@ -4,6 +4,7 @@ import util.errorInfo;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -23,6 +24,12 @@ public class exceptionMapper implements ExceptionMapper<Throwable> {
         errorInfo errorInfo = new errorInfo(throwable, request);
         throwable.printStackTrace();
 
+        Integer status = 500;
+        // if the throwable is an instance of WebApplicationException, get the status code
+        if (throwable instanceof WebApplicationException) {
+            status = ((WebApplicationException) throwable).getResponse().getStatus();
+        }
+
         URI uri = null;
         try {
             // send the user to error.jsp to display info about the exception/error
@@ -39,6 +46,6 @@ public class exceptionMapper implements ExceptionMapper<Throwable> {
         HttpSession session = request.getSession();
         session.setAttribute("errorInfo", errorInfo);
 
-        return Response.status(500).location(uri).build();
+        return Response.status(status).location(uri).build();
     }
 }

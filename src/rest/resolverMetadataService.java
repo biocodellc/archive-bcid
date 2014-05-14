@@ -94,7 +94,7 @@ public class resolverMetadataService {
                 return Response.ok(new Viewable("/index", map)).build();
             }
         } catch (Exception e) {
-            return Response.ok(new serviceErrorReporter(e).json()).build();
+            return Response.status(500).entity(new serviceErrorReporter(e).json()).build();
         }
     }
 }
