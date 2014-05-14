@@ -15,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URL;
 
 /**
  * REST interface for handling user authentication
@@ -121,7 +122,6 @@ public class authenticationService {
      * @param redirectURL
      * @param state
      * @param response
-     * @throws Exception
      */
     @GET
     @Path("/oauth/authorize")
@@ -130,46 +130,50 @@ public class authenticationService {
                           @QueryParam("redirect_uri") String redirectURL,
                           @QueryParam("state") String state,
                           @Context HttpServletResponse response)
-        throws Exception {
+        throws IOException {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
-        provider p = new provider();
+        try {
+            provider p = new provider();
 
-        if (redirectURL == null) {
-            String callback = p.getCallback(clientId);
+            if (redirectURL == null) {
+                String callback = p.getCallback(clientId);
 
-            if (callback != null) {
-                response.sendRedirect(callback + "?error=invalid_request");
+                if (callback != null) {
+                    response.sendRedirect(callback + "?error=invalid_request");
+                    return;
+                }
+                response.sendError(400, "invalid_request");
                 return;
             }
-            response.sendError(400, "invalid_request");
-            return;
-        }
 
-        if (clientId == null || !p.validClientId(clientId)) {
-            redirectURL += "?error=unauthorized_client";
+            if (clientId == null || !p.validClientId(clientId)) {
+                redirectURL += "?error=unauthorized_client";
+                response.sendRedirect(redirectURL);
+                return;
+            }
+
+            if (username == null) {
+                // need the user to login
+                response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
+                                      + request.getQueryString());
+                return;
+            }
+            //TODO ask user if they want to share profile information with requesting party
+
+            String code = p.generateCode(clientId, redirectURL, username.toString());
+
+            redirectURL += "?code=" + code;
+
+            if (state != null) {
+                redirectURL += "&state=" + state;
+            }
             response.sendRedirect(redirectURL);
             return;
+        } catch(Exception e) {
+            response.sendError(500, "server error");
         }
-
-        if (username == null) {
-            // need the user to login
-            response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
-                                  + request.getQueryString());
-            return;
-        }
-        //TODO ask user if they want to share profile information with requesting party
-
-        String code = p.generateCode(clientId, redirectURL, username.toString());
-
-        redirectURL += "?code=" + code;
-
-        if (state != null) {
-            redirectURL += "&state=" + state;
-        }
-        response.sendRedirect(redirectURL);
-        return;
     }
 
     /**
@@ -180,7 +184,6 @@ public class authenticationService {
      * @param redirectURL
      * @param state
      * @return
-     * @throws IOException
      */
     @POST
     @Path("/oauth/access_token")
@@ -223,7 +226,6 @@ public class authenticationService {
      * @param clientSecret
      * @param refreshToken
      * @return
-     * @throws IOException
      */
     @POST
     @Path("/oauth/refresh")
@@ -268,6 +270,7 @@ public class authenticationService {
     @POST
     @Path("/reset")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Produces(MediaType.TEXT_HTML)
     public void resetPassword(@FormParam("password") String password,
                               @FormParam("token") String token,
                               @Context HttpServletResponse response)
@@ -305,23 +308,23 @@ public class authenticationService {
     @Path("/sendResetToken")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String sendResetToken(@FormParam("username") String username) {
+    public Response sendResetToken(@FormParam("username") String username) {
 
         if (username.isEmpty()) {
-            return "{\"error\": \"User not found\"}";
+            return Response.status(400).entity("{\"error\": \"User not found\"}").build();
         }
         try {
             authenticator a = new authenticator();
             String email = a.sendResetToken(username);
 
             if (email != null) {
-                return "{\"success\": \"" + email + "\"}";
+                return Response.ok("{\"success\": \"" + email + "\"}").build();
             } else {
-                return "{\"error\": \"User not found\"}";
+                return Response.status(400).entity("{\"error\": \"User not found\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 }

@@ -32,17 +32,22 @@ public class expeditionService {
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/associate")
     public Response mint(@FormParam("expedition_code") String expedition_code,
                          @FormParam("bcid") String bcid,
-                         @FormParam("project_id") Integer project_id)
-        throws Exception {
-        expeditionMinter expedition = null;
-        expedition = new expeditionMinter();
-        expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
+                         @FormParam("project_id") Integer project_id) {
+        try {
+            expeditionMinter expedition = null;
+            expedition = new expeditionMinter();
+            expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
 
-        return Response.ok("Succesfully associated expedition_code = " + expedition_code + " with bcid = " + bcid).build();
+            return Response.ok("{\"success\": \"Succesfully associated expedition_code = " + expedition_code +
+                    " with bcid = " + bcid + "\"}").build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        }
 
     }
 
@@ -52,13 +57,11 @@ public class expeditionService {
      * Responses are error, update, or insert (first term followed by a colon)
      * @param expedition_code
      * @param project_id
-     * @param request
      * @return
-     * @throws Exception
      */
     @GET
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/validateExpedition/{project_id}/{expedition_code}")
     public Response mint(@PathParam("expedition_code") String expedition_code,
                          @PathParam("project_id") Integer project_id,
@@ -90,19 +93,19 @@ public class expeditionService {
             //System.out.println("checking user_id = " + user_id + " & expedition_code = " + expedition_code);
             if (!expedition.userExistsInProject(user_id, project_id)) {
                 // If the user isn't in the project, then we can't update or create a new expedition
-                return Response.ok("error: user is not authorized to update/create expeditions in this project").build();
+                return Response.status(401).entity("{\"error\": \"user is not authorized to update/create expeditions in this project\"}").build();
             } else if (expedition.userOwnsExpedition(user_id,expedition_code, project_id)) {
                 // If the user already owns the expedition, then great--- this is an update
-                return Response.ok("update: user owns this expedition").build();
+                return Response.ok("{\"update\": \"user owns this expedition\"").build();
                 // If the expedition exists in the project but the user does not own the expedition then this means we can't
             } else if (expedition.expeditionExistsInProject(expedition_code,project_id)) {
-                return Response.ok("error: expedition already exists within this project but the user does not own it").build();
+                return Response.status(401).entity("{\"error\": \"expedition already exists within this project but the user does not own it\"}").build();
             } else {
-                return Response.ok("insert: the expedition does not exist with project and nobody owns it").build();
+                return Response.ok("{\"insert\": \"the expedition does not exist with project and nobody owns it\"").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.ok("error: " + new errorInfo(e, request).toJSON()).build();
+            return Response.status(500).entity("\"error\": \"" + new errorInfo(e, request).toJSON() + "\"}").build();
         }
     }
 
@@ -115,69 +118,73 @@ public class expeditionService {
      * @param accessToken (optional) the access token that represents the user who you are minting an expedition
      *                    on behalf.
      * @return
-     * @throws Exception
      */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response mint(@FormParam("expedition_code") String expedition_code,
                          @FormParam("expedition_title") String expedition_title,
                          @FormParam("project_id") Integer project_id,
                          @FormParam("public") Boolean isPublic,
-                         @QueryParam("access_token") String accessToken)
-            throws Exception {
+                         @QueryParam("access_token") String accessToken) {
         String username;
 
-        // if accessToken != null, then OAuth client is accessing on behalf of a user
-        if (accessToken != null) {
-            provider p = new provider();
-            username = p.validateToken(accessToken);
-        } else {
-            HttpSession session = request.getSession();
-            username = (String) session.getAttribute("user");
+        try {
+            // if accessToken != null, then OAuth client is accessing on behalf of a user
+            if (accessToken != null) {
+                provider p = new provider();
+                username = p.validateToken(accessToken);
+            } else {
+                HttpSession session = request.getSession();
+                username = (String) session.getAttribute("user");
+            }
+
+            if (username == null) {
+                // status=401 means unauthorized user
+                return Response.status(401).entity("\"error\": \"unauthorized user\"}").build();
+            }
+
+            if (isPublic == null) {
+                isPublic = true;
+            }
+
+            // Get the user_id
+            database db = new database();
+            Integer user_id = db.getUserId(username);
+
+            Integer expedition_id = null;
+            expeditionMinter expedition = null;
+
+            // Mint a expedition
+            expedition = new expeditionMinter();
+            expedition_id = expedition.mint(
+                    expedition_code,
+                    expedition_title,
+                    user_id,
+                    project_id,
+                    isPublic
+                    );
+
+            // Initialize settings manager
+            SettingsManager sm = SettingsManager.getInstance();
+            sm.loadProperties();
+
+            // Send an Email that this completed
+            sendEmail sendEmail = new sendEmail(
+                    sm.retrieveValue("mailUser"),
+                    sm.retrieveValue("mailPassword"),
+                    sm.retrieveValue("mailFrom"),
+                    sm.retrieveValue("mailTo"),
+                    "New Expedition",
+                    expedition.printMetadata(expedition_id));
+            sendEmail.start();
+
+            return Response.ok("{\"success\": \"Succesfully created expedition:<br>" +
+                    expedition.printMetadataHTML(expedition_id) + "\"}").build();
+        } catch(Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
-
-        if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).build();
-        }
-
-        if (isPublic == null) {
-            isPublic = true;
-        }
-
-        // Get the user_id
-        database db = new database();
-        Integer user_id = db.getUserId(username);
-
-        Integer expedition_id = null;
-        expeditionMinter expedition = null;
-
-        // Mint a expedition
-        expedition = new expeditionMinter();
-        expedition_id = expedition.mint(
-                expedition_code,
-                expedition_title,
-                user_id,
-                project_id,
-                isPublic
-                );
-
-        // Initialize settings manager
-        SettingsManager sm = SettingsManager.getInstance();
-        sm.loadProperties();
-
-        // Send an Email that this completed
-        sendEmail sendEmail = new sendEmail(
-                sm.retrieveValue("mailUser"),
-                sm.retrieveValue("mailPassword"),
-                sm.retrieveValue("mailFrom"),
-                sm.retrieveValue("mailTo"),
-                "New Expedition",
-                expedition.printMetadata(expedition_id));
-        sendEmail.start();
-
-        return Response.ok("Succesfully created expedition:<br>" + expedition.printMetadataHTML(expedition_id)).build();
     }
 
 
@@ -187,22 +194,24 @@ public class expeditionService {
      * @param expedition
      * @param resourceAlias
      * @return
-     * @throws Exception
      */
     @GET
     @Path("/{project_id}/{expedition}/{resourceAlias}")
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response fetchAlias(@PathParam("expedition") String expedition,
                                @PathParam("project_id") Integer project_id,
-                               @PathParam("resourceAlias") String resourceAlias)
-            throws Exception {
-
-        resolver r = new resolver(expedition, project_id, resourceAlias);
-        String response = r.getArk();
-        if (response == null) {
-            return Response.status(204).build();
-        } else {
-            return Response.ok(r.getArk()).build();
+                               @PathParam("resourceAlias") String resourceAlias) {
+        try {
+            resolver r = new resolver(expedition, project_id, resourceAlias);
+            String response = r.getArk();
+            if (response == null) {
+                return Response.status(204).entity("{\"ark\": \"\"}").build();
+            } else {
+                return Response.ok("{\"ark\": \"" + r.getArk() + "\"}").build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e,request).toJSON()).build();
         }
     }
 
@@ -242,8 +251,8 @@ public class expeditionService {
     @GET
     @Path("/list/{project_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String listExpeditions(@PathParam("project_id") Integer projectId,
-                                  @QueryParam("access_token") String accessToken) {
+    public Response listExpeditions(@PathParam("project_id") Integer projectId,
+                                    @QueryParam("access_token") String accessToken) {
         String username;
 
         try {
@@ -257,14 +266,14 @@ public class expeditionService {
             }
 
             if (username == null) {
-                return "{\"error\": \"You must be logged in to view your expeditions.\"}";
+                return Response.status(401).entity("{\"error\": \"You must be logged in to view your expeditions.\"}").build();
             }
 
             expeditionMinter e = new expeditionMinter();
-            return e.listExpeditions(projectId, username.toString());
+            return Response.ok(e.listExpeditions(projectId, username.toString())).build();
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
@@ -353,14 +362,14 @@ public class expeditionService {
     @Path("/admin/publicExpeditions")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String publicExpeditions(MultivaluedMap<String, String> data) {
+    public Response publicExpeditions(MultivaluedMap<String, String> data) {
         try {
             HttpSession session = request.getSession();
             Object username = session.getAttribute("user");
             Integer projectId = new Integer(data.remove("project_id").get(0));
 
             if (username == null) {
-                return "{\"error\": \"You must be logged in to update an expedition's public status.\"}";
+                return Response.status(401).entity("{\"error\": \"You must be logged in to update an expedition's public status.\"}").build();
             }
 
             database db = new database();
@@ -368,18 +377,18 @@ public class expeditionService {
             Integer userId = db.getUserId(username.toString());
 
             if (!p.userProjectAdmin(userId, projectId)) {
-                return "{\"error\": \"You must be this project's admin in order to update a project expedition's public status.\"}";
+                return Response.status(401).entity("{\"error\": \"You must be this project's admin in order to update a project expedition's public status.\"}").build();
             }
             expeditionMinter e = new expeditionMinter();
 
             if (e.updateExpeditionsPublicStatus(data, projectId)) {
-                return "[{\"success\": \"successfully updated.\"}]";
+                return Response.ok("{\"success\": \"successfully updated.\"}").build();
             } else {
-                return "{\"error\": \"Error updating expedition status.'\"}";
+                return Response.status(500).entity("{\"error\": \"Error updating expedition status.'\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 

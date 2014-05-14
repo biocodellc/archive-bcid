@@ -54,11 +54,10 @@ public class groupService {
      * @param title
      * @param request
      * @return
-     * @throws Exception
      */
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response mint(@FormParam("doi") String doi,
                          @FormParam("webaddress") String webaddress,
                          @FormParam("graph") String graph,
@@ -76,7 +75,7 @@ public class groupService {
                 resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).uri;
             }
         } catch (Exception e) {
-            return Response.ok("ERROR: BCID System Unable to set resource type").build();
+            return Response.status(500).entity("{\"error\": \"BCID System Unable to set resource type\"}").build();
         }
 
         String username;
@@ -93,7 +92,7 @@ public class groupService {
 
             if (username == null) {
                 // status=401 means unauthorized user
-                return Response.status(401).build();
+                return Response.status(401).entity("{\"error\": \"you must be logged in to create a data group.\"}").build();
             }
 
             Boolean suffixPassthrough = false;
@@ -155,10 +154,10 @@ public class groupService {
                     new resolver(minterDataset.getPrefix()).printMetadata(new TextRenderer()));
             sendEmail.start();
 
-            return Response.ok(datasetPrefix).build();
+            return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
         } catch(Exception e) {
             e.printStackTrace();
-            return Response.ok("ERROR: " + new errorInfo(e, request).toJSON()).build();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
 
 
@@ -188,7 +187,7 @@ public class groupService {
     @GET
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
-    public String datasetList(@Context HttpServletRequest request) {
+    public Response datasetList(@Context HttpServletRequest request) {
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
 
@@ -197,10 +196,10 @@ public class groupService {
             d = new dataGroupMinter();
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
 
-        return d.datasetList(username);
+        return Response.ok(d.datasetList(username)).build();
     }
 
     /**
@@ -293,21 +292,21 @@ public class groupService {
     @Path("/dataGroup/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public String dataGroupUpdate(@FormParam("doi") String doi,
-                                  @FormParam("webaddress") String webaddress,
-                                  @FormParam("title") String title,
-                                  @FormParam("resourceType") String resourceTypeString,
-                                  @FormParam("resourceTypesMinusDataset") Integer resourceTypesMinusDataset,
-                                  @FormParam("suffixPassThrough") String stringSuffixPassThrough,
-                                  @FormParam("prefix") String prefix,
-                                  @Context HttpServletRequest request) {
+    public Response dataGroupUpdate(@FormParam("doi") String doi,
+                                    @FormParam("webaddress") String webaddress,
+                                    @FormParam("title") String title,
+                                    @FormParam("resourceType") String resourceTypeString,
+                                    @FormParam("resourceTypesMinusDataset") Integer resourceTypesMinusDataset,
+                                    @FormParam("suffixPassThrough") String stringSuffixPassThrough,
+                                    @FormParam("prefix") String prefix,
+                                    @Context HttpServletRequest request) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
         Hashtable<String, String> config;
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         if (username == null) {
-            return "{\"error\": \"You must be logged in to edit BCIDs.\"}";
+            return Response.status(401).entity("{\"error\": \"You must be logged in to edit BCIDs.\"}").build();
         }
 
         // get this BCID's config
@@ -318,7 +317,7 @@ public class groupService {
 
             if (config.containsKey("error")) {
                 // Some error occured when fetching BCID configuration
-                return "{\"error\": \"" + config.get("error") + "\"}";
+                return Response.status(500).entity("{\"error\": \"" + config.get("error") + "\"}").build();
             }
 
             if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
@@ -349,16 +348,16 @@ public class groupService {
 
             if (!update.isEmpty()) {
                 if (d.updateDataGroupConfig(update, prefix, username.toString())) {
-                    return "[{\"success\": \"BCID successfully updated.\"}]";
+                    return Response.ok("{\"success\": \"BCID successfully updated.\"}").build();
                 }
             } else {
-                return "[{\"success\": \"Nothing needed to be updated.\"}]";
+                return Response.ok("{\"success\": \"Nothing needed to be updated.\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toJSON();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
         // if we are here, there was an error during d.updateDataGroupConfig
-        return "{\"error\": \"server error.\"}";
+        return Response.status(500).entity("{\"error\": \"server error.\"}").build();
     }
 }

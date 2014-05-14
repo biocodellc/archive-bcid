@@ -24,28 +24,23 @@ public class userMinter {
      * @param projectId
      * @return
      */
-    public String createUser(Hashtable<String, String> userInfo, Integer projectId) {
+    public String createUser(Hashtable<String, String> userInfo, Integer projectId) throws Exception{
         authenticator auth = new authenticator();
         Boolean success = auth.createUser(userInfo);
 
         // if user was created, add user to project
         if (success) {
-            try {
-                database db = new database();
-                Integer userId = db.getUserId(userInfo.get("username"));
-                projectMinter p = new projectMinter();
+            database db = new database();
+            Integer userId = db.getUserId(userInfo.get("username"));
+            projectMinter p = new projectMinter();
 
-                if (p.addUserToProject(userId, projectId)) {
-                    return "[{\"success\": \"successfully created new user\"}]";
-                } else {
-                    return "{\"error\": \"error adding user to project\"}";
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return "{\"error\": \"error adding user to project\"}";
+            if (p.addUserToProject(userId, projectId)) {
+                return "{\"success\": \"successfully created new user\"}";
+            } else {
+                throw new Exception("error adding user to project");
             }
         }
-        return "{\"error\": \"error creating new user\"}";
+        throw new Exception("error creating new user");
     }
 
     /**
@@ -344,7 +339,7 @@ public class userMinter {
                 Integer user_id = db.getUserId(username);
 
                 StringBuilder sb = new StringBuilder();
-                sb.append("[{\n");
+                sb.append("{\n");
 
                 sb.append("\t\"first_name\": \"" + getFirstName(username) + "\",\n");
                 sb.append("\t\"last_name\": \"" + getLastName(username) + "\",\n");
@@ -353,7 +348,7 @@ public class userMinter {
                 sb.append("\t\"user_id\": \"" + user_id + "\",\n");
                 sb.append("\t\"username\": \"" + username + "\"\n");
 
-                sb.append("}]");
+                sb.append("}");
 
                 return sb.toString();
             }
