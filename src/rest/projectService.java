@@ -25,29 +25,25 @@ public class projectService {
     @Context
     static HttpServletRequest request;
 
-    /**
+     /**
      * Given a project_id, return the validationXML file
      *
      * @param project_id
      * @return
+     * @throws Exception
      */
     @GET
     @Path("/validation/{project_id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response fetchAlias(@PathParam("project_id") Integer project_id) {
+    @Produces(MediaType.TEXT_HTML)
+    public Response fetchAlias(@PathParam("project_id") Integer project_id) throws Exception {
 
-        try {
-            projectMinter project = new projectMinter();
-            String response = project.getValidationXML(project_id);
+        projectMinter project = new projectMinter();
+        String response = project.getValidationXML(project_id);
 
-            if (response == null) {
-                return Response.status(204).build();
-            } else {
-                return Response.ok("{\"validation_xml\": \"" + response + "\"}").header("Access-Control-Allow-Origin", "*").build();
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        if (response == null) {
+            return Response.status(204).build();
+        } else {
+            return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
         }
     }
 
