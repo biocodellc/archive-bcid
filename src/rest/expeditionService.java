@@ -96,12 +96,12 @@ public class expeditionService {
                 return Response.status(401).entity("{\"error\": \"user is not authorized to update/create expeditions in this project\"}").build();
             } else if (expedition.userOwnsExpedition(user_id,expedition_code, project_id)) {
                 // If the user already owns the expedition, then great--- this is an update
-                return Response.ok("{\"update\": \"user owns this expedition\"").build();
+                return Response.ok("{\"update\": \"user owns this expedition\"}").build();
                 // If the expedition exists in the project but the user does not own the expedition then this means we can't
             } else if (expedition.expeditionExistsInProject(expedition_code,project_id)) {
                 return Response.status(401).entity("{\"error\": \"expedition already exists within this project but the user does not own it\"}").build();
             } else {
-                return Response.ok("{\"insert\": \"the expedition does not exist with project and nobody owns it\"").build();
+                return Response.ok("{\"insert\": \"the expedition does not exist with project and nobody owns it\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
