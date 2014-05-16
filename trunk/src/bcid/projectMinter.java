@@ -147,7 +147,7 @@ public class projectMinter {
                 "    and p.public = 1\n" +
                 "    and p.project_id =" + project_id;
 
-        // System.out.println(sql);
+        //System.out.println(sql);
         sb.append("{\n\t\"data\": [\n");
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
@@ -171,8 +171,8 @@ public class projectMinter {
         try {
             // See if the user owns this expedition or no
             projectMinter project = new projectMinter();
-            System.out.println(project.listProjects());
-            //System.out.println("results = \n" + project.getLatestGraphs(5));
+            //System.out.println(project.listProjects());
+            System.out.println("results = \n" + project.getLatestGraphs(5));
 
         } catch (Exception e) {
             throw new Exception(e);

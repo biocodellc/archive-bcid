@@ -244,7 +244,7 @@ public class expeditionService {
     }
 
     /**
-     * Return a JSON representation of the project's that a user is a member of
+     * Return a JSON representation of the expedition's that a user is a member of
      * @param projectId
      * @return
      */
