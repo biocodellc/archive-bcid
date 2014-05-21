@@ -59,7 +59,7 @@ public class expeditionMinter {
         Integer expedition_id = null;
 
         if (!userExistsInProject(users_id, project_id)) {
-            throw new Exception("User ID " + users_id + " is not authorized to create expeditions in this project");
+            throw new Exception("User ID " + users_id + " is not authorized to create datasets in this project");
         }
 
         /**
@@ -480,11 +480,11 @@ public class expeditionMinter {
     private void checkExpeditionCodeValid(String expedition_code) throws Exception {
         // Check expedition_code length
         if (expedition_code.length() < 4 || expedition_code.length() > 16)
-            throw new Exception("Expedition code " + expedition_code + " must be between 4 and 16 characters long");
+            throw new Exception("Dataset code " + expedition_code + " must be between 4 and 16 characters long");
         // Check to make sure characters are normal!
         if (!expedition_code.matches("[a-zA-Z0-9_-]*")) {
-            throw new Exception("Expedition code " + expedition_code + " contains one or more invalid characters. " +
-                    "Expedition code characters must be in one of the these ranges: [a-Z][0-9][-][_]");
+            throw new Exception("Dataset code " + expedition_code + " contains one or more invalid characters. " +
+                    "Dataset code characters must be in one of the these ranges: [a-Z][0-9][-][_]");
         }
     }
 
@@ -689,7 +689,7 @@ public class expeditionMinter {
             projectMinter p = new projectMinter();
 
             if (!p.userProjectAdmin(userId, projectId)) {
-                return "You must be this project's admin to view its expeditions.";
+                return "You must be this project's admin to view its datasets.";
             }
 
             String sql = "SELECT e.expedition_title, e.expedition_id, e.public, u.username " +

@@ -42,7 +42,7 @@ public class expeditionService {
             expedition = new expeditionMinter();
             expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
 
-            return Response.ok("{\"success\": \"Succesfully associated expedition_code = " + expedition_code +
+            return Response.ok("{\"success\": \"Succesfully associated dataset_code = " + expedition_code +
                     " with bcid = " + bcid + "\"}").build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,9 +99,9 @@ public class expeditionService {
                 return Response.ok("{\"update\": \"user owns this expedition\"}").build();
                 // If the expedition exists in the project but the user does not own the expedition then this means we can't
             } else if (expedition.expeditionExistsInProject(expedition_code,project_id)) {
-                return Response.status(401).entity("{\"error\": \"expedition already exists within this project but the user does not own it\"}").build();
+                return Response.status(401).entity("{\"error\": \"dataset already exists within this project but the user does not own it\"}").build();
             } else {
-                return Response.ok("{\"insert\": \"the expedition does not exist with project and nobody owns it\"}").build();
+                return Response.ok("{\"insert\": \"the dataset does not exist with project and nobody owns it\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -179,7 +179,7 @@ public class expeditionService {
                     expedition.printMetadata(expedition_id));
             sendEmail.start();
 
-            return Response.ok("{\"success\": \"Succesfully created expedition:<br>" +
+            return Response.ok("{\"success\": \"Succesfully created dataset:<br>" +
                     expedition.printMetadataHTML(expedition_id) + "\"}").build();
         } catch(Exception e) {
             e.printStackTrace();
@@ -266,7 +266,7 @@ public class expeditionService {
             }
 
             if (username == null) {
-                return Response.status(401).entity("{\"error\": \"You must be logged in to view your expeditions.\"}").build();
+                return Response.status(401).entity("{\"error\": \"You must be logged in to view your datasets.\"}").build();
             }
 
             expeditionMinter e = new expeditionMinter();
@@ -341,7 +341,7 @@ public class expeditionService {
         String username = session.getAttribute("user").toString();
 
         if (admin == null) {
-            return "You must be this project's admin in order to view its expeditions.";
+            return "You must be this project's admin in order to view its datasets.";
         }
 
         try {
@@ -369,7 +369,7 @@ public class expeditionService {
             Integer projectId = new Integer(data.remove("project_id").get(0));
 
             if (username == null) {
-                return Response.status(401).entity("{\"error\": \"You must be logged in to update an expedition's public status.\"}").build();
+                return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
             }
 
             database db = new database();
@@ -377,14 +377,14 @@ public class expeditionService {
             Integer userId = db.getUserId(username.toString());
 
             if (!p.userProjectAdmin(userId, projectId)) {
-                return Response.status(401).entity("{\"error\": \"You must be this project's admin in order to update a project expedition's public status.\"}").build();
+                return Response.status(401).entity("{\"error\": \"You must be this project's admin in order to update a project dataset's public status.\"}").build();
             }
             expeditionMinter e = new expeditionMinter();
 
             if (e.updateExpeditionsPublicStatus(data, projectId)) {
                 return Response.ok("{\"success\": \"successfully updated.\"}").build();
             } else {
-                return Response.status(500).entity("{\"error\": \"Error updating expedition status.'\"}").build();
+                return Response.status(500).entity("{\"error\": \"Error updating dataset status.'\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
