@@ -1,39 +1,42 @@
-To get bcid running on your own server, do the following:
+Instructions for installation BCID
+------------------------
 
-1. Get an EZID account and password.  See http://nt2.net/ezid for more information
+1. Server Requirements
+2. BCID Installation
+3. Tomcat specific installation instructions
+4. Oauth setup to enable other applications to connect to BCID
 
-2. Database stuff
-    a. Get mysql running on a server
-    b. Intall the appropriate tables.  See bcidCreateTables.sql for loading tables.
-    NOTE: you MUST have ark:/99999/fk4 as the first dataset!, like:
+1. Server Requirements
+------------------------
+BCID has been installed and run on CentOS and MacOS.  It should be compatible with any
+UNIX operating system.
+
+A mysql database, Java, Java servlet container are required.
+
+It is strongly recommended to install BCID on port 80 of your server.
+
+
+2. BCID installation
+------------------------
+a. Get an EZID account and password and reference your NAAN in the properties file (see item #2d, below)
+    See http://nt2.net/ezid for more information
+
+b. Download source code from http://code.google.com/p/bcid
+
+c. Database installation
+    a. Install mysql on your server of choice
+    b. Run bcidCreateTables.sql for creating tables and indexes
+    NOTE: you MUST have ark:/99999/fk4 as the first dataset!, this can be installed using:
     INSERT INTO datasets (datasets_id,ezidMade,ezidRequest,internalID, resourceType, prefix, users_id) VALUES (1,0,0,uuid(),"http://www.w3.org/2000/01/rdf-schema#Resource",'ark:/99999/fk4',1);
 
-3. Update template files:
-    a. Copy bcidsettings.template to bcidsettings.props and change appropriate values
+d. Configure properties
+    A property file must be configured with settings relative to your environment.  Do this by
+    copying bcidsettings.template to bcidsettings.props and change appropriate values
 
+e. Build WAR file using the provided build.xml ANT build file and deploy to your servlet container
 
-###################
-#  Deploying BiSciCol applications:
-###################
-
-1. BCID is the root service and is deployed by putting it at:
-/opt/mywebapps/bcid
-
-and add the following ROOT.xml file (at conf/Catalina/localhost):
-<Context
-  docBase="/opt/mywebapps/bcid"
-  path="/"
-  reloadable="true"
-/>
-
-2. Biocode-FIMS load through interface
-
-3. Triplifier : need script to run this
-
-
-###################
-#  Tomcat
-###################
+3. Tomcat specific installation instructions
+------------------------
 See the following to get setup:
 http://tecadmin.net/steps-to-install-tomcat-server-on-centos-rhel/#
 
@@ -43,40 +46,16 @@ http://wiki.glitchdata.com/index.php?title=Tomcat_Installation
 Getting an application to become root:
 http://stackoverflow.com/questions/7276989/howto-set-the-context-path-of-a-web-application-in-tomcat-7-0
 
+BCID should normally be the root service.
 
-###################
-#  Oauth
-###################
+Create {TOMCAT_ROOT}/conf/Catalina/localhost/ROOT.xml) with:
+
+<Context
+  docBase="/opt/mywebapps/bcid"
+  path="/"
+  reloadable="true"
+/>
+
+4. Oauth setup to enable other applications to connect to BCID
+------------------------
 See auth/oauth2/provider to setup a client_id/client_secret
-
-###################
-# DO NOT RECCOMEND USING Glassfish
-###################
-# Install Glassfish
-download to /usr/local/src/
-extract
-/usr/local/src/glassfish3/glassfish/bin/asadmin change-admin-password
-(other useful notes on glassfish=http://www.davidghedini.com/pg/entry/how_to_install_glassfish_3)
-
-# updating glassfish
-./pkg image-update
-
-# bcid application is the context root
-change contextroot of bcid Application in Glassfish console to "/"
-
-#starting and stopping
-cd {$glassfishRoot}/bin/stopserv
-cd {$glassfishRoot}/bin/startserv
-
-# change master password
-./asadmin
-  -> change-admin-password (admin/{no password} is default)
-# enabling secure admin
-./asadmin
-  -> enable-secure-admin
-#Specific to some early glassfish installations
-  Server Stuff
-enable port 80 requests to forward to 8080 for ALL deployed services on this particular VM:
--A PREROUTING -i eth0 -p tcp -m tcp --dport 80 -j DNAT --to-destination :8080
-port 443 is https and usually open on various restricted subnets so use this to forward query requests to the non-standard 3030
--A PREROUTING -i eth0 -p tcp -m tcp --dport 443 -j DNAT --to-destination :3030
