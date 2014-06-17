@@ -1,7 +1,7 @@
 #summary Table Of Contents
 #labels Featured
 
-[https://code.google.com/p/biocode-fims/wiki/TableOfContents Table of Contents]
+[TableOfContents Table of Contents]
 
 About BCID
   * [BCIDs Introduction to BCIDs]
@@ -12,4 +12,8 @@ About BCID
 Advanced Features
   * [deepRoots About using "Deep Roots", a format for extending parent/child paths]
 
-[https://code.google.com/p/biocode-fims/wiki/Installation Installation (for developers)]
+For Developers
+[curlExamples some examples of using Curl to call BCID services and resolver]
+[accounts About BCID user accounts]
+[oauth About the Oauth System]
+[Installation Installation instructions]
