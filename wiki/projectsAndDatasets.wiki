@@ -1,4 +1,4 @@
-#Working with Projects and Expeditions
+#summary Working with Projects and Expeditions
 
 NOTE: I STILL NEED TO ADD SPECIFIC INSTRUCTIONS ON THE UI FEATURES OF THE PROJECT/EXPEDITION SYSTEM.
 
