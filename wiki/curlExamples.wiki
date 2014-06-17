@@ -1,3 +1,5 @@
+#curl Examples for use in calling BCID services
+
 This page explains how to call BCID services using curl  --  For a list of BCID service call options see the [http://biscicol.org/bcid/rest/bcid.wadl Service Descriptions].
 
 = Public Content =
