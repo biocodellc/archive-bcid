@@ -1,0 +1,14 @@
+#summary Table Of Contents
+
+[https://code.google.com/p/biocode-fims/wiki/TableOfContents Table of Contents]
+
+About BCID
+  * [BCIDs Introduction to BCIDs]
+  * [BCIDResolutionSystem About the BCID Resolution System]
+  * [projectsAndDatasets Setting up projects and datasets]
+  * [accounts About BCID user accounts]
+
+Advanced Features
+  * [deepRoots About using "Deep Roots", a format for extending parent/child paths]
+
+[https://code.google.com/p/biocode-fims/wiki/Installation Installation (for developers)]
