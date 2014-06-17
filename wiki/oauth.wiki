@@ -1,4 +1,4 @@
-This page explains how to access a users profile details via OAuth2.
+#summary This page explains how to access a users profile details via OAuth2.
 
 All developers need to register their app. Please contact the system admin to register. You will be issued a client_id and client_secret. The client_secret should be kept private.
 
