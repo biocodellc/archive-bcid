@@ -1,6 +1,6 @@
 #summary Installation instructions for BCID
 
-= Instructions for installation BCID =
+= Instructions for installing BCID =
 
   # Server Requirements
   # BCID Installation
