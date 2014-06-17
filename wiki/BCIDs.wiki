@@ -1,3 +1,5 @@
+#summary Introduction to BCIDs
+
 ===Introduction===
 BCIDs addresses offer a robust, easy to use service, extending the [http://n2t.net/ezid California Digital Library EZID] solution for the biological collections community.  EZIDs offer  ease of use, scalability, long-term persistence, resolvability, and a consistent metadata format.  BCIDs extend this by offering an easy mechanism to assign billions of identifiers right now for data elements (individual samples or processes acting on those samples).  BCIDs allow any local ID/UUID to resolve to a group level identifier.  Organizations have the option of later purchasing their own EZID subscription for more control over their identifiers.  All of the representations that are referred to by BCIDs fall under the [http://creativecommons.org/licenses/by/3.0/ Creative Commons Attribution 3.0 License], enabling others to reference your identifiers and the objects that they refer to as long as they attribute them.  Since BCIDs are self-describing in HTML and RDF/XML, downstream users need only maintain the original identifier itself.
 
