@@ -10,7 +10,7 @@ BCID is a centralized service for managing user accounts, projects, and connecti
   # Tomcat specific installation instructions
   # Oauth setup to enable other applications to connect to BCID
 
-==Server Requirements ==
+==1. Server Requirements ==
 BCID has been installed and run on CentOS and MacOS.  It should be compatible with any
 UNIX operating system.
 
@@ -22,7 +22,7 @@ UNIX operating system.
 *Reccomendations:*
   * It is strongly recommended to install BCID on port 80 of your server or, at least use port-forwarding (e.g. from iptables from 80 to whatever port your servlet container runs on).
 
-== BCID Installation ==
+==2. BCID Installation ==
   * Get an EZID account and password and reference your NAAN in the configuration properties file.   See http://nt2.net/ezid for more information
 
   * Download source code from http://code.google.com/p/bcid
@@ -39,7 +39,7 @@ UNIX operating system.
 
   * Build WAR file using the provided build.xml ANT build file and deploy to your servlet container
 
-==Tomcat specific installation instructions ==
+==3. Tomcat specific installation instructions ==
 See the following to get setup:
 http://tecadmin.net/steps-to-install-tomcat-server-on-centos-rhel/#
 
@@ -60,6 +60,6 @@ Create {TOMCAT_ROOT}/conf/Catalina/localhost/ROOT.xml) with:
 />
 }}}
 
-== Oauth setup to enable other applications to connect to BCID ==
+==4. Oauth setup to enable other applications to connect to BCID ==
 
 See the [oauth Oauth wiki page] for more information about setting the ability to use user accounts on this system.
