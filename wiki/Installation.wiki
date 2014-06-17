@@ -1,6 +1,9 @@
 #summary Installation instructions for BCID
 
 = Instructions for installing BCID =
+BCID is a centralized service for managing user accounts, projects, and connecting to the EZID system.  To that end, one BCID service can run one or many FIMS installations.  If you want to install your own BCID system, then you can use the following instructions.
+
+== Table of Contents for Installation ==
 
   # Server Requirements
   # BCID Installation
