@@ -1,0 +1,61 @@
+#summary One-sentence summary of this page.
+
+= Instructions for installation BCID =
+
+  # Server Requirements
+  # BCID Installation
+  # Tomcat specific installation instructions
+  # Oauth setup to enable other applications to connect to BCID
+
+ #=Server Requirements =
+BCID has been installed and run on CentOS and MacOS.  It should be compatible with any
+UNIX operating system.
+
+A mysql database, Java, Java servlet container are required.
+
+It is strongly recommended to install BCID on port 80 of your server.
+
+
+ #= BCID Installation =
+------------------------
+  * Get an EZID account and password and reference your NAAN in the properties file (see item #2d, below)
+    See http://nt2.net/ezid for more information
+
+  * Download source code from http://code.google.com/p/bcid
+
+  * Database installation
+     * Install mysql on your server of choice
+     * Run bcidCreateTables.sql for creating tables and indexes
+    NOTE: you MUST have ark:/99999/fk4 as the first dataset!, this can be installed using:
+    INSERT INTO datasets (datasets_id,ezidMade,ezidRequest,internalID, resourceType, prefix, users_id) VALUES (1,0,0,uuid(),"http://www.w3.org/2000/01/rdf-schema#Resource",'ark:/99999/fk4',1);
+
+  * Configure properties
+    A property file must be configured with settings relative to your environment.  Do this by
+    copying bcidsettings.template to bcidsettings.props and change appropriate values
+
+  * Build WAR file using the provided build.xml ANT build file and deploy to your servlet container
+
+ # =Tomcat specific installation instructions =
+See the following to get setup:
+http://tecadmin.net/steps-to-install-tomcat-server-on-centos-rhel/#
+
+More information/autostart on boot, etc:
+http://wiki.glitchdata.com/index.php?title=Tomcat_Installation
+
+Getting an application to become root:
+http://stackoverflow.com/questions/7276989/howto-set-the-context-path-of-a-web-application-in-tomcat-7-0
+
+BCID should normally be the root service.
+
+Create {TOMCAT_ROOT}/conf/Catalina/localhost/ROOT.xml) with:
+{{{
+<Context
+  docBase="/opt/mywebapps/bcid"
+  path="/"
+  reloadable="true"
+/>
+}}}
+
+  # = Oauth setup to enable other applications to connect to BCID =
+------------------------
+See auth/oauth2/provider to setup a client_id/client_secret
