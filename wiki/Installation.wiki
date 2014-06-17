@@ -59,4 +59,4 @@ Create {TOMCAT_ROOT}/conf/Catalina/localhost/ROOT.xml) with:
 
 == Oauth setup to enable other applications to connect to BCID ==
 
-See the [Oauth Oauth wiki page] for more information about setting the ability to use user accounts on this system.
+See the [oauth Oauth wiki page] for more information about setting the ability to use user accounts on this system.
