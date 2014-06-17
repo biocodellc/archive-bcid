@@ -1,4 +1,4 @@
-#Information about user accounts
+#summary Information about user accounts
 
 == Introduction ==
 
