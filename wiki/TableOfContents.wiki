@@ -16,4 +16,4 @@ For Developers
   * [curlExamples some examples of using Curl to call BCID services and resolver]
   * [accounts About BCID user accounts]
   * [oauth About the Oauth System]
-  * [Installation Installation instructions (only if you want to run your own BCID service)]
+  * [Installation Installation instructions], if you want to run your own BCID service
