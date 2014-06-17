@@ -20,8 +20,7 @@ UNIX operating system.
   * It is strongly recommended to install BCID on port 80 of your server or, at least use port-forwarding (e.g. from iptables from 80 to whatever port your servlet container runs on).
 
 == BCID Installation ==
-  * Get an EZID account and password and reference your NAAN in the properties file (see item #2d, below)
-    See http://nt2.net/ezid for more information
+  * Get an EZID account and password and reference your NAAN in the configuration properties file.   See http://nt2.net/ezid for more information
 
   * Download source code from http://code.google.com/p/bcid
 
