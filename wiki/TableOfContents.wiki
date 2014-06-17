@@ -13,7 +13,7 @@ Advanced Features
   * [deepRoots About using "Deep Roots", a format for extending parent/child paths]
 
 For Developers
-[curlExamples some examples of using Curl to call BCID services and resolver]
-[accounts About BCID user accounts]
-[oauth About the Oauth System]
-[Installation Installation instructions]
+  * [curlExamples some examples of using Curl to call BCID services and resolver]
+  * [accounts About BCID user accounts]
+  * [oauth About the Oauth System]
+  * [Installation Installation instructions if you want to setup your own BCID service]
