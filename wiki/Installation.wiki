@@ -11,10 +11,13 @@
 BCID has been installed and run on CentOS and MacOS.  It should be compatible with any
 UNIX operating system.
 
-A mysql database, Java, Java servlet container are required.
+*Requirements:*
+  * mysql database
+  * Java > 7
+  * Java servlet container: Tomcat, Glassfish, or Jetty
 
-It is strongly recommended to install BCID on port 80 of your server.
-
+*Reccomendations:*
+  * It is strongly recommended to install BCID on port 80 of your server or, at least use port-forwarding (e.g. from iptables from 80 to whatever port your servlet container runs on).
 
 == BCID Installation ==
   * Get an EZID account and password and reference your NAAN in the properties file (see item #2d, below)
