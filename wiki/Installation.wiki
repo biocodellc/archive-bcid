@@ -7,7 +7,7 @@
   # Tomcat specific installation instructions
   # Oauth setup to enable other applications to connect to BCID
 
- #=Server Requirements =
+==Server Requirements ==
 BCID has been installed and run on CentOS and MacOS.  It should be compatible with any
 UNIX operating system.
 
@@ -16,8 +16,7 @@ A mysql database, Java, Java servlet container are required.
 It is strongly recommended to install BCID on port 80 of your server.
 
 
- #= BCID Installation =
-------------------------
+== BCID Installation ==
   * Get an EZID account and password and reference your NAAN in the properties file (see item #2d, below)
     See http://nt2.net/ezid for more information
 
@@ -35,7 +34,7 @@ It is strongly recommended to install BCID on port 80 of your server.
 
   * Build WAR file using the provided build.xml ANT build file and deploy to your servlet container
 
- # =Tomcat specific installation instructions =
+==Tomcat specific installation instructions ==
 See the following to get setup:
 http://tecadmin.net/steps-to-install-tomcat-server-on-centos-rhel/#
 
@@ -56,6 +55,6 @@ Create {TOMCAT_ROOT}/conf/Catalina/localhost/ROOT.xml) with:
 />
 }}}
 
-  # = Oauth setup to enable other applications to connect to BCID =
+== Oauth setup to enable other applications to connect to BCID ==
 ------------------------
 See auth/oauth2/provider to setup a client_id/client_secret
