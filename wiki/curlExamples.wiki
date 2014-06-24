@@ -32,8 +32,15 @@ If this is a new account without any datasets associated with it, if this reques
 
 = Using the Creator =
 
-The following is an example of how to create a new data group and register local IDs with BCID.  For now, we specify resourceType = 3 (following will be an example of how to choose a resource type).  datasetList = 0 means that we want the system to create a new dataset for us (if we supply a number here, we attach these identifiers to a particular dataset that we own).  This assumes also that we have local identifiers, on separate lines in a textfile in the local directory called (testfile.txt).
+The following is an example of how to create a new data group and register local IDs with BCID.    There are two main ways to create new data groups. The first way is to specify the resourceType in the request, such as:
 
 {{{
+curl -d  "title=This is a test&resourceType=dwc:MaterialSample&suffixPassThrough=true" http://biscicol.org/id/groupService --cookie cookies.txt
+}}}
+
+The second way is to first lookup one of the standard resourceTypes in a list, and then using an integer to call the service:
+
+{{{
+curl http://biscicol.org/id/elementService/select/resourceTypes
 curl -d  "title=This is a test&resourceTypesMinusDataset=3&suffixPassThrough=true" http://biscicol.org/id/groupService --cookie cookies.txt
 }}}
