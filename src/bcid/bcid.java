@@ -26,6 +26,7 @@ public class bcid extends GenericIdentifier {
     protected String when = null;           // erc.when
     protected String who = null;            // erc.who
     protected String title = null;            // erc.who\
+    protected String projectCode =null;
     protected Boolean datasetsEzidMade;
     protected Boolean datasetsEzidRequest;
     protected String datasetsPrefix;
@@ -271,6 +272,7 @@ public class bcid extends GenericIdentifier {
         this.dataset_id = pDatasets_id;
         this.what = dataset.getResourceType();
         this.title = dataset.title;
+        this.projectCode = dataset.projectCode;
         this.datasetsTs = dataset.ts;
         this.datasetsPrefix = dataset.getPrefix();
         this.doi = dataset.doi;
@@ -297,6 +299,7 @@ public class bcid extends GenericIdentifier {
         put("webaddress", webAddress);
         put("level", level);
         put("title", title);
+        put("projectCode",projectCode);
         put("sourceID", sourceID);
         put("doi", doi);
         put("datasetsEzidMade", datasetsEzidMade);
