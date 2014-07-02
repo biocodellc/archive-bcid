@@ -32,6 +32,7 @@ public class dataGroupMinter extends dataGroupEncoder {
     protected boolean ezidMade;
     protected String who = "";
     protected URI webAddress;
+    public String projectCode;
 
     /**
      * Default to ezidRequest = false using default Constructor
@@ -116,10 +117,14 @@ public class dataGroupMinter extends dataGroupEncoder {
                 "d.title as title," +
                 "d.ts as ts, " +
                 "CONCAT_WS(' ',u.firstName, u.lastName) as who, " +
-                "d.webAddress as webAddress" +
-                " FROM datasets d, users u " +
+                "d.webAddress as webAddress," +
+                "p.project_code as projectCode" +
+                " FROM datasets d, users u, projects p,expeditions e, expeditionsBCIDs eb " +
                 " WHERE d.datasets_id = '" + datasets_id.toString() + "'" +
-                " AND d.users_id = u.user_id";
+                " AND d.users_id = u.user_id " +
+                " AND d.`datasets_id`=eb.datasets_id " +
+                " AND eb.expedition_id=e.expedition_id " +
+                " AND e.project_id=p.project_id";
 
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
@@ -130,6 +135,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         shoulder = encode(new BigInteger(datasets_id.toString()));
         this.doi = rs.getString("doi");
         this.title = rs.getString("title");
+        this.projectCode = rs.getString("projectCode");
         this.ts = rs.getString("ts");
         this.who = rs.getString("who");
         Integer naan = new Integer(prefix.split("/")[1]);
@@ -464,8 +470,10 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     public static void main(String args[]) {
         try {
-            dataGroupMinter d = new dataGroupMinter();
-            System.out.println(d.datasetTable("biocode"));
+            //dataGroupMinter d = new dataGroupMinter();
+            //System.out.println(d.datasetTable("biocode"));
+            dataGroupMinter d = new dataGroupMinter(913);
+            System.out.println(d.projectCode);
         } catch (Exception e) {
             e.printStackTrace();
         }

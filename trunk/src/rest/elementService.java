@@ -94,6 +94,7 @@ public class elementService {
     public String htmlResourceTypes() {
         ResourceTypes rts = new ResourceTypes();
         return rts.getResourceTypesAsTable();
+
     }
 
 
