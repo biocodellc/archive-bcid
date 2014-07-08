@@ -106,13 +106,19 @@ public class authenticationService {
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_HTML)
-    public void logout(@Context HttpServletResponse res)
+    public void logout(@QueryParam("redirect_uri") String redirect_uri,
+                       @Context HttpServletResponse res)
             throws IOException{
 
         HttpSession session = request.getSession();
 
         session.invalidate();
-        res.sendRedirect("/bcid/index.jsp");
+
+        if (redirect_uri != null && !redirect_uri.equals("")) {
+            res.sendRedirect(redirect_uri);
+        } else {
+            res.sendRedirect("/bcid/index.jsp");
+        }
         return;
     }
 

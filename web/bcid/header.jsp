@@ -22,7 +22,7 @@
 
     <div id="header">
 
-        <div style='float:left'><h1>BCIDs: Building Identifiers for Field Sampling</h1></div>
+        <div style='float:left'><h1>Biocode Commons Identifiers</h1></div>
 
         <div style='float:right' id="loginLink">
             <c:if test="${user == null}">
