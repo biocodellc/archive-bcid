@@ -117,14 +117,18 @@ public class dataGroupMinter extends dataGroupEncoder {
                 "d.title as title," +
                 "d.ts as ts, " +
                 "CONCAT_WS(' ',u.firstName, u.lastName) as who, " +
-                "d.webAddress as webAddress," +
-                "p.project_code as projectCode" +
-                " FROM datasets d, users u, projects p,expeditions e, expeditionsBCIDs eb " +
+                "d.webAddress as webAddress" +
+                // NOTE: the projectCode query here fails if dataset has not been associated yet.
+                // I removed the reference here so we can return just information on the datagroup and
+                // not rely on any other dependencies.
+                //"p.project_code as projectCode" +
+                //" FROM datasets d, users u, projects p,expeditions e, expeditionsBCIDs eb " +
+                " FROM datasets d, users u " +
                 " WHERE d.datasets_id = '" + datasets_id.toString() + "'" +
-                " AND d.users_id = u.user_id " +
-                " AND d.`datasets_id`=eb.datasets_id " +
-                " AND eb.expedition_id=e.expedition_id " +
-                " AND e.project_id=p.project_id";
+                " AND d.users_id = u.user_id ";
+                //" AND d.`datasets_id`=eb.datasets_id " +
+                //" AND eb.expedition_id=e.expedition_id " +
+                //" AND e.project_id=p.project_id";
 
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
@@ -135,7 +139,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         shoulder = encode(new BigInteger(datasets_id.toString()));
         this.doi = rs.getString("doi");
         this.title = rs.getString("title");
-        this.projectCode = rs.getString("projectCode");
+        //this.projectCode = rs.getString("projectCode");
         this.ts = rs.getString("ts");
         this.who = rs.getString("who");
         Integer naan = new Integer(prefix.split("/")[1]);

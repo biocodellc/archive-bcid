@@ -117,7 +117,10 @@ public class expeditionMinter {
         String insertString = "INSERT INTO expeditionsBCIDs " +
                 "(expedition_id, datasets_id) " +
                 "values (?,?)";
-
+/*System.out.println(insertString);
+System.out.println(expedition_code);
+System.out.println(project_id);
+System.out.println(bcid);*/
         PreparedStatement insertStatement = null;
         insertStatement = conn.prepareStatement(insertString);
         insertStatement.setInt(1, expedition_id);
