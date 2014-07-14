@@ -175,9 +175,11 @@ public class authenticationService {
             if (state != null) {
                 redirectURL += "&state=" + state;
             }
+            System.out.println("in oauth/authorize, redirect: " + redirectURL);
             response.sendRedirect(redirectURL);
             return;
         } catch(Exception e) {
+            e.printStackTrace();
             response.sendError(500, "server error");
         }
     }
