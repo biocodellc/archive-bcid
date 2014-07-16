@@ -79,6 +79,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param NAAN
      * @param shoulder
      * @param ezidRequest
+     *
      * @throws Exception
      */
     public dataGroupMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
@@ -102,6 +103,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * after minting.
      *
      * @param datasets_id
+     *
      * @throws Exception
      */
     public dataGroupMinter(Integer datasets_id) throws Exception {
@@ -126,9 +128,9 @@ public class dataGroupMinter extends dataGroupEncoder {
                 " FROM datasets d, users u " +
                 " WHERE d.datasets_id = '" + datasets_id.toString() + "'" +
                 " AND d.users_id = u.user_id ";
-                //" AND d.`datasets_id`=eb.datasets_id " +
-                //" AND eb.expedition_id=e.expedition_id " +
-                //" AND e.project_id=p.project_id";
+        //" AND d.`datasets_id`=eb.datasets_id " +
+        //" AND eb.expedition_id=e.expedition_id " +
+        //" AND e.project_id=p.project_id";
 
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
@@ -151,6 +153,29 @@ public class dataGroupMinter extends dataGroupEncoder {
             this.webAddress = new URI(rs.getString("webAddress"));
         } catch (NullPointerException e) {
             this.webAddress = null;
+        }
+    }
+
+
+    /**
+     * Get the projectCode given a datasets_id
+     *
+     * @param datasets_id
+     *
+     * @throws Exception
+     */
+    public String getProject(Integer datasets_id) throws Exception {
+        database db = new database();
+        conn = db.getConn();
+        Statement stmt = conn.createStatement();
+        String sql = "select p.project_code from projects p, expeditionsBCIDs eb, expeditions e, datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` and e.`project_id`=p.`project_id` and d.datasets_id=" + datasets_id;
+
+        try {
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            return rs.getString("project_code");
+        } catch (Exception e) {
+            return null;
         }
     }
 
@@ -181,6 +206,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param doi
      * @param webaddress
      * @param title
+     *
      * @throws Exception
      */
     public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) throws Exception {
@@ -242,7 +268,9 @@ public class dataGroupMinter extends dataGroupEncoder {
      * Return the dataset identifier  given the internalID
      *
      * @param datasetUUID
+     *
      * @return
+     *
      * @throws java.sql.SQLException
      */
     private Integer getDatasetIdentifier(UUID datasetUUID) throws SQLException {
@@ -257,7 +285,9 @@ public class dataGroupMinter extends dataGroupEncoder {
      * Check to see if a dataset exists or not
      *
      * @param prefix
+     *
      * @return An Integer representing a dataset
+     *
      * @throws java.sql.SQLException
      */
     public Integer getDatasetId(String prefix) {
@@ -317,6 +347,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * TODO: find a more appropriate spot for this
      *
      * @param username
+     *
      * @return
      */
     public String datasetList(String username) {
@@ -346,6 +377,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * TODO: find a more appropriate spot for this
      *
      * @param username
+     *
      * @return
      */
     public String datasetTable(String username) {
@@ -418,6 +450,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * return a BCID formatted with LINK
      *
      * @param pPrefix
+     *
      * @return
      */
     public String getEZIDLink(String pPrefix, String username, String linkText) {
@@ -433,6 +466,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * return a BCID formatted with LINK
      *
      * @param pPrefix
+     *
      * @return
      */
     public String getEZIDMetadataLink(String pPrefix, String username, String linkText) {
@@ -448,6 +482,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * return a DOI formatted with LINK
      *
      * @param pDOI
+     *
      * @return
      */
     public String getDOILink(String pDOI) {
@@ -462,6 +497,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * Return a Metadata link for DOI
      *
      * @param pDOI
+     *
      * @return
      */
     public String getDOIMetadataLink(String pDOI) {
@@ -483,7 +519,6 @@ public class dataGroupMinter extends dataGroupEncoder {
         }
 
 
-
     }
 
     /**
@@ -491,6 +526,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      *
      * @param prefix
      * @param username
+     *
      * @return
      */
     public Hashtable<String, String> getDataGroupConfig(String prefix, String username) {
@@ -538,8 +574,10 @@ public class dataGroupMinter extends dataGroupEncoder {
     /**
      * update a BCID's configuration
      *
-     * @param config a Hashtable<String, String> which has the datasets table fields to be updated as key, new value pairs
+     * @param config a Hashtable<String, String> which has the datasets table fields to be updated as key, new value
+     *               pairs
      * @param prefix the ark:// for the BICD
+     *
      * @return
      */
     public Boolean updateDataGroupConfig(Hashtable<String, String> config, String prefix, String username) {
@@ -605,6 +643,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      *
      * @param username
      * @param prefix
+     *
      * @return
      */
     public String bcidEditorAsTable(String username, String prefix) {

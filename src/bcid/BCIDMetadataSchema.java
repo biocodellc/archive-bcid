@@ -28,13 +28,15 @@ public class BCIDMetadataSchema {
 
 
 
-    public GenericIdentifier identifier;
+    public bcid identifier;
 
     public BCIDMetadataSchema() {
     }
 
     public void BCIDMetadataInit(GenericIdentifier identifier) {
-        this.identifier = identifier;
+        this.identifier = (bcid) identifier;
+        dcPublisher = new metadataElement("dc:publisher",this.identifier.projectCode , "The BCID project to which this resource belongs.");
+
         String ark = null;
         Iterator iterator = identifier.getMetadata().entrySet().iterator();
         while (iterator.hasNext()) {
@@ -65,9 +67,9 @@ public class BCIDMetadataSchema {
                     // Create mapping here for DOI if it only shows the prefix
                     String doi = pairs.getValue().toString().replace("doi:", "http://dx.doi.org/");
                     dcIsPartOf = new metadataElement("dcterms:isReferencedBy", doi, "A DOI describing the dataset which this identifier belongs to.");
-                } else if (bcidKey.equalsIgnoreCase("projectCode")) {
+               // } else if (bcidKey.equalsIgnoreCase("projectCode")) {
                     // Create mapping here for DOI if it only shows the prefix
-                    dcPublisher = new metadataElement("dc:publisher", pairs.getValue().toString(), "The BCID project to which this resource belongs.");
+                 //   dcPublisher = new metadataElement("dc:publisher", pairs.getValue().toString(), "The BCID project to which this resource belongs.");
                 } else if (bcidKey.equalsIgnoreCase("webaddress")) {
                     dcHasVersion = new metadataElement("dcterms:hasVersion", pairs.getValue().toString(), "The redirection target for this identifier.");
                 } else if (bcidKey.equalsIgnoreCase("datasetsSuffixPassThrough")) {

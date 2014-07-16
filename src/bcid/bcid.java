@@ -26,7 +26,7 @@ public class bcid extends GenericIdentifier {
     protected String when = null;           // erc.when
     protected String who = null;            // erc.who
     protected String title = null;            // erc.who\
-    protected String projectCode =null;
+    public String projectCode = null;
     protected Boolean datasetsEzidMade;
     protected Boolean datasetsEzidRequest;
     protected String datasetsPrefix;
@@ -106,10 +106,12 @@ public class bcid extends GenericIdentifier {
             } else {
                 identifier = dataset.identifier;
             }
+            projectCode = dataset.getProject(dataset_id);
         } catch (URISyntaxException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
         // Reformat webAddress in this constructor if there is a sourceID
         if (sourceID != null && webAddress != null && !sourceID.toString().trim().equals("") && !webAddress.toString().trim().equals("")) {
             //System.out.println("HERE" + webAddress);
@@ -263,6 +265,7 @@ public class bcid extends GenericIdentifier {
         // Create a dataset representation based on the dataset_id
         try {
             dataset = new dataGroupMinter(pDatasets_id);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -299,7 +302,7 @@ public class bcid extends GenericIdentifier {
         put("webaddress", webAddress);
         put("level", level);
         put("title", title);
-        put("projectCode",projectCode);
+        put("projectCode", projectCode);
         put("sourceID", sourceID);
         put("doi", doi);
         put("datasetsEzidMade", datasetsEzidMade);

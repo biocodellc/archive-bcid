@@ -63,10 +63,14 @@ public class RDFRenderer extends Renderer {
      * @param map
      */
     private void propertyAppender(metadataElement map) {
+        try {
         if (map != null) {
             if (!map.getValue().trim().equals("")) {
                 outputSB.append("\t<" + map.getKey() + ">" + map.getValue() + "</" + map.getKey() + ">\n");
             }
+        }
+        } catch (Exception e) {
+            // fail silently
         }
 
     }
