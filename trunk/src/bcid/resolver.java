@@ -1,6 +1,7 @@
 package bcid;
 
 import bcid.Renderer.JSONRenderer;
+import bcid.Renderer.RDFRenderer;
 import bcid.Renderer.Renderer;
 import ezid.EZIDException;
 import ezid.EZIDService;
@@ -65,6 +66,7 @@ public class resolver extends database {
             setShoulderAndSourceID(bits[2]);
             // Call setDataGroup() to set datagroup_id
             setDataGroup();
+
         } catch (Exception e) {
             System.out.println("The ark = " + ark);
             throw new Exception("Invalid ARK", e);
@@ -213,6 +215,7 @@ public class resolver extends database {
         if (setDataGroup()) {
 
             bcid = new bcid(datagroup_id);
+
             // Has a registered, resolvable suffix
             //if (isResolvableSuffix(datagroup_id)) {
             //    bcid = new bcid(element_id, ark);
@@ -462,9 +465,9 @@ public class resolver extends database {
             System.out.println(r.resolveARK());
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
-            r = new resolver("ark:/21547/R2MBIO56");
+            r = new resolver("ark:/21547/Uz2MBIO56");
             expected = "http://biocode.berkeley.edu/specimens/MBIO56";
-            System.out.println(r.resolveARK());
+            System.out.println(r.printMetadata(new RDFRenderer()));
                  /*
             // suffixPassthrough = 1; webaddress specified; no SourceID
             r = new resolver("ark:/21547/R2");
