@@ -76,9 +76,8 @@ public class authenticationService {
                     }
                 }
 
-                // redirect to return_to uri if provided
+                // Redirect to return_to uri if provided
                 if (return_to != null) {
-
                     res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
                     return;
                 } else {

@@ -97,7 +97,8 @@ public class resolver extends database {
                     "pb.expedition_id=p.expedition_id && \n" +
                     "p.expedition_code='" + expedition_code + "' && \n" +
                     "p.project_id =" + project_id + " && \n" +
-                    "d.resourceType='" + uri + "'";
+                    "(d.resourceType='" + uri + "' || d.resourceType='" + conceptAlias + "')";
+            //System.out.println(query);
             ResultSet rs = stmt.executeQuery(query);
             rs.next();
             this.ark = rs.getString("prefix");
@@ -466,8 +467,12 @@ public class resolver extends database {
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
             r = new resolver("ark:/21547/Uz2MBIO56");
-            expected = "http://biocode.berkeley.edu/specimens/MBIO56";
-            System.out.println(r.printMetadata(new RDFRenderer()));
+            //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
+            //System.out.println(r.printMetadata(new RDFRenderer()));
+
+            r = new resolver("DEMO4",18,"Resource");
+            System.out.println(r.getArk());
+            //System.out.println(r.getArk());
                  /*
             // suffixPassthrough = 1; webaddress specified; no SourceID
             r = new resolver("ark:/21547/R2");
