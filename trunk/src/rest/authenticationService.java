@@ -49,6 +49,8 @@ public class authenticationService {
 
             HttpSession session = request.getSession();
 
+            System.out.println("BCID SESS_DEBUG login: sessionid=" + session.getId());
+
             if (isAuthenticated) {
                 // Place the user in the session
                 session.setAttribute("user", usr);
