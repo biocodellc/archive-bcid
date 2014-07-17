@@ -2,7 +2,6 @@ package bcid;
 
 import ezid.EZIDService;
 import util.SettingsManager;
-import util.errorInfo;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.sql.*;
@@ -47,6 +46,7 @@ public class expeditionMinter {
      * @param expedition_code
      * @param expedition_title
      * @param users_id
+     *
      * @return
      */
     public Integer mint(
@@ -68,7 +68,9 @@ public class expeditionMinter {
         try {
             try {
                 checkExpeditionCodeValid(expedition_code);
-                checkExpeditionCodeAvailable(expedition_code, project_id);
+                if (!isExpeditionCodeAvailable(expedition_code, project_id)) {
+                    throw new Exception("Expedition Code already exists");
+                }
             } catch (Exception e) {
                 throw new Exception(e.getMessage(), e);
             }
@@ -98,7 +100,6 @@ public class expeditionMinter {
             //e.printStackTrace();
             throw new Exception(e.getMessage());
         }
-
         return expedition_id;
     }
 
@@ -108,6 +109,7 @@ public class expeditionMinter {
      *
      * @param expedition_code
      * @param bcid
+     *
      * @throws Exception
      */
     public void attachReferenceToExpedition(String expedition_code, String bcid, Integer project_id) throws Exception {
@@ -132,7 +134,9 @@ System.out.println(bcid);*/
      * Return the expedition identifier given the internalID
      *
      * @param datasetUUID
+     *
      * @return
+     *
      * @throws java.sql.SQLException
      */
     private Integer getExpeditionIdentifier(UUID datasetUUID) throws SQLException {
@@ -228,7 +232,9 @@ System.out.println(bcid);*/
      *
      * @param users_id
      * @param expedition_code
+     *
      * @return
+     *
      * @throws SQLException
      */
     public boolean userOwnsExpedition(Integer users_id, String expedition_code, Integer project_id) throws SQLException {
@@ -257,7 +263,9 @@ System.out.println(bcid);*/
      *
      * @param users_id
      * @param project_id
+     *
      * @return
+     *
      * @throws SQLException
      */
     public boolean userExistsInProject(Integer users_id, Integer project_id) throws SQLException {
@@ -277,7 +285,9 @@ System.out.println(bcid);*/
      * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
      *
      * @param expedition_code
+     *
      * @return
+     *
      * @throws java.sql.SQLException
      */
     public String getDeepRoots(String expedition_code, Integer project_id) throws SQLException {
@@ -478,6 +488,7 @@ System.out.println(bcid);*/
      * Check that expedition code is between 4 and 6 characters
      *
      * @param expedition_code
+     *
      * @return
      */
     private void checkExpeditionCodeValid(String expedition_code) throws Exception {
@@ -492,12 +503,13 @@ System.out.println(bcid);*/
     }
 
     /**
-     * Check that expedition code is no already in the database
+     * Check that expedition code is not already in the database
      *
      * @param expedition_code
+     *
      * @return
      */
-    private void checkExpeditionCodeAvailable(String expedition_code, Integer project_id) throws Exception {
+    private boolean isExpeditionCodeAvailable(String expedition_code, Integer project_id) throws Exception {
 
         Statement stmt = conn.createStatement();
         String sql = "SELECT count(*) as count " +
@@ -508,18 +520,22 @@ System.out.println(bcid);*/
         rs.next();
         Integer count = rs.getInt("count");
         if (count >= 1) {
-            throw new Exception("Expedition code " + expedition_code + " already exists for this project.");
+            return false;
+            //throw new Exception("Dataset code " + expedition_code + " already exists for this project.");
         }
+        return true;
 
     }
 
     /**
      * Return a JSON response of the user's expeditions in a project
+     *
      * @param projectId
      * @param username
+     *
      * @return
      */
-    public String listExpeditions(Integer projectId, String username) throws Exception{
+    public String listExpeditions(Integer projectId, String username) throws Exception {
         StringBuilder sb = new StringBuilder();
 
         sb.append("{\n");
@@ -529,7 +545,7 @@ System.out.println(bcid);*/
 
         Statement stmt = conn.createStatement();
         String sql = "SELECT expedition_id, expedition_title, expedition_code, public " +
-                     "FROM expeditions WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
+                "FROM expeditions WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
 
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
@@ -551,7 +567,9 @@ System.out.println(bcid);*/
 
     /**
      * Return an HTML table of an expedition's resources
+     *
      * @param expeditionId
+     *
      * @return
      */
     public String listExpeditionResourcesAsTable(Integer expeditionId) {
@@ -591,7 +609,7 @@ System.out.println(bcid);*/
                 sb.append("\t\t<td>");
                 // only display a hyperlink if http: is specified under resource type
                 if (rs.getString("d.resourceType").contains("http:")) {
-                    sb.append("<a href=\"" + rs.getString("d.resourceType") + "\">" +  rtString + "</a>");
+                    sb.append("<a href=\"" + rs.getString("d.resourceType") + "\">" + rtString + "</a>");
                 } else {
                     sb.append(rtString);
                 }
@@ -611,7 +629,9 @@ System.out.println(bcid);*/
 
     /**
      * return an HTML table of an expedition's datasets
+     *
      * @param expeditionId
+     *
      * @return
      */
     public String listExpeditionDatasetsAsTable(Integer expeditionId) {
@@ -671,8 +691,10 @@ System.out.println(bcid);*/
     /**
      * Return an HTML Table of the expeditions associated with a project. Includes who owns the expedition,
      * the expedition title, and whether the expedition is public
+     *
      * @param projectId
-     * @param username the project's admins username
+     * @param username  the project's admins username
+     *
      * @return
      */
     public String listExpeditionsAsTable(Integer projectId, String username) {
@@ -696,7 +718,7 @@ System.out.println(bcid);*/
             }
 
             String sql = "SELECT e.expedition_title, e.expedition_id, e.public, u.username " +
-                         "FROM expeditions as e, users as u WHERE u.user_id=e.users_id && project_id = \"" + projectId + "\"";
+                    "FROM expeditions as e, users as u WHERE u.user_id=e.users_id && project_id = \"" + projectId + "\"";
             Statement stmt = conn.createStatement();
 
             ResultSet rs = stmt.executeQuery(sql);
@@ -740,8 +762,10 @@ System.out.println(bcid);*/
 
     /**
      * Update the public attribute of each expedition in the expeditions MultivaluedMap
+     *
      * @param expeditions
      * @param projectId
+     *
      * @return
      */
     public Boolean updateExpeditionsPublicStatus(MultivaluedMap<String, String> expeditions, Integer projectId) {
@@ -752,7 +776,7 @@ System.out.println(bcid);*/
 
             ResultSet rs = stmt.executeQuery(sql);
 
-            while (rs.next()){
+            while (rs.next()) {
                 String expedition_id = rs.getString("expedition_id");
                 if (expeditions.containsKey(expedition_id) &&
                         !expeditions.getFirst(expedition_id).equals(String.valueOf(rs.getBoolean("public")))) {
@@ -762,8 +786,8 @@ System.out.println(bcid);*/
 
             if (!updateExpeditions.isEmpty()) {
                 String updateString = "UPDATE expeditions SET" +
-                    " public = CASE WHEN public ='0' THEN '1' WHEN public = '1' THEN '0' END" +
-                    " WHERE expedition_id IN (" + updateExpeditions.toString().replaceAll("[\\[\\]]", "") + ")";
+                        " public = CASE WHEN public ='0' THEN '1' WHEN public = '1' THEN '0' END" +
+                        " WHERE expedition_id IN (" + updateExpeditions.toString().replaceAll("[\\[\\]]", "") + ")";
 
                 System.out.print(updateString);
 
