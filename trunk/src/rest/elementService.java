@@ -201,13 +201,14 @@ public class elementService {
 
 
             // Send an Email that this completed
-            sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
+           /* sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
                     sm.retrieveValue("mailPassword"),
                     sm.retrieveValue("mailFrom"),
                     sm.retrieveValue("mailTo"),
                     "New Elements From " + username,
                     returnVal);
             sendEmail.start();
+            */
 
             return Response.ok(returnVal).build();
         } catch (Exception e) {

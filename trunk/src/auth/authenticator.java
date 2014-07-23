@@ -70,14 +70,19 @@ public class authenticator {
             String selectString = "SELECT password FROM users WHERE username = ?";
             stmt = conn.prepareStatement(selectString);
 
+System.out.println(selectString);
             stmt.setString(1, username);
-
+System.out.println(username);
             ResultSet rs = stmt.executeQuery();
-
+System.out.println("before rs");
             if (rs.next()) {
+System.out.println("p;ass=" + rs.getString("password"));
                 return rs.getString("password");
             }
+System.out.println("here");
+
         } catch (SQLException e) {
+System.out.println(e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -272,14 +277,14 @@ public class authenticator {
             }
 
             // Send an Email that this completed
-            sendEmail sendEmail = new sendEmail(
+           /* sendEmail sendEmail = new sendEmail(
                     sm.retrieveValue("mailUser"),
                     sm.retrieveValue("mailPassword"),
                     sm.retrieveValue("mailFrom"),
                     email,
                     "Reset Password",
                     emailBody);
-            sendEmail.start();
+            sendEmail.start();  */
         }
         return email;
     }
