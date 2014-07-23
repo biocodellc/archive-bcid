@@ -146,14 +146,14 @@ public class groupService {
             creator.createDatasetsEZIDs(ezidAccount);
 
             // Send an Email that this completed
-            /*sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
+            sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
                     sm.retrieveValue("mailPassword"),
                     sm.retrieveValue("mailFrom"),
                     sm.retrieveValue("mailTo"),
                     "New Dataset Group",
                     new resolver(minterDataset.getPrefix()).printMetadata(new TextRenderer()));
             sendEmail.start();
-            */
+
 
             return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
         } catch(Exception e) {
