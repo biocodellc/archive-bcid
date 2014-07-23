@@ -172,14 +172,14 @@ public class expeditionService {
             sm.loadProperties();
 
             // Send an Email that this completed
-            sendEmail sendEmail = new sendEmail(
+          /*  sendEmail sendEmail = new sendEmail(
                     sm.retrieveValue("mailUser"),
                     sm.retrieveValue("mailPassword"),
                     sm.retrieveValue("mailFrom"),
                     sm.retrieveValue("mailTo"),
                     "New Expedition",
                     expedition.printMetadata(expedition_id));
-            sendEmail.start();
+            sendEmail.start(); */
 
             return Response.ok("{\"success\": \"Succesfully created dataset:<br>" +
                     expedition.printMetadataHTML(expedition_id) + "\"}").build();

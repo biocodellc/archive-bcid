@@ -38,13 +38,13 @@ public class sendEmail extends Thread {
         String subject = "From a thread...";
         String text = "How are you?";
 
-        sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
+      /*  sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
                 sm.retrieveValue("mailPassword"),
                 sm.retrieveValue("mailFrom"),
                 sm.retrieveValue("mailTo"),
                 subject,
                 text);
-        sendEmail.start();
+        sendEmail.start();*/
     }
 
     /**

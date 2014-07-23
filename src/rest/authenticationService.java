@@ -28,9 +28,11 @@ public class authenticationService {
 
     /**
      * Service to log a user into the bcid system
+     *
      * @param usr
      * @param pass
      * @param return_to the url to return to after login
+     *
      * @throws IOException
      */
     @POST
@@ -40,12 +42,18 @@ public class authenticationService {
                       @FormParam("password") String pass,
                       @QueryParam("return_to") String return_to,
                       @Context HttpServletResponse res)
-        throws IOException{
+            throws IOException {
 
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
+            Boolean isAuthenticated = false;
             // Verify that the entered and stored passwords match
-            Boolean isAuthenticated = authenticator.login(usr, pass);
+            try {
+                isAuthenticated = authenticator.login(usr, pass);
+            } catch (Exception e) {
+                res.sendRedirect("/bcid/login.jsp?error=server_error " + e.getMessage());
+                return;
+            }
 
             HttpSession session = request.getSession();
 
@@ -102,6 +110,7 @@ public class authenticationService {
 
     /**
      * Service to log a user out of the bcid system
+     *
      * @throws IOException
      */
     @GET
@@ -109,7 +118,7 @@ public class authenticationService {
     @Produces(MediaType.TEXT_HTML)
     public void logout(@QueryParam("redirect_uri") String redirect_uri,
                        @Context HttpServletResponse res)
-            throws IOException{
+            throws IOException {
 
         HttpSession session = request.getSession();
 
@@ -125,6 +134,7 @@ public class authenticationService {
 
     /**
      * Service for a client app to log a user into the bcid system via oauth.
+     *
      * @param clientId
      * @param redirectURL
      * @param state
@@ -137,7 +147,7 @@ public class authenticationService {
                           @QueryParam("redirect_uri") String redirectURL,
                           @QueryParam("state") String state,
                           @Context HttpServletResponse response)
-        throws IOException {
+            throws IOException {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
@@ -164,7 +174,7 @@ public class authenticationService {
             if (username == null) {
                 // need the user to login
                 response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
-                                      + request.getQueryString());
+                        + request.getQueryString());
                 return;
             }
             //TODO ask user if they want to share profile information with requesting party
@@ -179,7 +189,7 @@ public class authenticationService {
             System.out.println("in oauth/authorize, redirect: " + redirectURL);
             response.sendRedirect(redirectURL);
             return;
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             response.sendError(500, "server error");
         }
@@ -187,11 +197,13 @@ public class authenticationService {
 
     /**
      * Service for a client app to exchange an oauth code for an access token
+     *
      * @param code
      * @param clientId
      * @param clientSecret
      * @param redirectURL
      * @param state
+     *
      * @return
      */
     @POST
@@ -231,9 +243,11 @@ public class authenticationService {
 
     /**
      * Service for an oauth client app to exchange a refresh token for a valid access token.
+     *
      * @param clientId
      * @param clientSecret
      * @param refreshToken
+     *
      * @return
      */
     @POST
@@ -271,9 +285,11 @@ public class authenticationService {
 
     /**
      * Service for a user to exchange their reset token in order to update their password
+     *
      * @param password
      * @param token
      * @param response
+     *
      * @throws Exception
      */
     @POST
@@ -283,7 +299,7 @@ public class authenticationService {
     public void resetPassword(@FormParam("password") String password,
                               @FormParam("token") String token,
                               @Context HttpServletResponse response)
-        throws Exception {
+            throws Exception {
         if (token == null) {
             response.sendRedirect("/bcid/resetPass.jsp?error=Invalid Reset Token");
             return;
@@ -310,7 +326,9 @@ public class authenticationService {
 
     /**
      * Service for a user to request that a password reset token is sent to their email
+     *
      * @param username
+     *
      * @return
      */
     @POST
