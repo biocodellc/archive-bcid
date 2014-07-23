@@ -277,14 +277,14 @@ System.out.println(e.getMessage());
             }
 
             // Send an Email that this completed
-           /* sendEmail sendEmail = new sendEmail(
+           sendEmail sendEmail = new sendEmail(
                     sm.retrieveValue("mailUser"),
                     sm.retrieveValue("mailPassword"),
                     sm.retrieveValue("mailFrom"),
                     email,
                     "Reset Password",
                     emailBody);
-            sendEmail.start();  */
+            sendEmail.start();
         }
         return email;
     }
