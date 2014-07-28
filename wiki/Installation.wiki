@@ -37,7 +37,8 @@ UNIX operating system.
     A property file must be configured with settings relative to your environment.  Do this by
     copying bcidsettings.template to bcidsettings.props and change appropriate values
 
-  * Build WAR file using the provided build.xml ANT build file and deploy to your servlet container
+  * Build WAR file using the provided build.xml ANT build file and deploy to your servlet container.  
+    * IMPORTANT! Each deployment of BCID should have its own deployment target in the build.xml file.  Multiple deployment targets mean that the interface can be coded however each deployment target wishes which is a big plus.  The downside is is that any javascript/interface changes to the BCID system need to be applied to each system.  Use the special-built deployment target applicable for your installation.
 
 ==3. Tomcat specific installation instructions ==
 See the following to get setup:
