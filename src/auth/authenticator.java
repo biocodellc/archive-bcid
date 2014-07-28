@@ -70,19 +70,13 @@ public class authenticator {
             String selectString = "SELECT password FROM users WHERE username = ?";
             stmt = conn.prepareStatement(selectString);
 
-System.out.println(selectString);
             stmt.setString(1, username);
-System.out.println(username);
             ResultSet rs = stmt.executeQuery();
-System.out.println("before rs");
             if (rs.next()) {
-System.out.println("p;ass=" + rs.getString("password"));
                 return rs.getString("password");
             }
-System.out.println("here");
 
         } catch (SQLException e) {
-System.out.println(e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -155,7 +149,7 @@ System.out.println(e.getMessage());
      * @param password
      * @return
      */
-    private String createHash(String password) {
+    public String createHash(String password) {
         String hashedPass = null;
 
         try {
@@ -295,6 +289,7 @@ System.out.println(e.getMessage());
      * @param args username and password
      */
     public static void main(String args[]) {
+
 
         // Some classes to help us
         CommandLineParser clp = new GnuParser();

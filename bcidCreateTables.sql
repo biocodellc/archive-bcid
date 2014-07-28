@@ -121,7 +121,7 @@ CREATE TABLE `projects` (
   `public` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'Whether or not this is a public project?',
   UNIQUE KEY `projects_project_id_idx` (`project_id`),
   KEY `projects_users_id_idx` (`users_id`),
-  CONSTRAINT `FK_projects_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
+  CONSTRAINT `FK_projects_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

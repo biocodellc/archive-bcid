@@ -416,9 +416,15 @@ public class provider {
             String clientId = p.generateClientId();
             String clientSecret = p.generateClientSecret();
 
-            String insertString = "INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
-                                  + clientId + "\",\"" + clientSecret + "\",?)";
-            PreparedStatement stmt = p.conn.prepareStatement(insertString);
+            //String insertString = "INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
+            //                      + clientId + "\",\"" + clientSecret + "\",?)";
+
+            System.out.println("USE THE FOLLOWING INSERT STATEMENT IN YOUR DATABASE:\n\n");
+            System.out.println("INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
+                                  + clientId + "\",\"" + clientSecret + "\",\"" + host +"\")");
+            System.out.println(".\nYou will need the following information:\n\nclient_id: "
+                    + clientId + "\nclient_secret: " + clientSecret);
+            /*PreparedStatement stmt = p.conn.prepareStatement(insertString);
 
             stmt.setString(1, host);
             stmt.execute();
@@ -426,6 +432,7 @@ public class provider {
             System.out.println("Successfully registered oauth2 client app at host: " + host
                     + ".\nYou will need the following information:\n\nclient_id: "
                     + clientId + "\nclient_secret: " + clientSecret);
+                    */
         } catch (Exception e) {
             e.printStackTrace();
             return;
