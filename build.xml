@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="bcid" default="all">
 
-
     <!-- BJS: instead of requiring the file below, just add the path to the JDK -->
     <!--property file="bcid-unix.properties"/-->
     <property name="jdk.home.1.6" value="/usr"/>
@@ -211,10 +210,19 @@
 
     <target name="build.modules" depends="init, clean, compile.module.bcid, war" description="build all modules"/>
 
-
     <target name="war" depends="compile.module.bcid.production">
         <war destfile="dist/bcid.war" webxml="web/WEB-INF/web.xml">
             <fileset dir="web"/>
+            <lib dir="lib" excludes="servlet-api.jar"/>
+            <classes dir="${bcid.output.dir}"/>
+            <classes dir="" includes="xsl/*.*"/>
+            <classes dir="" includes="bcidsettings.props"/>
+        </war>
+    </target>
+
+     <target name="war_nmnh" depends="compile.module.bcid.production">
+        <war destfile="dist/nmnh.war" webxml="web/WEB-INF/web.xml">
+            <fileset dir="web_nmnh"/>
             <lib dir="lib" excludes="servlet-api.jar"/>
             <classes dir="${bcid.output.dir}"/>
             <classes dir="" includes="xsl/*.*"/>

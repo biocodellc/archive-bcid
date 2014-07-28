@@ -1,0 +1,16 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                    http://www.springframework.org/schema/security
+                    http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+    <beans:bean id="securityDataSource"
+                class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+
+        <beans:property name="url" value="jdbc:mysql://169.229.192.181:3306/biscicol"/>
+        <beans:property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <beans:property name="username" value="webuser"/>
+        <beans:property name="password" value="Amar*tus"/>
+    </beans:bean>
+</beans:beans>
