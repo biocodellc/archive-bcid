@@ -3,10 +3,11 @@
 
 <div id="footer">
     <div>
-    <a href="https://code.google.com/p/bcid/">Biocode Commons Identifiers</a> are constructed by the NSF funded
-        <a href="http://biscicol.blogspot.com/">BiSciCol project</a>, powered by
-        <a href="http://ezid.cdlib.org/">EZID</a>, and fall under the
-        <a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>.
+     <img src='nsf.jpeg' height=50> This material is based upon work supported by the National Science Foundation under
+    Grant
+    Number
+    DBI-0956426. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the
+    author(s) and do not necessarily reflect the views of the National Science Foundation
     </div>
 </div>
 
