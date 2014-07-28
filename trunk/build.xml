@@ -221,7 +221,7 @@
     </target>
 
      <target name="war_nmnh" depends="compile.module.bcid.production">
-        <war destfile="dist/nmnh.war" webxml="web/WEB-INF/web.xml">
+        <war destfile="dist/nmnh.war" webxml="web_nmnh/WEB-INF/web.xml">
             <fileset dir="web_nmnh"/>
             <lib dir="lib" excludes="servlet-api.jar"/>
             <classes dir="${bcid.output.dir}"/>
