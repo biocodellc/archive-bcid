@@ -3,7 +3,7 @@
 
 <div id="footer">
     <div>
-     <img src='nsf.jpeg' height=50> This material is based upon work supported by the National Science Foundation under
+     <img src='/nsf.jpeg' height=50> This material is based upon work supported by the National Science Foundation under
     Grant
     Number
     DBI-0956426. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the
