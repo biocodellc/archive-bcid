@@ -5,7 +5,7 @@
 
 <html>
 <head>
-    <title>BiSciCol Identifiers</title>
+    <title>BCID Control Panel</title>
     <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/flick/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
@@ -22,7 +22,7 @@
 
     <div id="header">
 
-        <div style='float:left'><h1>Biocode Commons Identifiers</h1></div>
+        <div style='float:left'><h1>Smithsonian FIMS Management Console</h1></div>
 
         <div style='float:right' id="loginLink">
             <c:if test="${user == null}">
