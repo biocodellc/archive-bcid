@@ -471,7 +471,7 @@ public class resolver extends database {
             //System.out.println(r.printMetadata(new RDFRenderer()));
 
             r = new resolver("DEMO4",18,"Resource");
-            System.out.println(r.getArk());
+            System.out.println(r.resolveARK());
             //System.out.println(r.getArk());
                  /*
             // suffixPassthrough = 1; webaddress specified; no SourceID
