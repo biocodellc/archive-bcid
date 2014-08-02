@@ -130,9 +130,9 @@ public class projectMinter {
         // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
         // maximum timestamp (latest) loaded for a particular expedition.
         // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
-        String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress \n" +
+        String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress, d1.prefix as ark, d1.datasets_id as id \n" +
                 "from datasets as d1, \n" +
-                "(select p.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress \n" +
+                "(select p.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress, d.prefix as ark, d.datasets_id as id \n" +
                 "    \tfrom datasets d,expeditions p, expeditionsBCIDs pB\n" +
                 "    \twhere pB.datasets_id=d.datasets_id\n" +
                 "    \tand pB.expedition_id=p.expedition_id\n" +
@@ -156,6 +156,8 @@ public class projectMinter {
             sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
             sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\",\n");
             sb.append("\t\t\t\"ts\":\"" + rs.getString("ts") + "\",\n");
+            sb.append("\t\t\t\"ark\":\"" + rs.getString("ark") + "\",\n");
+            sb.append("\t\t\t\"id\":\"" + rs.getString("id") + "\",\n");
             sb.append("\t\t\t\"webaddress\":\"" + rs.getString("webaddress") + "\",\n");
             sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
             sb.append("\t\t}");
