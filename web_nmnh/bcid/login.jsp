@@ -6,7 +6,7 @@
 <html>
 <head>
     <title>BiSciCol Identifiers</title>
-    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/flick/jquery-ui.css" />
+    <link rel="stylesheet" href="/bcid/css/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
 </head>
 

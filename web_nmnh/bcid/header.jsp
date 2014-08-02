@@ -6,14 +6,14 @@
 <html>
 <head>
     <title>BCID Control Panel</title>
-    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/flick/jquery-ui.css" />
+    <link rel="stylesheet" href="/bcid/css/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript" src="/bcid/js/jquery.min.js"></script>
     <script type="text/javascript" src="/bcid/js/bcid.js"></script>
     <script type="text/javascript" src="/bcid/js/dropit.js"></script>
     <script type="text/javascript" src="/bcid/js/pwstrength.js"></script>
     <script>$(document).ready(function() {$('.menu').dropit();});</script>
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="/bcid/js/jquery-ui.min.js"></script>
 </head>
 
 <body>
