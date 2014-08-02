@@ -66,6 +66,15 @@ public class resolverService {
                 e.printStackTrace();
                 return null;
             }
+            // if the URI is null just print metadatad
+            if (seeOtherUri == null) {
+                try {
+                    return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return Response.serverError().entity(new errorInfo(e, request).toJSON()).build();
+                }
+            }
             return Response.status(303).location(seeOtherUri).build();
         }
     }
