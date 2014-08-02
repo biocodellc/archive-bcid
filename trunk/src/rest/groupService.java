@@ -53,6 +53,7 @@ public class groupService {
      * @param webaddress
      * @param title
      * @param request
+     *
      * @return
      */
     @POST
@@ -135,28 +136,23 @@ public class groupService {
             String datasetPrefix = minterDataset.getPrefix();
 
             // Create EZIDs right away for Dataset level Identifiers
-            // TODO: fix the ezidAccount registration here--- it seems to be hanging things up
             // Initialize ezid account
-
-            ezidAccount = new EZIDService();
-            // Setup EZID account/login information
-            ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-
-            manageEZID creator = new manageEZID();
-            creator.createDatasetsEZIDs(ezidAccount);
-
-            // Send an Email that this completed
-            sendEmail sendEmail = new sendEmail(sm.retrieveValue("mailUser"),
-                    sm.retrieveValue("mailPassword"),
-                    sm.retrieveValue("mailFrom"),
-                    sm.retrieveValue("mailTo"),
-                    "New Dataset Group",
-                    new resolver(minterDataset.getPrefix()).printMetadata(new TextRenderer()));
-            sendEmail.start();
-
+            // NOTE: On any type of EZID error, we DON'T want to fail the process.. This means we need
+            // a separate mechanism on the server side to check creation of EZIDs.  This is easy enough to do
+            // in the database.
+            try {
+                ezidAccount = new EZIDService();
+                // Setup EZID account/login information
+                ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+                manageEZID creator = new manageEZID();
+                creator.createDatasetsEZIDs(ezidAccount);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
+            }
 
             return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
@@ -168,6 +164,7 @@ public class groupService {
      * Return a JSON representation of dataset metadata
      *
      * @param dataset_id
+     *
      * @return
      */
     @GET
@@ -250,7 +247,9 @@ public class groupService {
 
     /**
      * returns an HTML table used to edit a bcid's configuration.
+     *
      * @param prefix
+     *
      * @return
      */
     @GET
@@ -280,6 +279,7 @@ public class groupService {
 
     /**
      * Service to update a bcid's configuration.
+     *
      * @param doi
      * @param webaddress
      * @param title
@@ -287,6 +287,7 @@ public class groupService {
      * @param resourceTypesMinusDataset
      * @param stringSuffixPassThrough
      * @param prefix
+     *
      * @return
      */
     @POST
