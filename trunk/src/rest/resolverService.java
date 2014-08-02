@@ -67,7 +67,7 @@ public class resolverService {
                 return null;
             }
             // if the URI is null just print metadata
-            System.out.println("value of seeOtherUri:" + seeOtherUri.toString() + "END");
+            /*System.out.println("value of seeOtherUri:" + seeOtherUri.toString() + "END");
             if (seeOtherUri == null || seeOtherUri.toString().contains("null")) {
                 try {
                     return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
@@ -75,7 +75,9 @@ public class resolverService {
                     e.printStackTrace();
                     return Response.serverError().entity(new errorInfo(e, request).toJSON()).build();
                 }
-            }
+            } */
+
+            // The expected response for IDentifiers without a URL
             return Response.status(303).location(seeOtherUri).build();
         }
     }
