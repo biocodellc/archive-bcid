@@ -147,6 +147,8 @@ public class groupService {
                 manageEZID creator = new manageEZID();
                 creator.createDatasetsEZIDs(ezidAccount);
             } catch (Exception e) {
+                //e.printStackTrace();
+                System.out.println("EZID NOT CREATED FOR DATASET = " + minterDataset.getPrefix() + " See reason in following stacktrace:");
                 e.printStackTrace();
                 return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
             }
