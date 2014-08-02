@@ -48,7 +48,6 @@ CREATE TABLE `datasets` (
   `webaddress` text COLLATE utf8_bin COMMENT 'the target URL for this dataset',
   `graph` text  COMMENT 'A reference to a graph, used by the biocode-fims expedition for storing graph references for a particular dataset',
   `resourceType` text NOT NULL COMMENT 'default resource type for this dataset, stored as a URI',
-  `resourceAlias` text NOT NULL COMMENT 'alias to use for the resource Type',
   `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'timestamp of insertion',
   PRIMARY KEY `datasets_datasets_id` (`datasets_id`),
   KEY `datasets_users_id` (`users_id`),
