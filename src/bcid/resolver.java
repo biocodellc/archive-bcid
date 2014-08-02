@@ -187,7 +187,7 @@ public class resolver extends database {
                     resolution = bcid.getMetadataTarget();
                 }
                 // If there is some resolution target then return that
-                else if (bcid.getResolutionTarget() != null) {
+                else if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().toString().equalsIgnoreCase("null")) {
                     resolution = bcid.getResolutionTarget();
                 }
                 // All other cases just return metadata
@@ -466,7 +466,8 @@ public class resolver extends database {
             System.out.println(r.resolveARK());
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
-            r = new resolver("ark:/21547/Uz2MBIO56");
+            r = new resolver("ark:/21547/KX2");
+            System.out.println(r.resolveARK());
             //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             //System.out.println(r.printMetadata(new RDFRenderer()));
 
