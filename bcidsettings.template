@@ -31,4 +31,9 @@ mailTo = someone@somedomain.com
 # The divider to use that separates the ARK portion and the Suffix Portion
 divider = _
 
+rights = http://creativecommons.org/licenses/by/3.0/
+resolverTargetPrefix = http://biscicol.org/id/
+resolverMetadataPrefix = http://biscicol.org/id/metadata/
 
+# path to use for reseting password token
+resetToken = http://biscicol.org/bcid/resetPass.jsp?token=

@@ -21,6 +21,7 @@ import util.stringGenerator;
 public class authenticator {
     private database db;
     protected Connection conn;
+    SettingsManager sm;
 
     /**
      * Constructor that initializes the class level variables
@@ -35,6 +36,16 @@ public class authenticator {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.UNAUTHORIZED);
         }
+
+        // Initialize settings manager
+        sm = SettingsManager.getInstance();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     /**
@@ -86,6 +97,7 @@ public class authenticator {
      * Takes a new password for a user and stores a hashed version
      *
      * @param password
+     *
      * @return
      */
     public Boolean setHashedPass(String username, String password) {
@@ -94,7 +106,7 @@ public class authenticator {
         String hashedPass = createHash(password);
 
         // Store the hashed password in the db
-        if (hashedPass != null){
+        if (hashedPass != null) {
             try {
                 String updateString = "UPDATE users SET password = ? WHERE username = ?";
                 stmt = conn.prepareStatement(updateString);
@@ -115,8 +127,10 @@ public class authenticator {
 
     /**
      * Update the user's password associated with the given token.
+     *
      * @param token
      * @param password
+     *
      * @return
      */
     public Boolean resetPass(String token, String password) {
@@ -146,7 +160,9 @@ public class authenticator {
 
     /**
      * create a hash of a password string to be stored in the db
+     *
      * @param password
+     *
      * @return
      */
     public String createHash(String password) {
@@ -165,7 +181,9 @@ public class authenticator {
 
     /**
      * create a user given a username and password
+     *
      * @param userInfo
+     *
      * @return
      */
     public Boolean createUser(Hashtable<String, String> userInfo) {
@@ -227,11 +245,14 @@ public class authenticator {
     /**
      * In the case where a user has forgotten their password, generate a token that can be used to create a new
      * password. This method will send to the user's registered email a link that can be used to change their password.
+     *
      * @param username
+     *
      * @return
+     *
      * @throws Exception
      */
-    public String sendResetToken(String username) throws Exception{
+    public String sendResetToken(String username) throws Exception {
         String email = null;
         String sql = "SELECT email FROM users WHERE username = ?";
         PreparedStatement stmt = conn.prepareStatement(sql);
@@ -247,7 +268,7 @@ public class authenticator {
             stringGenerator sg = new stringGenerator();
             String token = sg.generateString(20);
             // set for 24hrs in future
-            Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime() + (1000*60*60*24));
+            Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime() + (1000 * 60 * 60 * 24));
             Statement stmt2 = conn.createStatement();
 
             String updateSql = "UPDATE users SET " +
@@ -257,9 +278,12 @@ public class authenticator {
 
             stmt2.executeUpdate(updateSql);
 
+            // Reset token path
+            String resetToken = sm.retrieveValue("resetToken") + token;
+
             String emailBody = "You requested a password reset for your BCID account.\n\n" +
                     "Use the following link within the next 24 hrs to reset your password.\n\n" +
-                    "http://biscicol.org/bcid/resetPass.jsp?token=" + token + "\n\n" +
+                    resetToken + "\n\n" +
                     "Thanks";
 
             // Initialize settings manager
@@ -271,7 +295,7 @@ public class authenticator {
             }
 
             // Send an Email that this completed
-           sendEmail sendEmail = new sendEmail(
+            sendEmail sendEmail = new sendEmail(
                     sm.retrieveValue("mailUser"),
                     sm.retrieveValue("mailPassword"),
                     sm.retrieveValue("mailFrom"),

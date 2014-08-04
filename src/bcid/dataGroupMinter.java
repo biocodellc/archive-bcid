@@ -458,7 +458,6 @@ public class dataGroupMinter extends dataGroupEncoder {
             return "(<a href='http://n2t.net/" + pPrefix + "'>" + linkText + "</a>)";
         } else {
             return "";
-            //return "<a href='http://biscicol.org/id/" + pPrefix + "'>http://biscicol.org/id/" + pPrefix + "</a>";
         }
     }
 
