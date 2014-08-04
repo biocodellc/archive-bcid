@@ -18,6 +18,8 @@ public class expeditionMinter {
     public ArrayList<Integer> expeditionResources;
     private SettingsManager sm;
     private EZIDService ezidAccount;
+    private String resolverTargetPrefix;
+    private String resolverMetadataPrefix;
 
 
     /**
@@ -38,6 +40,8 @@ public class expeditionMinter {
         } catch (Exception e) {
             e.printStackTrace();
         }
+         resolverTargetPrefix = sm.retrieveValue("resolverTargetPrefix");
+        resolverMetadataPrefix = sm.retrieveValue("resolverMetadataPrefix");
     }
 
     /**
@@ -119,10 +123,7 @@ public class expeditionMinter {
         String insertString = "INSERT INTO expeditionsBCIDs " +
                 "(expedition_id, datasets_id) " +
                 "values (?,?)";
-/*System.out.println(insertString);
-System.out.println(expedition_code);
-System.out.println(project_id);
-System.out.println(bcid);*/
+
         PreparedStatement insertStatement = null;
         insertStatement = conn.prepareStatement(insertString);
         insertStatement.setInt(1, expedition_id);
@@ -414,7 +415,8 @@ System.out.println(bcid);*/
                 rtString = "<a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a>";
             }
 
-            sb.append("\t\t\t\t<tr><td><a href='http://biscicol.org/id/" + rs.getString("BCID") + "'>" +
+
+            sb.append("\t\t\t\t<tr><td><a href='" + resolverTargetPrefix  + rs.getString("BCID") + "'>" +
                     rs.getString("BCID") + "</a></td>" +
                     "<td>is_a</td><td>" +
                     rtString +

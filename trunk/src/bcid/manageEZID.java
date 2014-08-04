@@ -19,8 +19,7 @@ import java.util.Iterator;
  * switches in the database indicating whether the intention is to create EZIDS for particular identifiers.
  */
 public class manageEZID extends elementMinter {
-    // TODO: put resolverURLPrefix in SettingsManager
-    //public String resolverURLPrefix = "http://biscicol.org/bcid/";
+
     public manageEZID() throws Exception {
         super();
     }

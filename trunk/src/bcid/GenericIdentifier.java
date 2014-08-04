@@ -1,5 +1,7 @@
 package bcid;
 
+import util.SettingsManager;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -10,12 +12,25 @@ public abstract class GenericIdentifier implements GenericIdentifierInterface {
 
     /* The identifier itself */
     public URI identifier;
-     /* All identifiers ave the Attribution 3.0 Unported CC License Applied */
-    public final String rights = "http://creativecommons.org/licenses/by/3.0/";
+    SettingsManager sm;
 
-    public String resolverTargetPrefix = "http://biscicol.org/id/";
-    public String resolverMetadataPrefix = "http://biscicol.org/id/metadata/";
+    private String rights;
+    private String resolverTargetPrefix;
+    private String resolverMetadataPrefix;
 
+    protected GenericIdentifier() {
+         // Initialize settings manager
+        sm = SettingsManager.getInstance();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        rights = sm.retrieveValue("rights");
+        resolverTargetPrefix = sm.retrieveValue("resolverTargetPrefix");
+        resolverMetadataPrefix = sm.retrieveValue("resolverMetadataPrefix");
+    }
 
     /**
      * The resolution target for this identifier
@@ -35,5 +50,9 @@ public abstract class GenericIdentifier implements GenericIdentifierInterface {
      */
     public URI getMetadataTarget() throws URISyntaxException {
         return new URI(resolverMetadataPrefix);
+    }
+
+    public String getRights() {
+        return rights;
     }
 }
