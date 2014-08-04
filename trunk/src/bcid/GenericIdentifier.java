@@ -14,9 +14,9 @@ public abstract class GenericIdentifier implements GenericIdentifierInterface {
     public URI identifier;
     SettingsManager sm;
 
-    private String rights;
-    private String resolverTargetPrefix;
-    private String resolverMetadataPrefix;
+    public String rights;
+    public String resolverTargetPrefix;
+    public String resolverMetadataPrefix;
 
     protected GenericIdentifier() {
          // Initialize settings manager
