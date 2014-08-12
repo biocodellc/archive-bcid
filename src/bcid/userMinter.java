@@ -17,7 +17,14 @@ public class userMinter {
         database db = new database();
         conn = db.getConn();
     }
+     public void close() {
+         try {
+             conn.close();
+         } catch (SQLException e) {
+             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+         }
 
+     }
     /**
      * create a new user given their profile information and add them to a project
      * @param userInfo
@@ -27,7 +34,7 @@ public class userMinter {
     public String createUser(Hashtable<String, String> userInfo, Integer projectId) throws Exception{
         authenticator auth = new authenticator();
         Boolean success = auth.createUser(userInfo);
-
+        auth.close();
         // if user was created, add user to project
         if (success) {
             database db = new database();
@@ -330,11 +337,10 @@ public class userMinter {
      */
     public String getOauthProfile(String token) {
         try {
-            provider p = new provider();
+            provider  p = new provider();
             database db = new database();
 
             String username = p.validateToken(token);
-
             if (username != null) {
                 Integer user_id = db.getUserId(username);
 

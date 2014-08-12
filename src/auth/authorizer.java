@@ -67,4 +67,8 @@ public class authorizer {
         }
         return false;
     }
+
+    public void close() throws SQLException {
+        conn.close();
+    }
 }

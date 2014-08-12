@@ -233,6 +233,8 @@ public class run {
         } catch (Exception e) {
             e.printStackTrace();
             throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }  finally {
+            dataset.close();
         }
 
         /*

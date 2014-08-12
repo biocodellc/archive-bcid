@@ -209,7 +209,7 @@ public class elementService {
                     returnVal);
             sendEmail.start();
             */
-
+            dataset.close();
             return Response.ok(returnVal).build();
         } catch (Exception e) {
             e.printStackTrace();

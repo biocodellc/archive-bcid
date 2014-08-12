@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.sql.SQLException;
 
 /**
  * REST interface for handling user authentication
@@ -62,21 +63,31 @@ public class authenticationService {
             if (isAuthenticated) {
                 // Place the user in the session
                 session.setAttribute("user", usr);
+                authorizer myAuthorizer = null;
 
                 try {
-                    authorizer authorizer = new auth.authorizer();
+                     myAuthorizer = new auth.authorizer();
 
                     // Check if the user is an admin for any projects
-                    if (authorizer.userProjectAdmin(usr)) {
+                    if (myAuthorizer.userProjectAdmin(usr)) {
                         session.setAttribute("projectAdmin", true);
                     }
 
                 } catch (Exception e) {
+                    authenticator.close();
+                    try {
+                        myAuthorizer.close();
+                    } catch (SQLException e1) {
+                        e1.printStackTrace();
+                    }
                     e.printStackTrace();
                 }
 
                 // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
                 if (!authenticator.userSetPass(usr)) {
+                    // don't need authenticator anymore
+                    authenticator.close();
+
                     if (return_to != null) {
                         res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password" + new queryParams().getQueryParams(request.getParameterMap(), false));
                         return;
@@ -84,7 +95,11 @@ public class authenticationService {
                         res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password");
                         return;
                     }
+                }   else {
+                    // don't need authenticator anymore
+                    authenticator.close();
                 }
+
 
                 // Redirect to return_to uri if provided
                 if (return_to != null) {
@@ -214,9 +229,9 @@ public class authenticationService {
                                  @FormParam("client_secret") String clientSecret,
                                  @FormParam("redirect_uri") String redirectURL,
                                  @FormParam("state") String state) {
+        provider p = null;
         try {
-            provider p = new provider();
-
+             p = new provider();
             if (redirectURL == null) {
                 return Response.status(400).entity("{\"error\": \"invalid_request\"}").build();
             }
@@ -238,7 +253,9 @@ public class authenticationService {
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        }finally {
         }
+
     }
 
     /**
@@ -315,13 +332,19 @@ public class authenticationService {
 
         if (!authorizer.validResetToken(token)) {
             response.sendRedirect("/bcid/resetPass.jsp?error=Expired Reset Token");
+            authenticator.close();
+            authorizer.close();
             return;
         }
 
         if (authenticator.resetPass(token, password)) {
             response.sendRedirect("/bcid/login.jsp");
+            authenticator.close();
+            authorizer.close();
             return;
         }
+        authorizer.close();
+        authenticator.close();
     }
 
     /**
@@ -343,7 +366,7 @@ public class authenticationService {
         try {
             authenticator a = new authenticator();
             String email = a.sendResetToken(username);
-
+            a.close();
             if (email != null) {
                 return Response.ok("{\"success\": \"" + email + "\"}").build();
             } else {
