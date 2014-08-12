@@ -12,15 +12,23 @@ import java.util.Calendar;
  */
 public class provider {
     protected Connection conn;
+    database db;
 
     public provider() throws Exception {
-        database db = new database();
+         db = new database();
         conn = db.getConn();
+    }
+
+    public void close() throws SQLException {
+        conn.close();
+        db.close();
     }
 
     /**
      * check that the given clientId is valid
+     *
      * @param clientId
+     *
      * @return
      */
     public Boolean validClientId(String clientId) {
@@ -42,8 +50,11 @@ public class provider {
 
     /**
      * get the callback url stored for the given clientID
+     *
      * @param clientID
+     *
      * @return
+     *
      * @throws SQLException
      */
     public String getCallback(String clientID) throws SQLException {
@@ -61,10 +72,13 @@ public class provider {
 
     /**
      * generate a random 20 character code that can be exchanged for an access token by the client app
+     *
      * @param clientID
      * @param redirectURL
      * @param username
+     *
      * @return
+     *
      * @throws Exception
      */
     public String generateCode(String clientID, String redirectURL, String username) throws Exception {
@@ -87,6 +101,7 @@ public class provider {
 
     /**
      * generate a new clientId for a oauth client app
+     *
      * @return
      */
     public String generateClientId() {
@@ -96,6 +111,7 @@ public class provider {
 
     /**
      * generate a client secret for a oauth client app
+     *
      * @return
      */
     public String generateClientSecret() {
@@ -105,8 +121,10 @@ public class provider {
 
     /**
      * verify that the given clientId and client secret match what is stored in the db
+     *
      * @param clientId
      * @param clientSecret
+     *
      * @return
      */
     public Boolean validateClient(String clientId, String clientSecret) {
@@ -132,10 +150,13 @@ public class provider {
     }
 
     /**
-     * verify that the given code was issued for the same client id that is trying to exchange the code for an access token
+     * verify that the given code was issued for the same client id that is trying to exchange the code for an access
+     * token
+     *
      * @param clientID
      * @param code
      * @param redirectURL
+     *
      * @return
      */
     public Boolean validateCode(String clientID, String code, String redirectURL) {
@@ -169,8 +190,10 @@ public class provider {
 
     /**
      * get the id of the user that the given oauth code represents
+     *
      * @param clientId
      * @param code
+     *
      * @return
      */
     private Integer getUserId(String clientId, String code) {
@@ -196,6 +219,7 @@ public class provider {
     /**
      * Remove the given oauth code from the db. This is called when the code is exchanged for an access token,
      * as oauth codes are only usable once.
+     *
      * @param clientId
      * @param code
      */
@@ -215,12 +239,15 @@ public class provider {
 
     /**
      * generate a new access token given a refresh token
+     *
      * @param refreshToken
+     *
      * @return
+     *
      * @throws SQLException
      */
     public String generateToken(String refreshToken)
-        throws SQLException {
+            throws SQLException {
         Integer userId = null;
         String clientId = null;
 
@@ -245,13 +272,16 @@ public class provider {
 
     /**
      * generate an access token given a code, clientID, and state (optional)
+     *
      * @param clientID
      * @param state
      * @param code
+     *
      * @return
+     *
      * @throws SQLException
      */
-    public String generateToken(String clientID, String state, String code) throws SQLException{
+    public String generateToken(String clientID, String state, String code) throws SQLException {
         Integer user_id = getUserId(clientID, code);
         deleteNonce(clientID, code);
         if (user_id == null) {
@@ -263,20 +293,23 @@ public class provider {
 
     /**
      * generate an oauth compliant JSON response with an access_token and refresh_token
+     *
      * @param clientID
      * @param userId
      * @param state
+     *
      * @return
+     *
      * @throws SQLException
      */
     private String generateToken(String clientID, Integer userId, String state)
-        throws SQLException {
+            throws SQLException {
         stringGenerator sg = new stringGenerator();
         String token = sg.generateString(20);
         String refreshToken = sg.generateString(20);
 
         String insertString = "INSERT INTO oauthTokens (client_id, token, refresh_token, user_id) VALUE " +
-                "(?, \"" + token +"\",\"" + refreshToken + "\", ?)";
+                "(?, \"" + token + "\",\"" + refreshToken + "\", ?)";
         PreparedStatement stmt = conn.prepareStatement(insertString);
 
         stmt.setString(1, clientID);
@@ -299,6 +332,7 @@ public class provider {
 
     /**
      * delete an access_token. This is called when a refresh_token has been exchanged for a new access_token.
+     *
      * @param refreshToken
      */
     public void deleteAccessToken(String refreshToken) {
@@ -316,7 +350,9 @@ public class provider {
 
     /**
      * verify that a refresh token is still valid
+     *
      * @param refreshToken
+     *
      * @return
      */
     public Boolean validateRefreshToken(String refreshToken) {
@@ -331,7 +367,7 @@ public class provider {
             if (rs.next()) {
                 Timestamp ts = rs.getTimestamp("ts");
 
-                  // Get the current time from the database (in case the application server is in a different timezone)
+                // Get the current time from the database (in case the application server is in a different timezone)
                 Timestamp currentTs = rs.getTimestamp("current");
                 // get a Timestamp instance for  for 24 hrs ago
                 Timestamp expiredTs = new Timestamp(currentTs.getTime() - 86400000);
@@ -349,12 +385,14 @@ public class provider {
 
     /**
      * Verify that an access token is still valid. Access tokens are only good for 1 hour.
+     *
      * @param token the access_token issued to the client
+     *
      * @return username the token represents, null if invalid token
      */
     public String validateToken(String token) {
         try {
-            String selectString = "SELECT current_timestamp() as current,t.ts as ts, u.username as username "+
+            String selectString = "SELECT current_timestamp() as current,t.ts as ts, u.username as username " +
                     "FROM oauthTokens t, users u WHERE t.token=? && u.user_id = t.user_id";
             PreparedStatement stmt = conn.prepareStatement(selectString);
 
@@ -365,7 +403,7 @@ public class provider {
 
                 Timestamp ts = rs.getTimestamp("ts");
 
-                 // Get the current time from the database (in case the application server is in a different timezone)
+                // Get the current time from the database (in case the application server is in a different timezone)
                 Timestamp currentTs = rs.getTimestamp("current");
                 // get a Timestamp instance for 1 hr ago
                 Timestamp expiredTs = new Timestamp(currentTs.getTime() - 3600000);
@@ -384,6 +422,7 @@ public class provider {
     /**
      * Given a hostname, register a client app for oauth use. Will generate a new client id and client secret
      * for the client app
+     *
      * @param args
      */
     public static void main(String args[]) {
@@ -410,8 +449,9 @@ public class provider {
         }
 
         String host = cl.getOptionValue("c");
+        provider p = null;
         try {
-            provider p = new provider();
+            p = new provider();
 
             String clientId = p.generateClientId();
             String clientSecret = p.generateClientSecret();
@@ -421,7 +461,7 @@ public class provider {
 
             System.out.println("USE THE FOLLOWING INSERT STATEMENT IN YOUR DATABASE:\n\n");
             System.out.println("INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
-                                  + clientId + "\",\"" + clientSecret + "\",\"" + host +"\")");
+                    + clientId + "\",\"" + clientSecret + "\",\"" + host + "\")");
             System.out.println(".\nYou will need the following information:\n\nclient_id: "
                     + clientId + "\nclient_secret: " + clientSecret);
             /*PreparedStatement stmt = p.conn.prepareStatement(insertString);
@@ -436,6 +476,13 @@ public class provider {
         } catch (Exception e) {
             e.printStackTrace();
             return;
+        } finally {
+            try {
+                p.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
+
 }

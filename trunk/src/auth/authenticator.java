@@ -187,7 +187,7 @@ public class authenticator {
      * @return
      */
     public Boolean createUser(Hashtable<String, String> userInfo) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
         Boolean success = false;
         String hashedPass = createHash(userInfo.get("password"));
 
@@ -209,6 +209,12 @@ public class authenticator {
             } catch (SQLException e) {
                 e.printStackTrace();
                 success = false;
+            } finally {
+                if (stmt != null) try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -221,7 +227,7 @@ public class authenticator {
      * @return
      */
     public Boolean userSetPass(String username) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
         try {
             String selectString = "SELECT set_password FROM users WHERE username = ?";
             stmt = conn.prepareStatement(selectString);
@@ -238,6 +244,12 @@ public class authenticator {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            if (stmt != null) try {
+                stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return false;
     }
@@ -255,54 +267,67 @@ public class authenticator {
     public String sendResetToken(String username) throws Exception {
         String email = null;
         String sql = "SELECT email FROM users WHERE username = ?";
-        PreparedStatement stmt = conn.prepareStatement(sql);
 
-        stmt.setString(1, username);
-        ResultSet rs = stmt.executeQuery();
+        PreparedStatement stmt = null;
+        try {
+            stmt = conn.prepareStatement(sql);
 
-        if (rs.next()) {
-            email = rs.getString("email");
-        }
 
-        if (email != null) {
-            stringGenerator sg = new stringGenerator();
-            String token = sg.generateString(20);
-            // set for 24hrs in future
-            Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime() + (1000 * 60 * 60 * 24));
-            Statement stmt2 = conn.createStatement();
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
 
-            String updateSql = "UPDATE users SET " +
-                    "pass_reset_token = \"" + token + "\", " +
-                    "pass_reset_expiration = \"" + ts + "\" " +
-                    "WHERE username = \"" + username + "\"";
-
-            stmt2.executeUpdate(updateSql);
-
-            // Reset token path
-            String resetToken = sm.retrieveValue("resetToken") + token;
-
-            String emailBody = "You requested a password reset for your BCID account.\n\n" +
-                    "Use the following link within the next 24 hrs to reset your password.\n\n" +
-                    resetToken + "\n\n" +
-                    "Thanks";
-
-            // Initialize settings manager
-            SettingsManager sm = SettingsManager.getInstance();
-            try {
-                sm.loadProperties();
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (rs.next()) {
+                email = rs.getString("email");
             }
 
-            // Send an Email that this completed
-            sendEmail sendEmail = new sendEmail(
-                    sm.retrieveValue("mailUser"),
-                    sm.retrieveValue("mailPassword"),
-                    sm.retrieveValue("mailFrom"),
-                    email,
-                    "Reset Password",
-                    emailBody);
-            sendEmail.start();
+            if (email != null) {
+                stringGenerator sg = new stringGenerator();
+                String token = sg.generateString(20);
+                // set for 24hrs in future
+                Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime() + (1000 * 60 * 60 * 24));
+                Statement stmt2 = conn.createStatement();
+
+                String updateSql = "UPDATE users SET " +
+                        "pass_reset_token = \"" + token + "\", " +
+                        "pass_reset_expiration = \"" + ts + "\" " +
+                        "WHERE username = \"" + username + "\"";
+
+                stmt2.executeUpdate(updateSql);
+
+                // Reset token path
+                String resetToken = sm.retrieveValue("resetToken") + token;
+
+                String emailBody = "You requested a password reset for your BCID account.\n\n" +
+                        "Use the following link within the next 24 hrs to reset your password.\n\n" +
+                        resetToken + "\n\n" +
+                        "Thanks";
+
+                // Initialize settings manager
+                SettingsManager sm = SettingsManager.getInstance();
+                try {
+                    sm.loadProperties();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // Send an Email that this completed
+                sendEmail sendEmail = new sendEmail(
+                        sm.retrieveValue("mailUser"),
+                        sm.retrieveValue("mailPassword"),
+                        sm.retrieveValue("mailFrom"),
+                        email,
+                        "Reset Password",
+                        emailBody);
+                sendEmail.start();
+            }
+        } catch (Exception e) {
+            throw new Exception(e);
+        } finally {
+            if (stmt != null) try {
+                stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return email;
     }
@@ -351,7 +376,7 @@ public class authenticator {
         }
 
         // change set_password field to 0 so user has to create new password next time they login
-        Statement stmt;
+        Statement stmt =null;
         try {
             stmt = authenticator.conn.createStatement();
             Integer result = stmt.executeUpdate("UPDATE users SET set_password=\"0\" WHERE username=\"" + username + "\"");
@@ -361,10 +386,25 @@ public class authenticator {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            authenticator.close();
         }
 
         System.out.println("Successfully set new password for " + username);
     }
 
-
+    public void close() {
+        if (conn != null) try {
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
+
+

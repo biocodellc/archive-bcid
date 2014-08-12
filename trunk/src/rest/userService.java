@@ -145,6 +145,7 @@ public class userService {
             if (!new_password.isEmpty()) {
                 authenticator authenticator = new authenticator();
                 Boolean success = authenticator.setHashedPass(username, new_password);
+                authenticator.close();
                 if (!success) {
                     throw new Exception("server error hashing password");
                 } else {
@@ -181,7 +182,6 @@ public class userService {
                     throw new Exception("server error updating profile");
                 }
             }
-
             return Response.ok("{\"success\": \"true\"}").build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -221,13 +221,13 @@ public class userService {
 
         // Only update user's password if both old_password and new_password fields contain values
         if (!old_password.isEmpty() && !new_password.isEmpty()) {
-            authenticator authenticator = new authenticator();
+            authenticator myAuth = new authenticator();
             // Call the login function to verify the user's old_password
-            Boolean valid_pass = authenticator.login(username, old_password);
+            Boolean valid_pass = myAuth.login(username, old_password);
 
             // If user's old_password matches stored pass, then update the user's password to the new value
             if (valid_pass) {
-                Boolean success = authenticator.setHashedPass(username, new_password);
+                Boolean success = myAuth.setHashedPass(username, new_password);
                 if (!success) {
                     error = "server error hashing password";
                 }
@@ -239,8 +239,9 @@ public class userService {
             else {
                 error = "Wrong Password";
             }
-        }
+            myAuth.close();
 
+        }
         database db;
 
         // Check if any other fields should be updated

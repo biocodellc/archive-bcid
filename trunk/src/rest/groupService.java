@@ -240,7 +240,8 @@ public class groupService {
         expeditionMinter p = null;
         try {
             p = new expeditionMinter();
-            return p.expeditionTable(username);
+            String tablename =  p.expeditionTable(username);
+            return tablename;
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             return new errorInfo(e, request).toHTMLTable();

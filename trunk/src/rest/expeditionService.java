@@ -272,6 +272,7 @@ public class expeditionService {
             }
 
             expeditionMinter e = new expeditionMinter();
+
             return Response.ok(e.listExpeditions(projectId, username.toString())).build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -322,7 +323,8 @@ public class expeditionService {
 
         try {
             expeditionMinter e = new expeditionMinter();
-            return e.listExpeditionDatasetsAsTable(expeditionId);
+            String results = e.listExpeditionDatasetsAsTable(expeditionId);
+            return results;
         } catch (Exception e) {
             e.printStackTrace();
             return new errorInfo(e, request).toHTMLTable();

@@ -20,7 +20,7 @@ public class expeditionMinter {
     private EZIDService ezidAccount;
     private String resolverTargetPrefix;
     private String resolverMetadataPrefix;
-
+    database db;
 
     /**
      * The constructor defines the class-level variables used when minting Expeditions.
@@ -30,7 +30,7 @@ public class expeditionMinter {
      * @throws Exception
      */
     public expeditionMinter() throws Exception {
-        database db = new database();
+        db = new database();
         conn = db.getConn();
 
         // Initialize settings manager
@@ -40,8 +40,17 @@ public class expeditionMinter {
         } catch (Exception e) {
             e.printStackTrace();
         }
-         resolverTargetPrefix = sm.retrieveValue("resolverTargetPrefix");
+        resolverTargetPrefix = sm.retrieveValue("resolverTargetPrefix");
         resolverMetadataPrefix = sm.retrieveValue("resolverMetadataPrefix");
+    }
+
+    public  void close() {
+        try {
+            conn.close();
+            db.close();
+        } catch (SQLException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
     }
 
     /**
@@ -416,7 +425,7 @@ public class expeditionMinter {
             }
 
 
-            sb.append("\t\t\t\t<tr><td><a href='" + resolverTargetPrefix  + rs.getString("BCID") + "'>" +
+            sb.append("\t\t\t\t<tr><td><a href='" + resolverTargetPrefix + rs.getString("BCID") + "'>" +
                     rs.getString("BCID") + "</a></td>" +
                     "<td>is_a</td><td>" +
                     rtString +
@@ -480,7 +489,7 @@ public class expeditionMinter {
             */
 
             //System.out.println(p.expeditionTable("demo"));
-
+                expedition.close();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
