@@ -21,7 +21,6 @@ public class provider {
 
     public void close() throws SQLException {
         conn.close();
-        db.close();
     }
 
     /**

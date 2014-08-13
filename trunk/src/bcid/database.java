@@ -84,11 +84,4 @@ public class database {
         return null;
     }
 
-    public void close() {
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-    }
 }

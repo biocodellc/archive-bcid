@@ -47,7 +47,6 @@ public class expeditionMinter {
     public  void close() {
         try {
             conn.close();
-            db.close();
         } catch (SQLException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
