@@ -72,7 +72,6 @@ public class dataGroupMinter extends dataGroupEncoder {
         datasets_id = this.getDatasetId(prefix);
         this.ezidRequest = ezidRequest;
         this.suffixPassThrough = suffixPassThrough;
-        db.close();
     }
 
     /**
@@ -97,7 +96,6 @@ public class dataGroupMinter extends dataGroupEncoder {
         } catch (Exception e) {
             throw new Exception("problem getting shoulder " + e.getMessage());
         }
-        db.close();
     }
 
 
@@ -157,7 +155,6 @@ public class dataGroupMinter extends dataGroupEncoder {
         } catch (NullPointerException e) {
             this.webAddress = null;
         }
-        db.close();
     }
 
 
@@ -181,7 +178,6 @@ public class dataGroupMinter extends dataGroupEncoder {
         } catch (Exception e) {
             return null;
         }  finally {
-            db.close();
         }
     }
 
@@ -267,7 +263,6 @@ public class dataGroupMinter extends dataGroupEncoder {
         // Create the prefix
         prefix = bow + shoulder;
 
-        db.close();
         return datasets_id;
     }
 
@@ -570,7 +565,6 @@ public class dataGroupMinter extends dataGroupEncoder {
             } else {
                 config.put("error", "Dataset not found. Are you the owner of this dataset?");
             }
-            db.close();
         } catch (Exception e) {
             e.printStackTrace();
             config.put("error", "server error");
@@ -634,7 +628,6 @@ public class dataGroupMinter extends dataGroupEncoder {
             }
 
             Integer result = stmt.executeUpdate();
-            db.close();
             // result should be '1', if not, an error occurred during the UPDATE statement
             if (result >= 1) {
                 return true;

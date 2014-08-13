@@ -415,7 +415,6 @@ public class projectMinter {
             Integer result = stmt.executeUpdate();
 
             conn.close();
-            db.close();
             // result should be '1', if not, an error occurred during the UPDATE statement
             if (result == 1) {
                 return true;
