@@ -1,6 +1,11 @@
 <%@ include file="header.jsp" %>
 
-<h2>We can't find that page!</h2>
-We were unable to find the page that you were looking for.
+<div class="sectioncontent">
+
+    <h2>Page not found!</h2>
+
+    <p>We were unable to find the page that you were looking for.
+
+</div>
 
 <%@ include file="footer.jsp" %>
