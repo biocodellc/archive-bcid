@@ -453,7 +453,9 @@ public class expeditionMinter {
         try {
             // See if the user owns this expedition or no
             expeditionMinter expedition = new expeditionMinter();
-            expedition.checkExpeditionCodeValid("JBD_foo-))");
+            System.out.println(expedition.listExpeditionsAsTable(8,"trizna"));
+            //System.out.println(expedition.listExpeditions(8,"mwangiwangui25@gmail.com"));
+            //expedition.checkExpeditionCodeValid("JBD_foo-))");
             //    System.out.println("validation XML for project = " +expedition.getValidationXML(1));
             /*
             if (expedition.expeditionExistsInProject("DEMOH", 1)) {
@@ -555,7 +557,9 @@ public class expeditionMinter {
 
         Statement stmt = conn.createStatement();
         String sql = "SELECT expedition_id, expedition_title, expedition_code, public " +
-                "FROM expeditions WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
+                "FROM expeditions " +
+                "WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
+                //" and resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
 
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
@@ -700,7 +704,8 @@ public class expeditionMinter {
 
     /**
      * Return an HTML Table of the expeditions associated with a project. Includes who owns the expedition,
-     * the expedition title, and whether the expedition is public
+     * the expedition title, and whether the expedition is public.  This information is returned as information
+     * typically viewed by an Admin who wants to see details about what datasets are as part of an expedition
      *
      * @param projectId
      * @param username  the project's admins username
@@ -727,8 +732,21 @@ public class expeditionMinter {
                 return "You must be this project's admin to view its datasets.";
             }
 
-            String sql = "SELECT e.expedition_title, e.expedition_id, e.public, u.username " +
-                    "FROM expeditions as e, users as u WHERE u.user_id=e.users_id && project_id = \"" + projectId + "\"";
+            String sql = "SELECT e.expedition_title, e.expedition_id, e.public, u.username \n" +
+                    " FROM expeditions as e, users as u, datasets d, expeditionsBCIDs pB \n" +
+                    " WHERE \n" +
+                    " \tpB.datasets_id = d.datasets_id \n" +
+                    " \tand pB.expedition_id = e.expedition_id \n" +
+                    " \tand u.user_id=e.users_id && project_id = \"" + projectId + "\" \n" +
+                    " \tand d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
+
+            /*
+              "    \tfrom datasets d,expeditions p, expeditionsBCIDs pB\n" +
+                "    \twhere pB.datasets_id=d.datasets_id\n" +
+                "    \tand pB.expedition_id=p.expedition_id\n" +
+                " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+             */
+            //System.out.println(sql);
             Statement stmt = conn.createStatement();
 
             ResultSet rs = stmt.executeQuery(sql);

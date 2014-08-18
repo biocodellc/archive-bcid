@@ -176,7 +176,7 @@ public class projectMinter {
             // See if the user owns this expedition or no
             projectMinter project = new projectMinter();
             //System.out.println(project.listProjects());
-            System.out.println("results = \n" + project.getLatestGraphs(5));
+            System.out.println("results = \n" + project.getLatestGraphs(8));
 
         } catch (Exception e) {
             throw new Exception(e);
