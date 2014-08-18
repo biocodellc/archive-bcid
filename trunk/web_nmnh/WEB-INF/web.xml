@@ -50,7 +50,7 @@
     </filter-mapping>
 
     <error-page>
-<!--        <error-code>500</error-code>-->
+        <error-code>500</error-code>
         <location>/bcid/error.jsp</location>
     </error-page>
      <error-page>
