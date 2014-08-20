@@ -3,7 +3,7 @@
 
 <%
    response.setHeader( "Pragma", "no-cache" );
-   response.setHeader( "Cache-Control", "no-cache" );
+   response.setHeader( "Cache-Control", "no-Store,no-Cache" );
    response.setDateHeader( "Expires", 0 );
 %>
 
