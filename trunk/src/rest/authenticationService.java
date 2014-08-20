@@ -55,7 +55,6 @@ public class authenticationService {
                 res.sendRedirect("/bcid/login.jsp?error=server_error " + e.getMessage());
                 return;
             }
-
             HttpSession session = request.getSession();
 
             System.out.println("BCID SESS_DEBUG login: sessionid=" + session.getId());
