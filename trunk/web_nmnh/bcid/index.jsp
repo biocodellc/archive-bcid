@@ -15,7 +15,7 @@
                         name="identifier"
                         id="identifier"
                         size="40"
-                        onkeypress="if(event.keyCode==13) {resolverResults(); return false;}" />  (e.g. ark:/21547/R2MBIO56)
+                        onkeypress="if(event.keyCode==13) {resolverResults(); return false;}" />
                 </td>
             </tr>
             <tr>
@@ -81,12 +81,4 @@
     </div>
 </div>
 
-<script>
-    /* parse input parameter -- ARKS must be minimum length of 12 characters*/
-    var a = '<%=request.getParameter("id")%>';
-    if (a.length > 12) {
-        $("#identifier").val(a);
-        resolverResults();
-    }
-</script>
 <%@ include file="footer.jsp" %>
