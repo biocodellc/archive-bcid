@@ -1,7 +1,6 @@
 <%@ include file="header.jsp" %>
 
 <div id="resolver" class="section">
-    <div class="sectioncontent">
 
         <h2>Lookup</h2>
 

@@ -16,10 +16,11 @@
         <h2>Login</h2>
 
         <c:if test="${pageContext.request.getQueryString() != null}">
-        <form method="POST" action="/id/authenticationService/login?${pageContext.request.getQueryString()}">
+         <!-- Hardcoded return_to, client_id, and redirect_uri parameters for the web_nmnh application -->
+        <form method="POST" autocomplete="off" action="/id/authenticationService/login?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT&redirect_uri=http://nmnh-fims.si.edu/fims/rest/authenticationService/access_token/">
         </c:if>
         <c:if test="${pageContext.request.getQueryString() == null}">
-        <form method="POST" action="/id/authenticationService/login/">
+        <form method="POST" autocomplete="off" action="/id/authenticationService/login/">
         </c:if>
             <table>
                 <tr>
@@ -46,6 +47,7 @@
                     <td ><input type="submit" value="Submit"></td>
                 </tr>
             </table>
+            <input type=hidden name=state  value=>
         </form>
 
     </div>
