@@ -47,7 +47,6 @@
                     <td ><input type="submit" value="Submit"></td>
                 </tr>
             </table>
-            <input type=hidden name=state  value=>
         </form>
 
     </div>
