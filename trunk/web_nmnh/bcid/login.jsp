@@ -22,11 +22,14 @@
         <h2>Login</h2>
 
         <c:if test="${pageContext.request.getQueryString() != null}">
-         <!-- Hardcoded return_to, client_id, and redirect_uri parameters for the web_nmnh application -->
-        <form method="POST" autocomplete="off" action="/id/authenticationService/login?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT&redirect_uri=http://nmnh-fims.si.edu/fims/rest/authenticationService/access_token/">
+         <!--
+         Hardcoded return_to, client_id, and redirect_uri parameters for the web_nmnh application
+         TODO: make this dynamic so we can login from BCID application itself
+         -->
+        <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT&redirect_uri=http://nmnh-fims.si.edu/fims/rest/authenticationService/access_token/">
         </c:if>
         <c:if test="${pageContext.request.getQueryString() == null}">
-        <form method="POST" autocomplete="off" action="/id/authenticationService/login/">
+        <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP/">
         </c:if>
             <table>
                 <tr>

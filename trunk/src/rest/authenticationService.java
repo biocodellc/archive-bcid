@@ -3,9 +3,11 @@ package rest;
 import auth.authenticator;
 import auth.authorizer;
 import auth.oauth2.provider;
+import util.SettingsManager;
 import util.errorInfo;
 import util.queryParams;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -26,6 +28,23 @@ public class authenticationService {
 
     @Context
     static HttpServletRequest request;
+
+    static SettingsManager sm;
+    @Context
+    static ServletContext context;
+
+    /**
+     * Load settings manager
+     */
+    static {
+        // Initialize settings manager
+        sm = SettingsManager.getInstance();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Service to log a user into the bcid system
@@ -48,6 +67,7 @@ public class authenticationService {
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
             Boolean isAuthenticated = false;
+
             // Verify that the entered and stored passwords match
             try {
                 isAuthenticated = authenticator.login(usr, pass);
@@ -65,7 +85,7 @@ public class authenticationService {
                 authorizer myAuthorizer = null;
 
                 try {
-                     myAuthorizer = new auth.authorizer();
+                    myAuthorizer = new auth.authorizer();
 
                     // Check if the user is an admin for any projects
                     if (myAuthorizer.userProjectAdmin(usr)) {
@@ -94,7 +114,7 @@ public class authenticationService {
                         res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password");
                         return;
                     }
-                }   else {
+                } else {
                     // don't need authenticator anymore
                     authenticator.close();
                 }
@@ -115,6 +135,87 @@ public class authenticationService {
             }
         }
 
+        if (return_to != null) {
+            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
+            return;
+        }
+        res.sendRedirect("/bcid/login.jsp?error");
+    }
+
+    /**
+     * Service to log a user into the bcid system using LDAP
+     *
+     * @param usr
+     * @param pass
+     * @param return_to the url to return to after login
+     *
+     * @throws IOException
+     */
+    @POST
+    @Path("/loginLDAP")
+    @Produces(MediaType.TEXT_HTML)
+    public void loginLDAP(@FormParam("username") String usr,
+                          @FormParam("password") String pass,
+                          @QueryParam("return_to") String return_to,
+                          @Context HttpServletResponse res)
+            throws IOException {
+
+        if (!usr.isEmpty() && !pass.isEmpty()) {
+            authenticator authenticator = new auth.authenticator();
+            Boolean isAuthenticated = false;
+
+            // Verify that the entered and stored passwords match
+            try {
+                isAuthenticated = authenticator.loginLDAP(usr, pass, true);
+            } catch (Exception e) {
+                res.sendRedirect("/bcid/login.jsp?error=server_error " + e.getMessage());
+                return;
+            }
+            HttpSession session = request.getSession();
+
+
+            if (isAuthenticated) {
+                // Place the user in the session
+                session.setAttribute("user", usr);
+                authorizer myAuthorizer = null;
+                try {
+                    myAuthorizer = new auth.authorizer();
+                    // Check if the user is an admin for any projects
+                    if (myAuthorizer.userProjectAdmin(usr)) {
+                        session.setAttribute("projectAdmin", true);
+                    }
+                } catch (Exception e) {
+                    authenticator.close();
+                    try {
+                        myAuthorizer.close();
+                    } catch (SQLException e1) {
+                        e1.printStackTrace();
+                    }
+                    e.printStackTrace();
+                }
+
+
+                // Redirect to return_to uri if provided
+                if (return_to != null) {
+                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
+                    return;
+                } else {
+                    res.sendRedirect("/bcid/index.jsp");
+                    return;
+                }
+            }
+            // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
+            else {
+                session.invalidate();
+            }
+        }
+
+
+        // Check for error message on LDAP
+        if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
+            res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
+            return;
+        }
         if (return_to != null) {
             res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
             return;
@@ -230,7 +331,7 @@ public class authenticationService {
                                  @FormParam("state") String state) {
         provider p = null;
         try {
-             p = new provider();
+            p = new provider();
             if (redirectURL == null) {
                 return Response.status(400).entity("{\"error\": \"invalid_request\"}").build();
             }
@@ -252,7 +353,7 @@ public class authenticationService {
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
-        }finally {
+        } finally {
         }
 
     }
