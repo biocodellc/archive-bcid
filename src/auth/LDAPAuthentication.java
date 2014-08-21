@@ -102,7 +102,7 @@ public class LDAPAuthentication {
             System.out.println("DEBUG8");
         } catch (Exception e) {
             status = ERROR;
-            System.out.println("DEBUG9" + e.getMessage() + "Problem");
+            e.printStackTrace();
             message = "Problem with LDAP connection.  It is likely we cannot connect to LDAP server";
         } finally {
             try {
