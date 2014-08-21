@@ -53,12 +53,10 @@ public class LDAPAuthentication {
      */
     public LDAPAuthentication(String username, String password, Boolean recognizeDemo) {
 
-        System.out.println("DEBUG1");
         if (recognizeDemo && username.equalsIgnoreCase("demo")) {
             status = SUCCESS;
             return;
         }
-       System.out.println("DEBUG2");
         // Create the connection at beginning... must be closed at finally
         LDAPConnection connection = null;
 
@@ -68,7 +66,6 @@ public class LDAPAuthentication {
         // Get the LDAP servers from property file
         // Property file format looks like "ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636"
         String ldapURI = sm.retrieveValue("ldapServers");
-        System.out.println("DEBUG3");
         // Creating an array of available servers
         String[] ldapServers = ldapURI.split(",");
         String[] serverAddresses = new String[ldapServers.length];
@@ -77,29 +74,24 @@ public class LDAPAuthentication {
             serverAddresses[i]=ldapServers[i].split(":")[0];
             serverPorts[i] = (Integer.valueOf(ldapServers[i].split(":")[1]));
         }
-        System.out.println("DEBUG4");
         try {
             SSLUtil sslUtil = new SSLUtil(new TrustAllTrustManager());
             SSLSocketFactory socketFactory = sslUtil.createSSLSocketFactory();
-            System.out.println("DEBUG5");
-            // Failoverset lets us query multiple servers looking for connection
+
+                    // Failoverset lets us query multiple servers looking for connection
             FailoverServerSet failoverSet = new FailoverServerSet(serverAddresses, serverPorts, socketFactory);
-            System.out.println("DEBUG5a");
+            // TODO: time this out quicker... Takes a LONG time if answer is no
+            System.out.println("initiating connection");
             connection = failoverSet.getConnection();
-            System.out.println("DEBUG5b");
             BindRequest bindRequest = new SimpleBindRequest(username, password);
-            System.out.println("DEBUG5c");
 
             try {
-                System.out.println("DEBUG6");
                 bindResult = connection.bind(bindRequest);
-                System.out.println("DEBUG7");
             } catch (LDAPException e2) {
                 // don't throw any exception if we fail here, this is just a non-passed attempt.
                 connection.close();
                 status = INVALID_CREDENTIALS;
             }
-            System.out.println("DEBUG8");
         } catch (Exception e) {
             status = ERROR;
             e.printStackTrace();
@@ -112,7 +104,6 @@ public class LDAPAuthentication {
                 message = "Problem closing LDAP connection";
             }
         }
-                                      System.out.println("DEBUG10");
         if (bindResult != null && bindResult.getResultCode() == ResultCode.SUCCESS) {
             status = SUCCESS;
         }
