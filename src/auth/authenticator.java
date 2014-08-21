@@ -22,6 +22,7 @@ public class authenticator {
     private database db;
     protected Connection conn;
     SettingsManager sm;
+    private static LDAPAuthentication ldapAuthentication;
 
     /**
      * Constructor that initializes the class level variables
@@ -46,6 +47,34 @@ public class authenticator {
         }
 
 
+    }
+
+    public static LDAPAuthentication getLdapAuthentication() {
+        return ldapAuthentication;
+    }
+
+    /**
+     * Process login as LDAP
+     *
+     * @param username
+     * @param password
+     * @param recognizeDemo
+     *
+     * @return
+     */
+    public Boolean loginLDAP(String username, String password, Boolean recognizeDemo) {
+        // 1. check that this is a valid username in this system
+        if (!validUser(username)) {
+            return false;
+        }
+
+        // 2. check that the LDAP worked
+        LDAPAuthentication ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
+        if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -91,6 +120,34 @@ public class authenticator {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * retrieve the user's hashed password from the db
+     *
+     * @return
+     */
+    private boolean validUser(String username) {
+        int count = 0;
+        PreparedStatement stmt;
+        try {
+            String selectString = "SELECT count(*) as count FROM users WHERE username = ?";
+            stmt = conn.prepareStatement(selectString);
+
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                count = rs.getInt("count");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if (count == 1) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -339,7 +396,6 @@ public class authenticator {
      */
     public static void main(String args[]) {
 
-
         // Some classes to help us
         CommandLineParser clp = new GnuParser();
         CommandLine cl;
@@ -376,7 +432,7 @@ public class authenticator {
         }
 
         // change set_password field to 0 so user has to create new password next time they login
-        Statement stmt =null;
+        Statement stmt = null;
         try {
             stmt = authenticator.conn.createStatement();
             Integer result = stmt.executeUpdate("UPDATE users SET set_password=\"0\" WHERE username=\"" + username + "\"");

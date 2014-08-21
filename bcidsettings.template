@@ -37,3 +37,6 @@ resolverMetadataPrefix = http://biscicol.org/id/metadata/
 
 # path to use for reseting password token
 resetToken = http://biscicol.org/bcid/resetPass.jsp?token=
+
+# optional
+ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636
