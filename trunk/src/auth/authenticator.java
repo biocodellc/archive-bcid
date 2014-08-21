@@ -69,7 +69,7 @@ public class authenticator {
         }
 
         // 2. check that the LDAP worked
-        LDAPAuthentication ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
+         ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
         if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
             return true;
         } else {
