@@ -163,20 +163,20 @@ public class authenticationService {
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
             Boolean isAuthenticated = false;
-      System.out.println("start1");
+            System.out.println("start1");
             // Verify that the entered and stored passwords match
             try {
-System.out.println("start2");
+                System.out.println("start2");
                 isAuthenticated = authenticator.loginLDAP(usr, pass, true);
-System.out.println("start2a");
+                System.out.println("start2a");
             } catch (Exception e) {
-System.out.println("start2b");
+                System.out.println("start2b");
                 res.sendRedirect("/bcid/login.jsp?error=server_error " + e.getMessage());
                 return;
             }
-System.out.println("start3");
+            System.out.println("start3");
             HttpSession session = request.getSession();
- System.out.println("start4");
+            System.out.println("start4");
 
             if (isAuthenticated) {
                 // Place the user in the session
@@ -212,14 +212,16 @@ System.out.println("start3");
             else {
                 session.invalidate();
             }
+            // Check for error message on LDAP
+            if (authenticator != null) {
+                if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
+                    res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
+                    return;
+                }
+            }
         }
 
 
-        // Check for error message on LDAP
-        if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
-            res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
-            return;
-        }
         if (return_to != null) {
             res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
             return;
