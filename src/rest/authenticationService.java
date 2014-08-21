@@ -217,7 +217,7 @@ public class authenticationService {
             if (authenticator.getLdapAuthentication() != null) {
                 System.out.println("start6");
                 if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
-                    System.out.println("start7");
+                    System.out.println("start7: " + authenticator.getLdapAuthentication().getMessage()  );
                     res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
                     System.out.println("start8");
                     return;
