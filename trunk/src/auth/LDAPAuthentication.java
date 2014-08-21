@@ -84,9 +84,12 @@ public class LDAPAuthentication {
             System.out.println("DEBUG5");
             // Failoverset lets us query multiple servers looking for connection
             FailoverServerSet failoverSet = new FailoverServerSet(serverAddresses, serverPorts, socketFactory);
+            System.out.println("DEBUG5a");
             connection = failoverSet.getConnection();
-            System.out.println("DEBUG5");
+            System.out.println("DEBUG5b");
             BindRequest bindRequest = new SimpleBindRequest(username, password);
+            System.out.println("DEBUG5c");
+
             try {
                 System.out.println("DEBUG6");
                 bindResult = connection.bind(bindRequest);
