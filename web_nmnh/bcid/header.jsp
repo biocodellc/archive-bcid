@@ -32,7 +32,7 @@
 
         <div style='float:right' id="loginLink">
             <c:if test="${user == null}">
-                <a href="/bcid/login.jsp">Login</a>
+                <a href="/bcid/loginBcid.jsp">Login</a>
             </c:if>
             <c:if test="${user != null}">
                 <a href="/bcid/secure/profile.jsp">${user}</a> | <a href="/id/authenticationService/logout/">Logout</a>
