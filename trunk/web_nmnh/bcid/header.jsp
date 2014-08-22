@@ -28,7 +28,7 @@
 
     <div id="header">
 
-        <div style='float:left'><h1>Smithsonian FIMS Management Console</h1></div>
+        <div style='float:left'><h1>NMNH - Management Console for FIMS System</h1></div>
 
         <div style='float:right' id="loginLink">
             <c:if test="${user == null}">
