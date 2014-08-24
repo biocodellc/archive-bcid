@@ -40,3 +40,6 @@ resetToken = http://biscicol.org/bcid/resetPass.jsp?token=
 
 # optional
 ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636
+
+# turn on or off ezid request mechanism (the part that actually creates the EZID)
+ezidRequests = true
