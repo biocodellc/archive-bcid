@@ -121,6 +121,9 @@ public class groupService {
             if (username.equals("demo")) {
                 ezidRequest = false;
             }
+            if (sm.retrieveValue("ezidRequests").equalsIgnoreCase("false")) {
+                ezidRequest = false;
+            }
 
             // Mint the data group
             dataGroupMinter minterDataset = new dataGroupMinter(ezidRequest, suffixPassthrough);
