@@ -12,7 +12,7 @@ public class RDFRenderer extends Renderer {
                 "\txmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n" +
                 "\txmlns:bsc=\"http://biscicol.org/terms/index.html#\"\n" +
                 "\txmlns:dcterms=\"http://purl.org/dc/terms/\">\n");
-        outputSB.append("<rdf:Description rdf:about=\"" + identifier.identifier.toString() + "\">\n");
+        outputSB.append("<rdf:Description rdf:about=\"" + identifier.toString() + "\">\n");
     }
 
     public void printMetadata() {

@@ -466,13 +466,13 @@ public class resolver extends database {
             System.out.println(r.resolveARK());
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
-            r = new resolver("ark:/21547/KX2");
-            System.out.println(r.resolveARK());
+            r = new resolver("ark:/21547/Aa2");
+            System.out.println(r.printMetadata(new RDFRenderer()));
             //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             //System.out.println(r.printMetadata(new RDFRenderer()));
 
-            r = new resolver("DEMO4",18,"Resource");
-            System.out.println(r.resolveARK());
+            //r = new resolver("DEMO4",18,"Resource");
+            //System.out.println(r.resolveARK());
             //System.out.println(r.getArk());
                  /*
             // suffixPassthrough = 1; webaddress specified; no SourceID
