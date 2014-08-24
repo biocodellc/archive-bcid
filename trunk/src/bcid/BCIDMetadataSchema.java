@@ -49,7 +49,7 @@ public class BCIDMetadataSchema {
                 } else if (bcidKey.equalsIgnoreCase("what")) {
                     resource = new metadataElement("rdf:type", pairs.getValue().toString(), "What is this object.");
                 } else if (bcidKey.equalsIgnoreCase("when")) {
-                    dcDate = new metadataElement("dc:date", pairs.getValue().toString(), "Date that metadata was last updated for this identifier.");
+                    dcDate = new metadataElement("dc:date",  pairs.getValue().toString(), "Date that metadata was last updated for this identifier.");
                 } else if (bcidKey.equalsIgnoreCase("who")) {
                     dcCreator = new metadataElement("dc:creator", pairs.getValue().toString(), "Who created the group definition.");
                 } else if (bcidKey.equalsIgnoreCase("title")) {

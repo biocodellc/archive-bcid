@@ -269,7 +269,8 @@ public class bcid extends GenericIdentifier {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        when = new dates().now();
+        //when =  new dates().now();
+        when = dataset.ts;
 
         this.webAddress = dataset.getWebAddress();
         this.dataset_id = pDatasets_id;
