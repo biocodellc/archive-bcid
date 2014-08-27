@@ -48,6 +48,10 @@
 
             <div class="separator">|</div>
 
+            <div class="link"><a href='/fims/index.jsp'>FIMS</a></div>
+
+            <div class="separator">|</div>
+
             <ul id="menu2" class="menu">
                 <li><a href="#" class="btn">User Tools</a>
 

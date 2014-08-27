@@ -82,7 +82,6 @@ public class expeditionService {
                 // status=401 means unauthorized user
                 return Response.status(401).entity("{\"error\": \"Please login.\"}").build();
                 //return Response.status(401).entity("{\"error\": \"dataset already exists within this project but the user does not own it\"}").build();
-
             }
             // Get the user_id
             database db = new database();
