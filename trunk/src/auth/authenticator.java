@@ -174,6 +174,7 @@ public class authenticator {
      * @return
      */
     private boolean validUser(String username) {
+        System.out.println("username = " + username);
         int count = 0;
         PreparedStatement stmt;
         try {
