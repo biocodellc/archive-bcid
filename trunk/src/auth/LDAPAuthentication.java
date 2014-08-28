@@ -98,7 +98,7 @@ public class LDAPAuthentication {
             // Failoverset lets us query multiple servers looking for connection
             FailoverServerSet failoverSet = new FailoverServerSet(serverAddresses, serverPorts, socketFactory);
             // TODO: time this out quicker... Takes a LONG time if answer is no
-            System.out.println("initiating connection");
+            System.out.println("initiating connection for "+longUsername);
             connection = failoverSet.getConnection();
             BindRequest bindRequest = new SimpleBindRequest(longUsername, password);
 
@@ -106,6 +106,7 @@ public class LDAPAuthentication {
                 bindResult = connection.bind(bindRequest);
             } catch (LDAPException e2) {
                 // don't throw any exception if we fail here, this is just a non-passed attempt.
+                e2.printStackTrace();
                 connection.close();
                 status = INVALID_CREDENTIALS;
             }
