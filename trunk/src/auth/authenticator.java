@@ -7,9 +7,12 @@ import javax.ws.rs.core.Response;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Hashtable;
+import java.util.Iterator;
 
+import bcid.projectMinter;
 import org.apache.commons.cli.*;
 import util.SettingsManager;
 import util.sendEmail;
@@ -65,25 +68,46 @@ public class authenticator {
     public Boolean loginLDAP(String username, String password, Boolean recognizeDemo) {
         // 1. check that this is a valid username in this system
         if (!validUser(LDAPAuthentication.showShortUserName(username))) {
-            // try and create this account if it does not exist
-
+            /*
+            ADD LDAP authenticated user
+            */
             // A. Check LDAP authentication
+            ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
+            if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
 
-            // B. If LDAP is good, then insert account into database (if not return false)
+                // B. If LDAP is good, then insert account into database (if not return false)
+                createLdapUser(LDAPAuthentication.showShortUserName(username));
 
-            // C. enable this user for all projects
-
-            // D. return true because we got this far
-            return false;
-
+                // C. enable this user for all projects
+                try {
+                    projectMinter p = new projectMinter();
+                    // get the user_id for this username
+                    int user_id = getUserId(username);
+                    // Loop projects and assign user to them
+                    ArrayList<Integer> projects = p.getAllProjects();
+                    Iterator projectsIt = projects.iterator();
+                    while (projectsIt.hasNext()) {
+                        p.addUserToProject(user_id, (Integer) projectsIt.next());
+                    }
+                } catch (Exception e) {
+                    // TODO: if it fails at this point not sure if we should pass or fail this? for now we still say true
+                    e.printStackTrace();
+                    return true;
+                }
+                // D. return true because we got this far and already authenticated
+                return true;
+            } else {
+                return false;
+            }
         }
-
-        // 2. If a valid username, we now need to check that the LDAP authentication worked
-        ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
-        if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
-            return true;
-        } else {
-            return false;
+        // 2. If a valid username, we just need to check that the LDAP authentication worked
+        else {
+            ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
+            if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -244,6 +268,68 @@ public class authenticator {
         }
 
         return hashedPass;
+    }
+
+    /**
+     * create a user given a username and password
+     *
+     * @param username
+     *
+     * @return
+     */
+    public Boolean createLdapUser(String username) {
+        PreparedStatement stmt = null;
+        Boolean success = false;
+
+        try {
+            String insertString = "INSERT INTO users (username,set_password)" +
+                    " VALUES(?,?)";
+            stmt = conn.prepareStatement(insertString);
+
+            stmt.setString(1, username);
+            stmt.setInt(2, 1);
+
+            stmt.execute();
+            success = true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            success = false;
+        } finally {
+            if (stmt != null) try {
+                stmt.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return success;
+    }
+
+
+    /**
+     * return the user_id given a username
+     *
+     * @param username
+     *
+     * @return
+     */
+    private Integer getUserId(String username) {
+        Integer user_id = null;
+        try {
+            String selectString = "SELECT user_id FROM users WHERE username=?";
+            PreparedStatement stmt = conn.prepareStatement(selectString);
+
+            stmt.setString(1, LDAPAuthentication.showShortUserName(username));
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                user_id = rs.getInt("user_id");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return user_id;
     }
 
     /**
