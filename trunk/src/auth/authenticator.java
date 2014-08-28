@@ -81,7 +81,12 @@ public class authenticator {
 
                 // B. If LDAP is good, then insert account into database (if not return false)
                 System.out.println("create LDAP user");
-                createLdapUser(LDAPAuthentication.showShortUserName(username));
+                try {
+                    createLdapUser(LDAPAuthentication.showShortUserName(username));
+                }   catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
 
                 // C. enable this user for all projects
                 System.out.println("add user to projects");
@@ -302,7 +307,6 @@ public class authenticator {
             stmt.setString(6, "");
             stmt.setString(7, "");
             stmt.setString(8, "");
-
 
             stmt.execute();
             success = true;
