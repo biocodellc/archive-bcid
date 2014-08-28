@@ -295,8 +295,9 @@ public class authenticator {
 
         try {
 
-            String insertString = "INSERT INTO users (username,set_password,institution,email,firstName,lastName,pass_reset_token,password)" +
-                    " VALUES(?,?,?,?,?,?,?,?)";
+
+            String insertString = "INSERT INTO users (username,set_password,institution,email,firstName,lastName,pass_reset_token,password,admin,IDlimit)" +
+                    " VALUES(?,?,?,?,?,?,?,?,?,?)";
             stmt = conn.prepareStatement(insertString);
 
             stmt.setString(1, username);
@@ -307,6 +308,10 @@ public class authenticator {
             stmt.setString(6, "");
             stmt.setString(7, "");
             stmt.setString(8, "");
+            stmt.setInt(9, 0);
+            stmt.setInt(10, 100000);
+
+
 
             stmt.execute();
             success = true;
