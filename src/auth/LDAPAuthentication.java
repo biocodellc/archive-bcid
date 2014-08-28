@@ -25,9 +25,14 @@ public class LDAPAuthentication {
     private String message = null;
     private int status;
 
-      static SettingsManager sm;
+    static SettingsManager sm;
     @Context
     static ServletContext context;
+    static String ldapURI;
+    static String defaultLdapDomain;
+
+    private String shortUsername;
+    private String longUsername;
 
     /**
      * Load settings manager
@@ -40,6 +45,17 @@ public class LDAPAuthentication {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // Get the LDAP servers from property file
+        // Property file format looks like "ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636"
+        ldapURI = sm.retrieveValue("ldapServers");
+        defaultLdapDomain = sm.retrieveValue("defaultLdapDomain");;
+    }
+
+    public static String showShortUserName(String username) {
+            return  username.split("@")[0];
+    }
+    public static String showLongUsername(String username) {
+          return username.split("@")[0] + "@" + defaultLdapDomain;
     }
     /**
      * Authenticate a user and password using LDAP
@@ -53,7 +69,11 @@ public class LDAPAuthentication {
      */
     public LDAPAuthentication(String username, String password, Boolean recognizeDemo) {
 
-        if (recognizeDemo && username.equalsIgnoreCase("demo")) {
+        // strip any domain extension that the user provided (we DON't want to store this)
+         shortUsername = showShortUserName(username);
+        longUsername = showLongUsername(username);
+
+        if (recognizeDemo && shortUsername.equalsIgnoreCase("demo")) {
             status = SUCCESS;
             return;
         }
@@ -63,27 +83,24 @@ public class LDAPAuthentication {
         // Set default status in case it is not specifically set.  This should be an error
         status = ERROR;
 
-        // Get the LDAP servers from property file
-        // Property file format looks like "ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636"
-        String ldapURI = sm.retrieveValue("ldapServers");
         // Creating an array of available servers
         String[] ldapServers = ldapURI.split(",");
         String[] serverAddresses = new String[ldapServers.length];
         int[] serverPorts = new int[ldapServers.length];
         for (int i = 0; i < ldapServers.length; i++) {
-            serverAddresses[i]=ldapServers[i].split(":")[0];
+            serverAddresses[i] = ldapServers[i].split(":")[0];
             serverPorts[i] = (Integer.valueOf(ldapServers[i].split(":")[1]));
         }
         try {
             SSLUtil sslUtil = new SSLUtil(new TrustAllTrustManager());
             SSLSocketFactory socketFactory = sslUtil.createSSLSocketFactory();
 
-                    // Failoverset lets us query multiple servers looking for connection
+            // Failoverset lets us query multiple servers looking for connection
             FailoverServerSet failoverSet = new FailoverServerSet(serverAddresses, serverPorts, socketFactory);
             // TODO: time this out quicker... Takes a LONG time if answer is no
             System.out.println("initiating connection");
             connection = failoverSet.getConnection();
-            BindRequest bindRequest = new SimpleBindRequest(username, password);
+            BindRequest bindRequest = new SimpleBindRequest(longUsername, password);
 
             try {
                 bindResult = connection.bind(bindRequest);
@@ -127,7 +144,11 @@ public class LDAPAuthentication {
         return message;
     }
 
+
     public static void main(String[] args) throws Exception {
+
+        //return sbEmail.toString();
+
         // Some classes to help us
         CommandLineParser clp = new GnuParser();
         CommandLine cl;
@@ -159,7 +180,7 @@ public class LDAPAuthentication {
         if (t.getStatus() == t.SUCCESS) {
             System.out.println("Passed!");
         } else if (t.getStatus() == t.INVALID_CREDENTIALS) {
-            System.out.println("Invalid username or password");
+            System.out.println("Invalid username or password, or expired account");
         } else {
             System.out.println("LDAP Error: " + t.getMessage());
         }

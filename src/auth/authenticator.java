@@ -64,12 +64,22 @@ public class authenticator {
      */
     public Boolean loginLDAP(String username, String password, Boolean recognizeDemo) {
         // 1. check that this is a valid username in this system
-        if (!validUser(username)) {
+        if (!validUser(LDAPAuthentication.showShortUserName(username))) {
+            // try and create this account if it does not exist
+
+            // A. Check LDAP authentication
+
+            // B. If LDAP is good, then insert account into database (if not return false)
+
+            // C. enable this user for all projects
+
+            // D. return true because we got this far
             return false;
+
         }
 
-        // 2. check that the LDAP worked
-         ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
+        // 2. If a valid username, we now need to check that the LDAP authentication worked
+        ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
         if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
             return true;
         } else {
