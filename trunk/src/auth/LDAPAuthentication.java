@@ -48,13 +48,14 @@ public class LDAPAuthentication {
         // Get the LDAP servers from property file
         // Property file format looks like "ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636"
         ldapURI = sm.retrieveValue("ldapServers");
-        defaultLdapDomain = sm.retrieveValue("defaultLdapDomain");;
+        defaultLdapDomain = sm.retrieveValue("defaultLdapDomain");
     }
 
     public static String showShortUserName(String username) {
             return  username.split("@")[0];
     }
     public static String showLongUsername(String username) {
+            defaultLdapDomain = sm.retrieveValue("defaultLdapDomain");
           return username.split("@")[0] + "@" + defaultLdapDomain;
     }
     /**
