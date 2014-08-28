@@ -81,7 +81,7 @@ CREATE TABLE `expeditions` (
   `expedition_id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique, internal key for this expedition',
   `project_id` int(11),
   `internalID` char(36) COLLATE utf8_bin NOT NULL DEFAULT '' COMMENT 'The internal ID for this expedition',
-  `expedition_code` varchar(16) NOT NULL DEFAULT '' COMMENT 'The short name for this expedition',
+  `expedition_code` varchar(20) NOT NULL DEFAULT '' COMMENT 'The short name for this expedition',
   `expedition_title` varchar(128) NOT NULL DEFAULT '' COMMENT 'Title for this expedition, will be used to populate group title',
   `abstract` text COMMENT 'The abstract for this particular expedition',
   `users_id` int(10) DEFAULT NULL COMMENT 'who created this data',
