@@ -20,6 +20,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 
 /**
  * REST interface calls for working with expeditions.  This includes creating, updating and deleting expeditions.
@@ -68,6 +70,11 @@ public class expeditionService {
                          @PathParam("project_id") Integer project_id,
                          @QueryParam("access_token") String accessToken) {
         String username;
+        try {
+            expedition_code = URLDecoder.decode(expedition_code, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
 
         try {
             // if accessToken != null, then OAuth client is accessing on behalf of a user
