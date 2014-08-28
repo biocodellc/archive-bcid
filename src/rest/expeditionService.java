@@ -14,6 +14,7 @@ import util.sendEmail;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -102,6 +103,9 @@ public class expeditionService {
             } else if (expedition.expeditionExistsInProject(expedition_code,project_id)) {
                 return Response.status(401).entity("{\"error\": \"dataset already exists within this project but the user does not own it\"}").build();
             } else {
+                System.out.println("user_id = " + user_id);
+                System.out.println("expedition_code = " + expedition_code);
+                System.out.println("project_id = " + project_id);
                 return Response.ok("{\"insert\": \"the dataset does not exist with project and nobody owns it\"}").build();
             }
         } catch (Exception e) {
