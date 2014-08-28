@@ -116,6 +116,27 @@ public class projectMinter {
     }
 
     /**
+        * List all the defined projects
+        *
+        * @return returns the BCID for this expedition and conceptURI combination
+        */
+       public ArrayList<Integer> getAllProjects() throws Exception {
+           ArrayList<Integer> projects = new ArrayList<Integer>();
+
+           try {
+               Statement stmt = conn.createStatement();
+               ResultSet rs = stmt.executeQuery("SELECT project_id FROM projects");
+               while (rs.next()) {
+                   projects.add(rs.getInt("project_id"));
+               }
+               return projects;
+           } catch (Exception e) {
+               e.printStackTrace();
+               throw new Exception("Trouble getting project List", e);
+           }
+       }
+
+    /**
      * A utility function to get the very latest graph loads for each expedition
      * This is a public accessible function from the REST service so it only returns results that are declared as public
      *
