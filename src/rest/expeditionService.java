@@ -214,6 +214,8 @@ public class expeditionService {
                                @PathParam("project_id") Integer project_id,
                                @PathParam("resourceAlias") String resourceAlias) {
         try {
+            expedition = URLDecoder.decode(expedition,"utf-8");
+
             resolver r = new resolver(expedition, project_id, resourceAlias);
             String response = r.getArk();
             if (response == null) {
