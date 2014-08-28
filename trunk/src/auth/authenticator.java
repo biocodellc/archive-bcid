@@ -174,7 +174,6 @@ public class authenticator {
      * @return
      */
     private boolean validUser(String username) {
-        System.out.println("username = " + username);
         int count = 0;
         PreparedStatement stmt;
         try {
@@ -184,7 +183,8 @@ public class authenticator {
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                count = rs.getInt("id") + count;
+                rs.getInt("id");
+                count++;
             }
 
         } catch (SQLException e) {
