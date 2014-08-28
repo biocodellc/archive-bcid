@@ -94,7 +94,7 @@ public class expeditionMinter {
             String insertString = "INSERT INTO expeditions " +
                     "(internalID, expedition_code, expedition_title, users_id, project_id,public) " +
                     "values (?,?,?,?,?,?)";
-
+            System.out.println("INSERT string " + insertString);
             PreparedStatement insertStatement = null;
             insertStatement = conn.prepareStatement(insertString);
             insertStatement.setString(1, internalID.toString());
@@ -505,13 +505,16 @@ public class expeditionMinter {
      */
     private void checkExpeditionCodeValid(String expedition_code) throws Exception {
         System.out.println("checking expedition code valid");
+
         // Check expedition_code length
-        if (expedition_code.length() < 4 || expedition_code.length() > 20)
+        if (expedition_code.length() < 4 || expedition_code.length() > 20) {
+            System.out.println("invalid length for dataset = "+ expedition_code);
             throw new Exception("Dataset code " + expedition_code + " must be between 4 and 20 characters long");
+        }
+
         // Check to make sure characters are normal!
         if (!expedition_code.matches("[a-zA-Z0-9_-]*")) {
-            System.out.println("invalid dataset detected : " + expedition_code);
-
+            System.out.println("invalid characters in dataset = " + expedition_code);
             throw new Exception("Dataset code " + expedition_code + " contains one or more invalid characters. " +
                     "Dataset code characters must be in one of the these ranges: [a-Z][0-9][-][_]");
         }
@@ -531,6 +534,9 @@ public class expeditionMinter {
                 "FROM expeditions " +
                 "WHERE expedition_code = '" + expedition_code + "' AND " +
                 "project_id = " + project_id;
+
+        System.out.println(sql);
+
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         Integer count = rs.getInt("count");
