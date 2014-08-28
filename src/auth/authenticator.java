@@ -75,6 +75,8 @@ public class authenticator {
             // A. Check LDAP authentication
             System.out.println("LDAP authentication");
             ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
+            System.out.println("message = " + ldapAuthentication.getMessage() + ";status=" + ldapAuthentication.getStatus());
+
             if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
 
                 // B. If LDAP is good, then insert account into database (if not return false)
