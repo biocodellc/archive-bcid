@@ -258,7 +258,7 @@ public class expeditionMinter {
                 "   expedition_code='" + expedition_code + "' && " +
                 "   users_id = " + users_id + " && " +
                 "   project_id = " + project_id;
-
+        System.out.println(sql);
         ResultSet rs = stmt.executeQuery(sql);
         rs.next();
         if (rs.getInt("count") < 1)
