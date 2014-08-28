@@ -68,17 +68,21 @@ public class authenticator {
     public Boolean loginLDAP(String username, String password, Boolean recognizeDemo) {
         // 1. check that this is a valid username in this system
         if (!validUser(LDAPAuthentication.showShortUserName(username))) {
+            System.out.println("attempting to add user " + username+" to system");
             /*
             ADD LDAP authenticated user
             */
             // A. Check LDAP authentication
+            System.out.println("LDAP authentication");
             ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
             if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
 
                 // B. If LDAP is good, then insert account into database (if not return false)
+                System.out.println("create LDAP user");
                 createLdapUser(LDAPAuthentication.showShortUserName(username));
 
                 // C. enable this user for all projects
+                System.out.println("add user to projects");
                 try {
                     projectMinter p = new projectMinter();
                     // get the user_id for this username
@@ -102,6 +106,7 @@ public class authenticator {
         }
         // 2. If a valid username, we just need to check that the LDAP authentication worked
         else {
+            System.out.println("the user exists, just authenticating using LDAP");
             ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
             if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
                 return true;
@@ -165,13 +170,13 @@ public class authenticator {
         int count = 0;
         PreparedStatement stmt;
         try {
-            String selectString = "SELECT count(*) as count FROM users WHERE username = ?";
+            String selectString = "SELECT user_id id FROM users WHERE username = ?";
             stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, username);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                count = rs.getInt("count");
+                count = rs.getInt("id") + count;
             }
 
         } catch (SQLException e) {
@@ -282,12 +287,18 @@ public class authenticator {
         Boolean success = false;
 
         try {
-            String insertString = "INSERT INTO users (username,set_password)" +
-                    " VALUES(?,?)";
+
+            String insertString = "INSERT INTO users (username,set_password,institution,email,firstName,lastName,pass_reset_token)" +
+                    " VALUES(?,?,?,?,?,?,?)";
             stmt = conn.prepareStatement(insertString);
 
             stmt.setString(1, username);
             stmt.setInt(2, 1);
+            stmt.setString(3, "Smithsonian Institution");
+            stmt.setString(4, "");
+            stmt.setString(5, "");
+            stmt.setString(6, "");
+            stmt.setString(7, "");
 
             stmt.execute();
             success = true;
@@ -499,6 +510,8 @@ public class authenticator {
         Options options = new Options();
         options.addOption("U", "username", true, "Username you would like to set a password for");
         options.addOption("P", "password", true, "The temporary password you would like to set");
+        options.addOption("ldap", false, "Use LDAP to set username");
+
 
         try {
             cl = clp.parse(options, args);
@@ -510,7 +523,7 @@ public class authenticator {
             return;
         }
 
-        if (!cl.hasOption("U") || !cl.hasOption("P")) {
+        if (!cl.hasOption("U") || (!cl.hasOption("P") && cl.hasOption("ldap"))) {
             System.out.println("You must enter a username and a password");
             return;
         }
@@ -519,6 +532,16 @@ public class authenticator {
         String password = cl.getOptionValue("P");
 
         authenticator authenticator = new authenticator();
+
+        // LDAP option
+        if (cl.hasOption("ldap")) {
+            System.out.println("authenticating using LDAP");
+            Boolean success = authenticator.loginLDAP(username, password, true);
+            if (!success) {
+                System.out.println("Error logging in using LDAP");
+            }
+            return;
+        }
 
         Boolean success = authenticator.setHashedPass(username, password);
 
