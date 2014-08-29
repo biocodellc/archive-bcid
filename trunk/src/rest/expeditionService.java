@@ -199,7 +199,30 @@ public class expeditionService {
         }
     }
 
+    /**
+     * Given a expedition code and a resource alias, return a BCID
+     *
+     * @param graph
+     * @return
+     */
+    @GET
+    @Path("/graphMetadata/{graph}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getGraphMetadata(@PathParam("graph") String graph)  {
+        try {
+            expeditionMinter e = new expeditionMinter();
+            String response = e.getGraphMetadata(graph);
 
+            if (response == null) {
+                return Response.status(500).entity("{\"error\": \"No graph found with that value\"}").build();
+            } else {
+                return Response.ok(response).build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e,request).toJSON()).build();
+        }
+    }
     /**
      * Given a expedition code and a resource alias, return a BCID
      *

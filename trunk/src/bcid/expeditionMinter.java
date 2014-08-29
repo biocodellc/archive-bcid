@@ -358,6 +358,71 @@ public class expeditionMinter {
         return sb.toString();
     }
 
+    /**
+     * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
+     *
+     * @param graphName
+     *
+     * @return
+     *
+     * @throws java.sql.SQLException
+     */
+    public String getGraphMetadata(String graphName) throws SQLException {
+        // Get todays's date
+        DateFormat dateFormat;
+        dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        String expedition_title = null;
+
+        StringBuilder sb = new StringBuilder();
+
+        // Construct the query
+        Statement stmt = conn.createStatement();
+        String sql =
+                "SELECT " +
+                        " d.graph as graph, " +
+                        " a.project_id as project_id, " +
+                        " u.username as username, " +
+                        " d.ts as timestamp," +
+                        " d.prefix as BCID, " +
+                        " d.resourceType as resourceType," +
+                        " a.expedition_title as expedition_title " +
+                        "FROM " +
+                        " expeditions a, expeditionsBCIDs b, datasets d, users u " +
+                        "WHERE" +
+                        " u.user_id = a.users_id && " +
+                        " a.expedition_id = b.expedition_id && " +
+                        " b.datasets_id = d.datasets_id && \n" +
+                        " d.graph = \"" + graphName + "\"";
+        //System.out.println(sql);
+        // Write the concept/prefix elements section
+        sb.append("{\n\t\"data\": [\n");
+        ResultSet rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+            // Grap the expedition_title in the query
+            if (expedition_title == null & !rs.getString("expedition_title").equals(""))
+                expedition_title = rs.getString("expedition_title");
+
+            // Grap the prefixes and concepts associated with this
+            sb.append("\t\t{\n");
+            sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\",\n");
+            sb.append("\t\t\t\"project_id\":\"" + rs.getInt("project_id") + "\",\n");
+            sb.append("\t\t\t\"username\":\"" + rs.getString("username") + "\",\n");
+            sb.append("\t\t\t\"timestamp\":\"" + rs.getString("ts") + "\",\n");
+            sb.append("\t\t\t\"bcid\":\"" + rs.getString("BCID") + "\",\n");
+            sb.append("\t\t\t\"resourceType\":\"" + rs.getString("resourceType") + "\",\n");
+            sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\"\n");
+
+            sb.append("\t\t}");
+            if (!rs.isLast())
+                sb.append(",");
+
+            sb.append("\n");
+        }
+        sb.append("\t]\n}");
+        return sb.toString();
+    }
+
     public String expeditionTable(String remoteUser) throws SQLException {
 
         StringBuilder sb = new StringBuilder();
@@ -453,7 +518,9 @@ public class expeditionMinter {
         try {
             // See if the user owns this expedition or no
             expeditionMinter expedition = new expeditionMinter();
-            System.out.println(expedition.listExpeditionsAsTable(8,"trizna"));
+            System.out.println(expedition.getGraphMetadata("_qNK_fuHVbRSTNvA_8pG.xlsx"));
+
+            //System.out.println(expedition.listExpeditionsAsTable(8,"trizna"));
             //System.out.println(expedition.listExpeditions(8,"mwangiwangui25@gmail.com"));
             //expedition.checkExpeditionCodeValid("JBD_foo-))");
             //    System.out.println("validation XML for project = " +expedition.getValidationXML(1));
