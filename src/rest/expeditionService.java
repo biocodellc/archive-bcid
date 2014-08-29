@@ -108,7 +108,7 @@ public class expeditionService {
                 return Response.ok("{\"update\": \"user owns this expedition\"}").build();
                 // If the expedition exists in the project but the user does not own the expedition then this means we can't
             } else if (expedition.expeditionExistsInProject(expedition_code,project_id)) {
-                return Response.status(401).entity("{\"error\": \"dataset already exists within this project but the user does not own it\"}").build();
+                return Response.status(401).entity("{\"error\": \"The dataset code '" + expedition_code + "' exists in this project already and is owned by another user.  Please choose another dataset code.\"}").build();
             } else {
                 System.out.println("user_id = " + user_id);
                 System.out.println("expedition_code = " + expedition_code);
