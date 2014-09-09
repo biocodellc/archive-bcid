@@ -380,16 +380,19 @@ public class expeditionMinter {
         Statement stmt = conn.createStatement();
         String sql =
                 "SELECT " +
+                        " u2.username as username_upload," +
                         " d.graph as graph, " +
                         " a.project_id as project_id, " +
                         " u.username as username, " +
                         " d.ts as timestamp," +
                         " d.prefix as BCID, " +
                         " d.resourceType as resourceType," +
+                        " a.expedition_code as expedition_code, " +
                         " a.expedition_title as expedition_title " +
                         "FROM " +
-                        " expeditions a, expeditionsBCIDs b, datasets d, users u " +
+                        " expeditions a, expeditionsBCIDs b, datasets d, users u, users u2 " +
                         "WHERE" +
+                        " u2.user_id=d.users_id && " +
                         " u.user_id = a.users_id && " +
                         " a.expedition_id = b.expedition_id && " +
                         " b.datasets_id = d.datasets_id && \n" +
@@ -407,10 +410,12 @@ public class expeditionMinter {
             sb.append("\t\t{\n");
             sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\",\n");
             sb.append("\t\t\t\"project_id\":\"" + rs.getInt("project_id") + "\",\n");
-            sb.append("\t\t\t\"username\":\"" + rs.getString("username") + "\",\n");
+            sb.append("\t\t\t\"username\":\"" + rs.getString("username_generator") + "\",\n");
+            sb.append("\t\t\t\"username_upload\":\"" + rs.getString("username_upload") + "\",\n");
             sb.append("\t\t\t\"timestamp\":\"" + rs.getString("timestamp") + "\",\n");
             sb.append("\t\t\t\"bcid\":\"" + rs.getString("BCID") + "\",\n");
             sb.append("\t\t\t\"resourceType\":\"" + rs.getString("resourceType") + "\",\n");
+            sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
             sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\"\n");
 
             sb.append("\t\t}");
