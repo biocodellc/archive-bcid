@@ -295,9 +295,14 @@ public class authenticationService {
                 return;
             }
             //TODO ask user if they want to share profile information with requesting party
-
-            String code = p.generateCode(clientId, redirectURL, username.toString());
-
+            String code = "";
+            try {
+                code = p.generateCode(clientId, redirectURL, username.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+                response.sendError(400, e.getMessage());
+                return;
+            }
             redirectURL += "?code=" + code;
 
             if (state != null) {

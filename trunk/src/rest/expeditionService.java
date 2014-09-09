@@ -31,7 +31,8 @@ public class expeditionService {
 
     @Context
     static ServletContext context;
-    @Context HttpServletRequest request;
+    @Context
+    HttpServletRequest request;
 
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -58,8 +59,12 @@ public class expeditionService {
      * validateExpedition service checks the status of a new expedition code on the server and directing consuming
      * applications on whether this user owns the expedition and if it exists within an project or not.
      * Responses are error, update, or insert (first term followed by a colon)
+     *
      * @param expedition_code
      * @param project_id
+     * @param accessToken
+     * @param ignore_user     if specified as true then we don't perform a check on what user owns the dataset
+     *
      * @return
      */
     @GET
@@ -68,8 +73,17 @@ public class expeditionService {
     @Path("/validateExpedition/{project_id}/{expedition_code}")
     public Response mint(@PathParam("expedition_code") String expedition_code,
                          @PathParam("project_id") Integer project_id,
-                         @QueryParam("access_token") String accessToken) {
+                         @QueryParam("access_token") String accessToken,
+                         @QueryParam("ignore_user") Boolean ignore_user) {
         String username;
+
+        // Default the lIgnore_user variable to false.  Set if true only if user specified it
+        Boolean lIgnore_user = false;
+        if (ignore_user != null && ignore_user) {
+            lIgnore_user = true;
+        }
+
+        // Decipher the expedition code
         try {
             expedition_code = URLDecoder.decode(expedition_code, "utf-8");
         } catch (UnsupportedEncodingException e) {
@@ -88,33 +102,45 @@ public class expeditionService {
 
             if (username == null) {
                 // status=401 means unauthorized user
-                return Response.status(401).entity("{\"error\": \"Please login.\"}").build();
-                //return Response.status(401).entity("{\"error\": \"dataset already exists within this project but the user does not own it\"}").build();
+                return Response.status(401).entity("{\"error\": " +
+                        "\"Your session has expired or you have not yet logged in." +
+                        "<br>You may have to logout and then login again.\"}").build();
             }
             // Get the user_id
             database db = new database();
             Integer user_id = db.getUserId(username);
 
-            expeditionMinter expedition = null;
+            // Create the expeditionMinter object so we can test and validate it
+            expeditionMinter expedition = new expeditionMinter();
 
-            // Mint a expedition
-            expedition = new expeditionMinter();
-            //System.out.println("checking user_id = " + user_id + " & expedition_code = " + expedition_code);
+            //Check that the user exists in this project
             if (!expedition.userExistsInProject(user_id, project_id)) {
                 // If the user isn't in the project, then we can't update or create a new expedition
                 return Response.status(401).entity("{\"error\": \"user is not authorized to update/create expeditions in this project\"}").build();
-            } else if (expedition.userOwnsExpedition(user_id,expedition_code, project_id)) {
-                // If the user already owns the expedition, then great--- this is an update
-                return Response.ok("{\"update\": \"user owns this expedition\"}").build();
-                // If the expedition exists in the project but the user does not own the expedition then this means we can't
-            } else if (expedition.expeditionExistsInProject(expedition_code,project_id)) {
-                return Response.status(401).entity("{\"error\": \"The dataset code '" + expedition_code + "' exists in this project already and is owned by another user.  Please choose another dataset code.\"}").build();
-            } else {
-                System.out.println("user_id = " + user_id);
-                System.out.println("expedition_code = " + expedition_code);
-                System.out.println("project_id = " + project_id);
-                return Response.ok("{\"insert\": \"the dataset does not exist with project and nobody owns it\"}").build();
             }
+
+            // If specified, ignore the user.. simply figure out whether we're updating or inserting
+            if (lIgnore_user) {
+                if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
+                    return Response.ok("{\"update\": \"update this expedition\"}").build();
+                } else {
+                    return Response.ok("{\"insert\": \"insert new expedition\"}").build();
+                }
+            }
+
+            // Else, pay attention to what user owns the initial project
+            else {
+                if (expedition.userOwnsExpedition(user_id, expedition_code, project_id)) {
+                    // If the user already owns the expedition, then great--- this is an update
+                    return Response.ok("{\"update\": \"user owns this expedition\"}").build();
+                    // If the expedition exists in the project but the user does not own the expedition then this means we can't
+                } else if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
+                    return Response.status(401).entity("{\"error\": \"The dataset code '" + expedition_code + "' exists in this project already and is owned by another user.  Please choose another dataset code.\"}").build();
+                } else {
+                    return Response.ok("{\"insert\": \"the dataset does not exist with project and nobody owns it\"}").build();
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
@@ -123,12 +149,14 @@ public class expeditionService {
 
     /**
      * Service for a user to mint a new expedition
+     *
      * @param expedition_code
      * @param expedition_title
      * @param project_id
      * @param isPublic
-     * @param accessToken (optional) the access token that represents the user who you are minting an expedition
-     *                    on behalf.
+     * @param accessToken      (optional) the access token that represents the user who you are minting an expedition
+     *                         on behalf.
+     *
      * @return
      */
     @POST
@@ -175,14 +203,15 @@ public class expeditionService {
                     user_id,
                     project_id,
                     isPublic
-                    );
+            );
 
             // Initialize settings manager
             SettingsManager sm = SettingsManager.getInstance();
             sm.loadProperties();
 
             // Send an Email that this completed
-          sendEmail sendEmail = new sendEmail(
+            // Not all clients have sendMail on... turning this off for now.  Need more secure way to monitor anyway
+            /* sendEmail sendEmail = new sendEmail(
                     sm.retrieveValue("mailUser"),
                     sm.retrieveValue("mailPassword"),
                     sm.retrieveValue("mailFrom"),
@@ -190,10 +219,11 @@ public class expeditionService {
                     "New Expedition",
                     expedition.printMetadata(expedition_id));
             sendEmail.start();
+            */
 
             return Response.ok("{\"success\": \"Succesfully created dataset:<br>" +
                     expedition.printMetadataHTML(expedition_id) + "\"}").build();
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
@@ -203,12 +233,13 @@ public class expeditionService {
      * Given a expedition code and a resource alias, return a BCID
      *
      * @param graph
+     *
      * @return
      */
     @GET
     @Path("/graphMetadata/{graph}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getGraphMetadata(@PathParam("graph") String graph)  {
+    public Response getGraphMetadata(@PathParam("graph") String graph) {
         try {
             expeditionMinter e = new expeditionMinter();
             String response = e.getGraphMetadata(graph);
@@ -220,14 +251,16 @@ public class expeditionService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e,request).toJSON()).build();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
+
     /**
      * Given a expedition code and a resource alias, return a BCID
      *
      * @param expedition
      * @param resourceAlias
+     *
      * @return
      */
     @GET
@@ -237,7 +270,7 @@ public class expeditionService {
                                @PathParam("project_id") Integer project_id,
                                @PathParam("resourceAlias") String resourceAlias) {
         try {
-            expedition = URLDecoder.decode(expedition,"utf-8");
+            expedition = URLDecoder.decode(expedition, "utf-8");
 
             resolver r = new resolver(expedition, project_id, resourceAlias);
             String response = r.getArk();
@@ -248,14 +281,15 @@ public class expeditionService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e,request).toJSON()).build();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
-       /**
+    /**
      * Given an project and a expedition code return a list of resource Types associated with it
      *
      * @param expedition
+     *
      * @return
      */
     @GET
@@ -273,8 +307,7 @@ public class expeditionService {
             } else {
                 return Response.ok(response).build();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
@@ -282,7 +315,9 @@ public class expeditionService {
 
     /**
      * Return a JSON representation of the expedition's that a user is a member of
+     *
      * @param projectId
+     *
      * @return
      */
     @GET
@@ -317,7 +352,9 @@ public class expeditionService {
 
     /**
      * Returns an HTML table of an expedition's resources
+     *
      * @param expeditionId
+     *
      * @return
      */
     @GET
@@ -342,7 +379,9 @@ public class expeditionService {
 
     /**
      * Service to retrieve an expedition's datasets as an HTML table.
+     *
      * @param expeditionId
+     *
      * @return
      */
     @GET
@@ -368,7 +407,9 @@ public class expeditionService {
 
     /**
      * Service to retrieve all of the project's expeditions. For use by project admin only.
+     *
      * @param projectId
+     *
      * @return
      */
     @GET
@@ -394,7 +435,9 @@ public class expeditionService {
 
     /**
      * Service to retrieve all of the project's expeditions that are public.
+     *
      * @param data
+     *
      * @return
      */
     @POST

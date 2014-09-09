@@ -86,6 +86,9 @@ public class provider {
 
         database db = new database();
         Integer user_id = db.getUserId(username);
+        if (user_id == null) {
+            throw new Exception("Issue with username/session.  Please logout, then login again to refresh your session.");
+        }
 
         String insertString = "INSERT INTO oauthNonces (client_id, code, user_id, redirect_uri) VALUES(?, \"" + code + "\",?,?)";
         PreparedStatement stmt = conn.prepareStatement(insertString);
@@ -355,8 +358,9 @@ public class provider {
      * @return
      */
     public Boolean validateRefreshToken(String refreshToken) {
+        String sql = "";
         try {
-            String sql = "SELECT current_timestamp() as current,ts FROM oauthTokens WHERE refresh_token = ?";
+             sql = "SELECT current_timestamp() as current,ts FROM oauthTokens WHERE refresh_token = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, refreshToken);
@@ -379,6 +383,7 @@ public class provider {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        System.out.println(sql + refreshToken);
         return false;
     }
 
