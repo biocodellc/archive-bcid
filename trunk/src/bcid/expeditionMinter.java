@@ -380,10 +380,10 @@ public class expeditionMinter {
         Statement stmt = conn.createStatement();
         String sql =
                 "SELECT " +
-                        " u2.username as username_upload," +
                         " d.graph as graph, " +
                         " a.project_id as project_id, " +
-                        " u.username as username, " +
+                        " u.username as username_generator, " +
+                        " u2.username as username_upload," +
                         " d.ts as timestamp," +
                         " d.prefix as BCID, " +
                         " d.resourceType as resourceType," +
@@ -410,7 +410,7 @@ public class expeditionMinter {
             sb.append("\t\t{\n");
             sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\",\n");
             sb.append("\t\t\t\"project_id\":\"" + rs.getInt("project_id") + "\",\n");
-            sb.append("\t\t\t\"username\":\"" + rs.getString("username_generator") + "\",\n");
+            sb.append("\t\t\t\"username_generator\":\"" + rs.getString("username_generator") + "\",\n");
             sb.append("\t\t\t\"username_upload\":\"" + rs.getString("username_upload") + "\",\n");
             sb.append("\t\t\t\"timestamp\":\"" + rs.getString("timestamp") + "\",\n");
             sb.append("\t\t\t\"bcid\":\"" + rs.getString("BCID") + "\",\n");
