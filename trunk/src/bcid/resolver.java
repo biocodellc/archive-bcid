@@ -74,8 +74,7 @@ public class resolver extends database {
     }
 
     /**
-     * Find the appropriate BCID for this expedition given an conceptAlias.  This instantiation of the resolver
-     * looks up a expedition specific BCID given the expedition code and an concept Alias
+     * Find the appropriate BCID ROOT for this expedition given an conceptAlias.
      *
      * @param expedition_code defines the BCID expedition_code to lookup
      * @param conceptAlias    defines the alias to narrow this,  a one-word reference denoting a BCID
@@ -98,7 +97,7 @@ public class resolver extends database {
                     "p.expedition_code='" + expedition_code + "' && \n" +
                     "p.project_id =" + project_id + " && \n" +
                     "(d.resourceType='" + uri + "' || d.resourceType='" + conceptAlias + "')";
-            System.out.println("resolver query = " + query);
+            //System.out.println("resolver query = " + query);
             ResultSet rs = stmt.executeQuery(query);
             rs.next();
             this.ark = rs.getString("prefix");
