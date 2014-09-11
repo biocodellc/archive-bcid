@@ -98,7 +98,7 @@ public class resolver extends database {
                     "p.expedition_code='" + expedition_code + "' && \n" +
                     "p.project_id =" + project_id + " && \n" +
                     "(d.resourceType='" + uri + "' || d.resourceType='" + conceptAlias + "')";
-            //System.out.println(query);
+            System.out.println("resolver query = " + query);
             ResultSet rs = stmt.executeQuery(query);
             rs.next();
             this.ark = rs.getString("prefix");
@@ -471,9 +471,9 @@ public class resolver extends database {
             //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             //System.out.println(r.printMetadata(new RDFRenderer()));
 
-            //r = new resolver("DEMO4",18,"Resource");
+            r = new resolver("DEMO4",18,"Resource");
             //System.out.println(r.resolveARK());
-            //System.out.println(r.getArk());
+           System.out.println(r.getArk());
                  /*
             // suffixPassthrough = 1; webaddress specified; no SourceID
             r = new resolver("ark:/21547/R2");

@@ -277,7 +277,7 @@ public class expeditionService {
             if (response == null) {
                 return Response.status(204).entity("{\"ark\": \"\"}").build();
             } else {
-                return Response.ok("{\"ark\": \"" + r.getArk() + "\"}").build();
+                return Response.ok("{\"ark\": \"" + response + "\"}").build();
             }
         } catch (Exception e) {
             e.printStackTrace();
