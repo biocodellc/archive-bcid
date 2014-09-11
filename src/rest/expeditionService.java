@@ -277,8 +277,10 @@ public class expeditionService {
             if (response == null) {
                 return Response.status(204).entity("{\"ark\": \"\"}").build();
             } else {
+                System.out.println("fetchAlias = ark:" + response);
                 return Response.ok("{\"ark\": \"" + response + "\"}").build();
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
