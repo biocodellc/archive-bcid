@@ -143,17 +143,19 @@ public class groupService {
             // NOTE: On any type of EZID error, we DON'T want to fail the process.. This means we need
             // a separate mechanism on the server side to check creation of EZIDs.  This is easy enough to do
             // in the database.
-            try {
-                ezidAccount = new EZIDService();
-                // Setup EZID account/login information
-                ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-                manageEZID creator = new manageEZID();
-                creator.createDatasetsEZIDs(ezidAccount);
-            } catch (Exception e) {
-                //e.printStackTrace();
-                System.out.println("EZID NOT CREATED FOR DATASET = " + minterDataset.getPrefix() + " See reason in following stacktrace:");
-                e.printStackTrace();
-                return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
+            if (ezidRequest) {
+                try {
+                    ezidAccount = new EZIDService();
+                    // Setup EZID account/login information
+                    ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+                    manageEZID creator = new manageEZID();
+                    creator.createDatasetsEZIDs(ezidAccount);
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                    System.out.println("EZID NOT CREATED FOR DATASET = " + minterDataset.getPrefix() + " See reason in following stacktrace:");
+                    e.printStackTrace();
+                    return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
+                }
             }
 
             return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
@@ -243,7 +245,7 @@ public class groupService {
         expeditionMinter p = null;
         try {
             p = new expeditionMinter();
-            String tablename =  p.expeditionTable(username);
+            String tablename = p.expeditionTable(username);
             return tablename;
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
