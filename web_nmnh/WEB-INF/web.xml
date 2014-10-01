@@ -5,71 +5,72 @@
     <security-constraint>
 
         <web-resource-collection>
-            <web-resource-name>ROOT</web-resource-name>
-            <url-pattern>/*</url-pattern>
-        </web-resource-collection>
+                    <web-resource-name>ROOT</web-resource-name>
+                                <url-pattern>/*</url-pattern>
+                                        </web-resource-collection>
 
         <user-data-constraint>
-            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
-        </user-data-constraint>
+                    <transport-guarantee>NONE</transport-guarantee>
+                            </user-data-constraint>
 
     </security-constraint>
 
     <servlet>
-        <servlet-name>Jersey Web Application</servlet-name>
+            <servlet-name>Jersey Web Application</servlet-name>
 
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
 
         <init-param>
-            <param-name>com.sun.jersey.config.property.packages</param-name>
-            <param-value>rest</param-value>
-        </init-param>
+                    <param-name>com.sun.jersey.config.property.packages</param-name>
+                                <param-value>rest</param-value>
+                                        </init-param>
 
         <init-param>
-            <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
-            <param-value>true</param-value>
-        </init-param>
+                    <param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
+                                <param-value>true</param-value>
+                                        </init-param>
 
         <init-param>
-            <param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
-            <param-value>/WEB-INF/jsp_template/</param-value>
-        </init-param>
+                    <param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
+                                <param-value>/WEB-INF/jsp_template/</param-value>
+                                        </init-param>
 
         <load-on-startup>1</load-on-startup>
-    </servlet>
+            </servlet>
 
     <servlet-mapping>
-        <servlet-name>Jersey Web Application</servlet-name>
-        <url-pattern>/id/*</url-pattern>
-    </servlet-mapping>
+            <servlet-name>Jersey Web Application</servlet-name>
+                    <url-pattern>/id/*</url-pattern>
+                        </servlet-mapping>
 
     <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
-        <welcome-file>index.jsp</welcome-file>
-    </welcome-file-list>
+            <welcome-file>index.html</welcome-file>
+                    <welcome-file>index.jsp</welcome-file>
+                        </welcome-file-list>
 
     <filter>
-        <filter-name>secureFilter</filter-name>
-        <filter-class>auth.secureFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>secureFilter</filter-name>
-        <url-pattern>/bcid/secure/*</url-pattern>
-    </filter-mapping>
+            <filter-name>secureFilter</filter-name>
+                    <filter-class>auth.secureFilter</filter-class>
+                        </filter>
+                            <filter-mapping>
+                                    <filter-name>secureFilter</filter-name>
+                                            <url-pattern>/bcid/secure/*</url-pattern>
+                                                </filter-mapping>
 
     <error-page>
-        <error-code>500</error-code>
-        <location>/bcid/error.jsp</location>
-    </error-page>
+            <error-code>500</error-code>
+                    <location>/bcid/error.jsp</location>
+                        </error-page>
 
      <error-page>
-        <error-code>405</error-code>
-        <location>/bcid/error.jsp</location>
-    </error-page>
+             <error-code>405</error-code>
+                     <location>/bcid/error.jsp</location>
+                         </error-page>
 
      <error-page>
-        <error-code>404</error-code>
-        <location>/bcid/notfound.jsp</location>
-    </error-page>
+             <error-code>404</error-code>
+                     <location>/bcid/notfound.jsp</location>
+                         </error-page>
 
 </web-app>
+
