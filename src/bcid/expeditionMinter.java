@@ -388,7 +388,8 @@ public class expeditionMinter {
                         " d.prefix as BCID, " +
                         " d.resourceType as resourceType," +
                         " a.expedition_code as expedition_code, " +
-                        " a.expedition_title as expedition_title " +
+                        " a.expedition_title as expedition_title, " +
+                        " a.public as public " +
                         "FROM " +
                         " expeditions a, expeditionsBCIDs b, datasets d, users u, users u2 " +
                         "WHERE" +
@@ -406,7 +407,7 @@ public class expeditionMinter {
             if (expedition_title == null & !rs.getString("expedition_title").equals(""))
                 expedition_title = rs.getString("expedition_title");
 
-            // Grap the prefixes and concepts associated with this
+            // Grab the prefixes and concepts associated with this
             sb.append("\t\t{\n");
             sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\",\n");
             sb.append("\t\t\t\"project_id\":\"" + rs.getInt("project_id") + "\",\n");
@@ -415,6 +416,7 @@ public class expeditionMinter {
             sb.append("\t\t\t\"timestamp\":\"" + rs.getString("timestamp") + "\",\n");
             sb.append("\t\t\t\"bcid\":\"" + rs.getString("BCID") + "\",\n");
             sb.append("\t\t\t\"resourceType\":\"" + rs.getString("resourceType") + "\",\n");
+            sb.append("\t\t\t\"finalCopy\":\"" + rs.getString("public") + "\",\n");
             sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
             sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\"\n");
 
