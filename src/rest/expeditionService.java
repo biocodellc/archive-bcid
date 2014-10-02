@@ -499,6 +499,7 @@ public class expeditionService {
             HttpSession session = request.getSession();
             Object username = session.getAttribute("user");
 
+            System.out.println("HERE1");
             // Check that this is a valid user
             if (username == null) {
                 return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
@@ -509,15 +510,19 @@ public class expeditionService {
             projectMinter p = new projectMinter();
             Integer userId = db.getUserId(username.toString());
 
+            System.out.println("HERE2");
             if (!p.userProject(userId, projectId)) {
                 return Response.status(401).entity("{\"error\": \"You must be a member of this Project to update a dataset's public status.\"}").build();
             }
 
             // Update the expedition public status for what was just passed in
             expeditionMinter e = new expeditionMinter();
+            System.out.println("calling updateExpeditionPublicStatus");
             if (e.updateExpeditionPublicStatus(expeditionCode, projectId, publicStatus)) {
+                System.out.println("successs!");
                 return Response.ok("{\"success\": \"successfully updated.\"}").build();
             } else {
+                System.out.println("not successs!");
                 return Response.status(500).entity("{\"error\": \"Error updating dataset status.'\"}").build();
             }
 
