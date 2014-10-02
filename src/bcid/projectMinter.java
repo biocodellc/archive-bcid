@@ -480,6 +480,29 @@ public class projectMinter {
     }
 
     /**
+     * Check if a user belongs to a project
+     */
+    public Boolean userProject(Integer userId, Integer projectId) {
+        try {
+            String sql = "SELECT count(*) as count " +
+                    "FROM users u, projects p, usersProjects uP " +
+                    "WHERE u.user_id=uP.users_id and uP.project_id = p.project_id and u.user_id = ? and p.project_id=?";
+            PreparedStatement statement = conn.prepareStatement(sql);
+            statement.setInt(1,userId);
+            statement.setInt(2,projectId);
+
+            ResultSet rs = statement.executeQuery();
+            rs.next();
+
+            // If the user belongs to this project then there will be a >=1 value and returns true, otherwise false.
+            return rs.getInt("count") >= 1;
+        }  catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
      * Check if a user is a given project's admin
      * @param userId
      * @param projectId

@@ -41,7 +41,7 @@ CREATE TABLE `datasets` (
   `ezidRequest` tinyint(1) NOT NULL DEFAULT '1' COMMENT 'indicates if we want system to request EZID, all datasets by default get an EZID request',
   `suffixPassthrough` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'indicates if we want to use suffixPassthrough for this identifier',
   `internalID` char(36) COLLATE utf8_bin NOT NULL DEFAULT '' COMMENT 'The internal ID for this dataset',
-  `prefix` text NOT NULL DEFAULT '' COMMENT 'ark:/1234/ab1',
+  `prefix` varchar(255) NOT NULL DEFAULT '' COMMENT 'ark:/1234/ab1',
   `users_id` int(10) UNSIGNED NOT NULL COMMENT 'who created this data',
   `doi` char(36) COMMENT 'DOI linked to this dataset identifier',
   `title` text COMMENT 'title for this dataset',

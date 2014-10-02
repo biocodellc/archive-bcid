@@ -44,7 +44,7 @@ public class expeditionMinter {
         resolverMetadataPrefix = sm.retrieveValue("resolverMetadataPrefix");
     }
 
-    public  void close() {
+    public void close() {
         try {
             conn.close();
         } catch (SQLException e) {
@@ -562,7 +562,7 @@ public class expeditionMinter {
             */
 
             //System.out.println(p.expeditionTable("demo"));
-                expedition.close();
+            expedition.close();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -580,7 +580,7 @@ public class expeditionMinter {
 
         // Check expedition_code length
         if (expedition_code.length() < 4 || expedition_code.length() > 20) {
-            System.out.println("invalid length for dataset = "+ expedition_code);
+            System.out.println("invalid length for dataset = " + expedition_code);
             throw new Exception("Dataset code " + expedition_code + " must be between 4 and 20 characters long");
         }
 
@@ -640,7 +640,7 @@ public class expeditionMinter {
         String sql = "SELECT expedition_id, expedition_title, expedition_code, public " +
                 "FROM expeditions " +
                 "WHERE project_id = \"" + projectId + "\" && users_id = \"" + userId + "\"";
-                //" and resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
+        //" and resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
 
         ResultSet rs = stmt.executeQuery(sql);
         while (rs.next()) {
@@ -867,6 +867,26 @@ public class expeditionMinter {
         sb.append("</table>\n");
         sb.append("</form>\n");
         return sb.toString();
+    }
+
+    /**
+     * Update the public status of a specific expedition
+     */
+    public Boolean updateExpeditionPublicStatus(String expeditionCode, Integer projectId, Boolean publicStatus) {
+        try {
+            String updateString = "UPDATE expeditions SET public = ?" +
+                    " WHERE expedition_code = \"" + expeditionCode + "\" AND project_id = " + projectId;
+
+            System.out.print(updateString);
+            PreparedStatement updateStatement = conn.prepareStatement(updateString);
+            updateStatement.setBoolean(1, publicStatus);
+
+            return updateStatement.execute();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**

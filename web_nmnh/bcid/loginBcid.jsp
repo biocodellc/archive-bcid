@@ -26,7 +26,7 @@
          Hardcoded return_to, client_id, and redirect_uri parameters for the web_nmnh application
          TODO: make this dynamic so we can login from BCID application itself
          -->
-        <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT&redirect_uri=http://nmnh-fims.si.edu/bicd/index.jsp">
+        <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT&redirect_uri=http://nmnh-fims.si.edu/bcid/index.jsp">
         </c:if>
         <c:if test="${pageContext.request.getQueryString() == null}">
         <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP/">
