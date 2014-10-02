@@ -416,7 +416,7 @@ public class expeditionMinter {
             sb.append("\t\t\t\"timestamp\":\"" + rs.getString("timestamp") + "\",\n");
             sb.append("\t\t\t\"bcid\":\"" + rs.getString("BCID") + "\",\n");
             sb.append("\t\t\t\"resourceType\":\"" + rs.getString("resourceType") + "\",\n");
-            sb.append("\t\t\t\"finalCopy\":\"" + rs.getBoolean("public") + "\",\n");
+            sb.append("\t\t\t\"public\":\"" + rs.getBoolean("public") + "\",\n");
             sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
             sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\"\n");
 
