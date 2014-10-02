@@ -277,7 +277,7 @@ public class expeditionService {
             if (response == null) {
                 return Response.status(204).entity("{\"ark\": \"\"}").build();
             } else {
-                System.out.println("fetchAlias = ark:" + response);
+                //System.out.println("fetchAlias = " + response);
                 return Response.ok("{\"ark\": \"" + response + "\"}").build();
             }
 
@@ -521,6 +521,11 @@ public class expeditionService {
             // Update the expedition public status for what was just passed in
             expeditionMinter e = new expeditionMinter();
             //System.out.println("calling updateExpeditionPublicStatus");
+
+            System.out.println("expeditionCode = " + expeditionCode);
+            System.out.println("projectId = " + projectId);
+            System.out.println("publicStatus = " + publicStatus);
+
             if (e.updateExpeditionPublicStatus(expeditionCode, projectId, publicStatus)) {
                 //System.out.println("successs!");
                 return Response.ok("{\"success\": \"successfully updated.\"}").build();
