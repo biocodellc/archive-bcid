@@ -878,12 +878,14 @@ public class expeditionMinter {
             String updateString = "UPDATE expeditions SET public = ?" +
                     " WHERE expedition_code = \"" + expeditionCode + "\" AND project_id = " + projectId;
 
-            System.out.print(updateString);
-
             PreparedStatement updateStatement = conn.prepareStatement(updateString);
             updateStatement.setBoolean(1, publicStatus);
 
-            return updateStatement.execute();
+            updateStatement.execute();
+            if (updateStatement.getUpdateCount() > 0)
+                return true;
+            else
+                return false;
 
         } catch (Exception e) {
             e.printStackTrace();
