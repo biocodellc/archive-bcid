@@ -435,8 +435,10 @@ public class expeditionService {
         }
     }
 
+
     /**
-     * Service to retrieve all of the project's expeditions that are public.
+     * Service to set/unset the public attribute of a set of expeditions specified in a MultivaluedMap
+     * The expedition_id's are specified simply by their internal expedition_id code
      *
      * @param data
      *
@@ -470,6 +472,55 @@ public class expeditionService {
             } else {
                 return Response.status(500).entity("{\"error\": \"Error updating dataset status.'\"}").build();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        }
+    }
+
+    /**
+     * Service to update a single expedition identifier
+     *
+     * @param projectId
+     * @param expeditionId
+     * @param publicStatus
+     *
+     * @return
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    @Path("/admin/publicExpedition/{project_id}/{expedition_id}/{public_status}")
+    public Response publicExpedition(
+            @PathParam("project_id") Integer projectId,
+            @PathParam("expedition_id") String expeditionCode,
+            @PathParam("public_status") Boolean publicStatus) {
+        try {
+            HttpSession session = request.getSession();
+            Object username = session.getAttribute("user");
+
+            // Check that this is a valid user
+            if (username == null) {
+                return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
+            }
+
+            // Check to see that this user belongs to this project
+            database db = new database();
+            projectMinter p = new projectMinter();
+            Integer userId = db.getUserId(username.toString());
+
+            if (!p.userProject(userId, projectId)) {
+                return Response.status(401).entity("{\"error\": \"You must be a member of this Project to update a dataset's public status.\"}").build();
+            }
+
+            // Update the expedition public status for what was just passed in
+            expeditionMinter e = new expeditionMinter();
+            if (e.updateExpeditionPublicStatus(expeditionCode, projectId, publicStatus)) {
+                return Response.ok("{\"success\": \"successfully updated.\"}").build();
+            } else {
+                return Response.status(500).entity("{\"error\": \"Error updating dataset status.'\"}").build();
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
