@@ -874,10 +874,12 @@ public class expeditionMinter {
      */
     public Boolean updateExpeditionPublicStatus(String expeditionCode, Integer projectId, Boolean publicStatus) {
         try {
+
             String updateString = "UPDATE expeditions SET public = ?" +
                     " WHERE expedition_code = \"" + expeditionCode + "\" AND project_id = " + projectId;
 
             System.out.print(updateString);
+
             PreparedStatement updateStatement = conn.prepareStatement(updateString);
             updateStatement.setBoolean(1, publicStatus);
 
