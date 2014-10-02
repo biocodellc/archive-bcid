@@ -502,15 +502,21 @@ public class expeditionService {
             System.out.println("HERE1");
             // Check that this is a valid user
             if (username == null) {
+                System.out.println("HERE3");
+
                 return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
             }
 
             // Check to see that this user belongs to this project
             database db = new database();
+            System.out.println("HERE4");
+
             projectMinter p = new projectMinter();
+            System.out.println("HERE5");
+
             Integer userId = db.getUserId(username.toString());
 
-            System.out.println("HERE2");
+            System.out.println("HERE6");
             if (!p.userProject(userId, projectId)) {
                 return Response.status(401).entity("{\"error\": \"You must be a member of this Project to update a dataset's public status.\"}").build();
             }
