@@ -23,11 +23,9 @@
 
         <c:if test="${pageContext.request.getQueryString() != null}">
 	    <c:choose>
-         	<!-- Use values that client passes in, check first that we at least have one of the expected -->
 		<c:when test="${param['redirect_uri'] != null}">
         		<form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=${param['return_to']}&client_id=${param['client_id']}&redirect_uri=${param['redirect_uri']}">
         	</c:when>
-         	<!-- We expect client to pass in appropriate paramters, else we rely on hard-coded values -->
 		<c:otherwise>
         		<form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT">
         	</c:otherwise>
