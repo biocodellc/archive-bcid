@@ -583,7 +583,7 @@ function listExpeditions(divId) {
             });
             html = html.replace('<br>\n', '');
             if (html.indexOf("expand-content") == -1) {
-                html += 'You have no expeditions in this project.';
+                html += 'You have no datasets in this project.';
             }
             $(divId).html(html);
             $.each(data['expeditions'], function(index, e) {

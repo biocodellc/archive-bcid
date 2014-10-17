@@ -523,11 +523,13 @@ public class expeditionMinter {
 
     public static void main(String args[]) {
         try {
+            System.out.println("init ...");
             // See if the user owns this expedition or no
             expeditionMinter expedition = new expeditionMinter();
-            System.out.println(expedition.getGraphMetadata("_qNK_fuHVbRSTNvA_8pG.xlsx"));
-
-            //System.out.println(expedition.listExpeditionsAsTable(8,"trizna"));
+            //System.out.println(expedition.getGraphMetadata("_qNK_fuHVbRSTNvA_8pG.xlsx"));
+           System.out.println("starting ...");
+            System.out.println(expedition.listExpeditionsAsTable(9,"trizna"));
+            System.out.println("ending ...");
             //System.out.println(expedition.listExpeditions(8,"mwangiwangui25@gmail.com"));
             //expedition.checkExpeditionCodeValid("JBD_foo-))");
             //    System.out.println("validation XML for project = " +expedition.getValidationXML(1));
