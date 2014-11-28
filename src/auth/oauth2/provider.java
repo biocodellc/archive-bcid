@@ -14,9 +14,9 @@ public class provider {
     protected Connection conn;
     database db;
 
-    public provider() throws Exception {
+    public provider() {
          db = new database();
-        conn = db.getConn();
+         conn = db.getConn();
     }
 
     public void close() throws SQLException {
