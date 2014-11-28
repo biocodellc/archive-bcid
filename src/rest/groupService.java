@@ -15,6 +15,8 @@ import bcid.ResourceTypes;
 
 import ezid.EZIDException;
 import ezid.EZIDService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.errorInfo;
 import util.sendEmail;
@@ -34,6 +36,8 @@ import java.util.Hashtable;
  */
 @Path("groupService")
 public class groupService {
+
+    final static Logger logger = LoggerFactory.getLogger(groupService.class);
 
     @Context
     static ServletContext context;
@@ -75,96 +79,91 @@ public class groupService {
             if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
                 resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).uri;
             }
-        } catch (Exception e) {
-            return Response.status(500).entity("{\"error\": \"BCID System Unable to set resource type\"}").build();
+        } catch (IndexOutOfBoundsException e) {
+            return Response.status(400).entity(new errorInfo("BCID System Unable to set resource type",
+                    "There was an error retrieving the resource type uri. Did you provide a valid resource type?",
+                    400,
+                    e
+            ).toJSON()).build();
         }
 
         String username;
 
-        try {
-            // if accessToken != null, then OAuth client is accessing on behalf of a user
-            if (accessToken != null) {
-                provider p = new provider();
-                username = p.validateToken(accessToken);
-            } else {
-                HttpSession session = request.getSession();
-                username = (String) session.getAttribute("user");
-            }
-
-            if (username == null) {
-                // status=401 means unauthorized user
-                return Response.status(401).entity("{\"error\": \"you must be logged in to create a data group.\"}").build();
-            }
-
-            Boolean suffixPassthrough = false;
-            // Format Input variables
-            try {
-                if (stringSuffixPassThrough.equalsIgnoreCase("true") || stringSuffixPassThrough.equalsIgnoreCase("on")) {
-                    suffixPassthrough = true;
-                }
-            } catch (NullPointerException e) {
-                suffixPassthrough = false;
-            }
-
-            // Initialize settings manager
-            SettingsManager sm = SettingsManager.getInstance();
-            sm.loadProperties();
-
-            // Create a Dataset
-            database db = new database();
-            // Check for remote-user
-            Integer user_id = db.getUserId(username);
-
-            // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
-            // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
-            boolean ezidRequest = true;
-            if (username.equals("demo")) {
-                ezidRequest = false;
-            }
-            if (sm.retrieveValue("ezidRequests").equalsIgnoreCase("false")) {
-                ezidRequest = false;
-            }
-
-            // Mint the data group
-            dataGroupMinter minterDataset = new dataGroupMinter(ezidRequest, suffixPassthrough);
-            minterDataset.mint(
-                    new Integer(sm.retrieveValue("bcidNAAN")),
-                    user_id,
-                    resourceTypeString,
-                    doi,
-                    webaddress,
-                    graph,
-                    title);
-            minterDataset.close();
-            String datasetPrefix = minterDataset.getPrefix();
-
-            // Create EZIDs right away for Dataset level Identifiers
-            // Initialize ezid account
-            // NOTE: On any type of EZID error, we DON'T want to fail the process.. This means we need
-            // a separate mechanism on the server side to check creation of EZIDs.  This is easy enough to do
-            // in the database.
-            if (ezidRequest) {
-                try {
-                    ezidAccount = new EZIDService();
-                    // Setup EZID account/login information
-                    ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-                    manageEZID creator = new manageEZID();
-                    creator.createDatasetsEZIDs(ezidAccount);
-                } catch (Exception e) {
-                    //e.printStackTrace();
-                    System.out.println("EZID NOT CREATED FOR DATASET = " + minterDataset.getPrefix() + " See reason in following stacktrace:");
-                    e.printStackTrace();
-                    return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
-                }
-            }
-
-            return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
         }
 
+        if (username == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).entity(new errorInfo("You must be logged in to create a data group.",
+                    401
+            ).toJSON()).build();
+        }
 
+        Boolean suffixPassthrough;
+        // Format Input variables
+        if (!stringSuffixPassThrough.isEmpty() && (stringSuffixPassThrough.equalsIgnoreCase("true") ||
+                stringSuffixPassThrough.equalsIgnoreCase("on"))) {
+            suffixPassthrough = true;
+        } else {
+            suffixPassthrough = false;
+        }
+
+        // Initialize settings manager
+        SettingsManager sm = SettingsManager.getInstance();
+        sm.loadProperties();
+
+        // Create a Dataset
+        database db = new database();
+        // Check for remote-user
+        Integer user_id = db.getUserId(username);
+
+        // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
+        // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically
+        boolean ezidRequest = true;
+        if (username.equals("demo")) {
+            ezidRequest = false;
+        }
+        if (sm.retrieveValue("ezidRequests").equalsIgnoreCase("false")) {
+            ezidRequest = false;
+        }
+
+        // Mint the data group
+        dataGroupMinter minterDataset = new dataGroupMinter(ezidRequest, suffixPassthrough);
+        minterDataset.mint(
+                new Integer(sm.retrieveValue("bcidNAAN")),
+                user_id,
+                resourceTypeString,
+                doi,
+                webaddress,
+                graph,
+                title);
+        minterDataset.close();
+        String datasetPrefix = minterDataset.getPrefix();
+
+        // Create EZIDs right away for Dataset level Identifiers
+        // Initialize ezid account
+        // NOTE: On any type of EZID error, we DON'T want to fail the process.. This means we need
+        // a separate mechanism on the server side to check creation of EZIDs.  This is easy enough to do
+        // in the database.
+        if (ezidRequest) {
+            try {
+                ezidAccount = new EZIDService();
+                // Setup EZID account/login information
+                ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
+                manageEZID creator = new manageEZID();
+                creator.createDatasetsEZIDs(ezidAccount);
+            } catch (EZIDException e) {
+                logger.warn("EZID NOT CREATED FOR DATASET = " + minterDataset.getPrefix(), e);
+            }
+        }
+
+        return Response.ok("{\"prefix\": \"" + datasetPrefix + "\"}").build();
     }
 
     /**
@@ -193,6 +192,7 @@ public class groupService {
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     public Response datasetList(@Context HttpServletRequest request) {
+//      TODO send a 401 if the user isn't logged in
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
 
@@ -201,7 +201,7 @@ public class groupService {
             d = new dataGroupMinter();
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+            return Response.status(500).entity(new errorInfo("test", 500).toJSON()).build();
         }
 
         return Response.ok(d.datasetList(username)).build();
@@ -224,7 +224,7 @@ public class groupService {
             d = new dataGroupMinter();
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toHTMLTable();
+            return new errorInfo("test", 500).toHTMLTable();
         }
 
         return d.datasetTable(username);
@@ -249,7 +249,7 @@ public class groupService {
             return tablename;
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            return new errorInfo(e, request).toHTMLTable();
+            return new errorInfo("test", 500).toHTMLTable();
         }
     }
 
@@ -281,7 +281,7 @@ public class groupService {
             return d.bcidEditorAsTable(username.toString(), prefix);
         } catch (Exception e) {
             e.printStackTrace();
-            return new errorInfo(e, request).toHTMLTable();
+            return new errorInfo("test", 500).toHTMLTable();
         }
     }
 
@@ -365,7 +365,7 @@ public class groupService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+            return Response.status(500).entity(new errorInfo("test", 500).toJSON()).build();
         }
         // if we are here, there was an error during d.updateDataGroupConfig
         return Response.status(500).entity("{\"error\": \"server error.\"}").build();
