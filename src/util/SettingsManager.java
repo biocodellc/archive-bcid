@@ -83,16 +83,17 @@ public class SettingsManager {
      *
      * @throws java.io.FileNotFoundException
      */
-    public void loadProperties() throws FileNotFoundException {
+    public void loadProperties() {
         try {
             props = new Properties();
             FileInputStream in = new FileInputStream(propsfile);
 
-
             props.load(in);
             in.close();
-        } catch (Exception e) {
-            throw new FileNotFoundException("Unable to find settings file " + propsfile + ". Make sure you have included this file in the root class of your deployed application!");
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Unable to find settings file " + propsfile + ". Make sure you have included this file in the root class of your deployed application!", e);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while loading the settings file " + propsfile + ". Is the file correct?", e);
         }
     }
 
