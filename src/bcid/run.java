@@ -300,8 +300,6 @@ public class run {
             // Create EZID metadata for all Outstanding Identifiers.
             manageEZID creator = new manageEZID();
             creator.createDatasetsEZIDs(ezidAccount);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
