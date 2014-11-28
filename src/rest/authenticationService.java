@@ -8,7 +8,6 @@ import bcidExceptions.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
-import util.errorInfo;
 import util.queryParams;
 
 import javax.servlet.ServletContext;
@@ -251,8 +250,7 @@ public class authenticationService {
                 response.sendRedirect(callback + "?error=invalid_request");
                 return;
             }
-            response.sendError(400, "invalid_request");
-            return;
+            throw new BadRequestException("invalid_request");
         }
 
         if (clientId == null || !p.validClientId(clientId)) {
@@ -302,26 +300,22 @@ public class authenticationService {
         provider p = null;
         p = new provider();
         if (redirectURL == null) {
-            return Response.status(400).entity(new errorInfo("invalid_request", "redirect_uri is null", 400).toJSON()).build();
+            throw new BadRequestException("invalid_request", "redirect_uri is null");
         }
         URI url = null;
         try {
             url = new URI(redirectURL);
         } catch (URISyntaxException e) {
             logger.warn("URISyntaxException for the following url: {}", redirectURL, e);
-            return Response.status(400).entity(new errorInfo("invalid_request",
-                    "URISyntaxException thrown with the following redirect_uri: " + redirectURL,
-                    400).toJSON()).build();
+            throw new BadRequestException("invalid_request", "URISyntaxException thrown with the following redirect_uri: " + redirectURL);
         }
 
         if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
-            return Response.status(400).entity(new errorInfo("invalid_client", 400).toJSON()).location(url).build();
+            throw new BadRequestException("invalid_client");
         }
 
         if (code == null || !p.validateCode(clientId, code, redirectURL)) {
-            return Response.status(400).entity(new errorInfo("invalid_grant",
-                    "Either code was null or the code doesn't match the clientId",
-                    400).toJSON()).location(url).build();
+            throw new BadRequestException("invalid_grant", "Either code was null or the code doesn't match the clientId");
         }
 
         return Response.ok(p.generateToken(clientId, state, code))
