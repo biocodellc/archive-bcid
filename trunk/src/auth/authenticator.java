@@ -13,6 +13,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 
 import bcid.projectMinter;
+import bcidExceptions.BCIDRuntimeException;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,7 +239,7 @@ public class authenticator {
                 return setHashedPass(username, password);
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new BCIDRuntimeException("Server Error resetting password.","", 500, e);
         }
         return false;
     }
@@ -467,7 +468,8 @@ public class authenticator {
                 sendEmail.start();
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new BCIDRuntimeException("Server Error while sending reset token.", "db error retrieving email for user "
+                    + username, 500, e);
         } finally {
             if (stmt != null) try {
                 stmt.close();
