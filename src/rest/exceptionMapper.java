@@ -6,16 +6,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.errorInfo;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * class to catch an exception thrown from a rest service and map the necessary information to a request
@@ -26,15 +30,33 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
     static HttpServletRequest request;
     @Context
     static ExtendedUriInfo uriInfo;
+    @Context
+    static HttpHeaders httpHeaders;
+
     private Logger logger = LoggerFactory.getLogger(exceptionMapper.class);
 
     @Override
-    public Response toResponse(Exception e) {
+    public Response toResponse( Exception e) {
         logException(e);
         errorInfo errorInfo = getErrorInfo(e);
+        String mediaType;
 
         // check if the called service is expected to return HTML of JSON
-        String mediaType = uriInfo.getMatchedMethod().getSupportedOutputTypes().get(0).toString();
+        // try to get the mediaType of the matched method. If an exception was thrown before the resource was constructed
+        // then getMatchedMethod will return null. If that's the case then we should look to the accept header for the
+        // correct response type.
+        try {
+            mediaType = uriInfo.getMatchedMethod().getSupportedOutputTypes().get(0).toString();
+        } catch(NullPointerException ex) {
+            List<MediaType> accepts = httpHeaders.getAcceptableMediaTypes();
+            logger.warn("NullPointerException thrown while retrieving mediaType in exceptionMapper.java");
+            // if request accepts JSON, return the error in JSON, otherwise use html
+            if (accepts.contains(MediaType.APPLICATION_JSON_TYPE)) {
+                mediaType = MediaType.APPLICATION_JSON;
+            } else {
+                mediaType = MediaType.TEXT_HTML;
+            }
+        }
 
         if (mediaType.equalsIgnoreCase( MediaType.APPLICATION_JSON )) {
             return Response.status(errorInfo.getHttpStatusCode())
