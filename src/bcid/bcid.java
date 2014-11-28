@@ -195,7 +195,8 @@ public class bcid extends GenericIdentifier {
                 identifier = dataset.identifier;
             }
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("URISyntaxException thrown", e);
         }
 
         // Reformat webAddress in this constructor if there is a sourceID
@@ -204,7 +205,8 @@ public class bcid extends GenericIdentifier {
             try {
                 this.webAddress = new URI(webAddress + sourceID);
             } catch (URISyntaxException e) {
-                e.printStackTrace();
+                //TODO should we silence this exception?
+                logger.warn("URISyntaxException thrown", e);
             }
         }
     }

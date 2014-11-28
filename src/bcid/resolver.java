@@ -260,7 +260,8 @@ public class resolver extends database {
         try {
             ezid = new ezid(ezidService.getMetadata(ark));
         } catch (EZIDException e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("URISyntaxException thrown", e);
         }
         return renderer.render(ezid);
     }
@@ -281,7 +282,8 @@ public class resolver extends database {
         try {
             sb.append("  " + this.resolveARK().toString());
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("URISyntaxException thrown", e);
         }
         t.lap("resolveARK");
         sb.append("\n  ,\n");

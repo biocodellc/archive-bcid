@@ -3,6 +3,8 @@ package bcid;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import net.sf.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.timer;
 
@@ -32,6 +34,8 @@ public class run {
     // a testData file to use for various tests in this class
     ArrayList testDatafile;
 
+    private static Logger logger = LoggerFactory.getLogger(run.class);
+
     public run() {
 
     }
@@ -51,9 +55,11 @@ public class run {
         try {
             testDatafile = new inputFileParser(readFile(path), dataset).elementArrayList;
         } catch (IOException e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("IOException thrown", e);
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("URISyntaxException thrown", e);
         }
         System.out.println("  Successfully created test dataset");
     }
