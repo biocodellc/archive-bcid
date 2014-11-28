@@ -1,6 +1,7 @@
 package bcid;
 
 import bcidExceptions.BCIDException;
+import bcidExceptions.ServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -228,7 +229,7 @@ public class elementMinter extends dataGroupMinter {
             insertStatement.close();
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         } finally {
             // Finish up
             try {
@@ -371,7 +372,7 @@ public class elementMinter extends dataGroupMinter {
             insertStatement.executeBatch();
             conn.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         } finally {
             try {
                 insertStatement.close();

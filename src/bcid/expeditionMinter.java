@@ -110,7 +110,7 @@ public class expeditionMinter {
             expedition_id = getExpeditionIdentifier(internalID);
         } catch (SQLException e) {
             //e.printStackTrace();
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return expedition_id;
     }
@@ -196,7 +196,7 @@ public class expeditionMinter {
             ResultSet rs = stmt.executeQuery(sql);
             if (rs.next()) return true;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return false;
     }
@@ -283,7 +283,7 @@ public class expeditionMinter {
             else
                 return true;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 
@@ -308,7 +308,7 @@ public class expeditionMinter {
             rs.next();
             return rs.getInt("count") >= 1;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 
@@ -548,7 +548,7 @@ public class expeditionMinter {
 
             return sb.toString();
         } catch (SQLException e) {
-            throw new RuntimeException("SQLException while retrieving expeditionTable for user: " + remoteUser, e);
+            throw new ServerErrorException("Server Error","SQLException while retrieving expeditionTable for user: " + remoteUser, e);
         }
     }
 
@@ -654,7 +654,7 @@ public class expeditionMinter {
             }
             return true;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
 
     }
@@ -930,7 +930,7 @@ public class expeditionMinter {
                 return false;
 
         } catch (SQLException e) {
-            throw new ServerErrorException("SQLException while updating expedition public status.", e);
+            throw new ServerErrorException("Server Error", "SQLException while updating expedition public status.", e);
         }
     }
 

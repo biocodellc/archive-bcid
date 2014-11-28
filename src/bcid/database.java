@@ -1,5 +1,6 @@
 package bcid;
 
+import bcidExceptions.ServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -32,9 +33,9 @@ public class database {
             Class.forName(bcidClass);
             conn = DriverManager.getConnection(bcidUrl, bcidUser, bcidPassword);
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Driver issues accessing BCID system", e);
+            throw new ServerErrorException("Server Error","Driver issues accessing BCID system", e);
         } catch (SQLException e) {
-            throw new RuntimeException("SQL Exception accessing BCID system", e);
+            throw new ServerErrorException("Server Error","SQL Exception accessing BCID system", e);
         }
 
     }

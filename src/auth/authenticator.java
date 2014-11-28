@@ -288,7 +288,7 @@ public class authenticator {
             stmt.execute();
             return true;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         } finally {
             if (stmt != null) try {
                 stmt.close();
@@ -320,7 +320,7 @@ public class authenticator {
             }
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return user_id;
     }
