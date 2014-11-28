@@ -1,10 +1,13 @@
 package bcid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 
 import javax.ws.rs.core.Response;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -16,6 +19,8 @@ import java.util.UUID;
  * elements.
  */
 public class dataGroupMinter extends dataGroupEncoder {
+
+    final static Logger logger = LoggerFactory.getLogger(dataGroupMinter.class);
 
     // Mysql Connection
     protected Connection conn;
@@ -36,10 +41,8 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     /**
      * Default to ezidRequest = false using default Constructor
-     *
-     * @throws Exception
      */
-    public dataGroupMinter() throws Exception {
+    public dataGroupMinter() {
         this(false, false);
     }
 
@@ -59,10 +62,8 @@ public class dataGroupMinter extends dataGroupEncoder {
     /**
      * Default constructor for data group uses the temporary ARK ark:/99999/fk4.  Values can be overridden in
      * the mint method.
-     *
-     * @throws Exception
      */
-    public dataGroupMinter(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+    public dataGroupMinter(boolean ezidRequest, Boolean suffixPassThrough) {
         database db = new database();
         conn = db.getConn();
         // Generate defaults in constructor, these will be overridden later
@@ -104,13 +105,10 @@ public class dataGroupMinter extends dataGroupEncoder {
      * after minting.
      *
      * @param datasets_id
-     *
-     * @throws Exception
      */
-    public dataGroupMinter(Integer datasets_id) throws Exception {
+    public dataGroupMinter(Integer datasets_id) {
         database db = new database();
         conn = db.getConn();
-        Statement stmt = conn.createStatement();
         String sql = "SELECT " +
                 "d.prefix as prefix," +
                 "d.ezidRequest as ezidRequest," +
@@ -133,27 +131,43 @@ public class dataGroupMinter extends dataGroupEncoder {
         //" AND eb.expedition_id=e.expedition_id " +
         //" AND e.project_id=p.project_id";
 
-        ResultSet rs = stmt.executeQuery(sql);
-        rs.next();
-        prefix = rs.getString("prefix");
-        identifier = new URI(prefix);
-        ezidRequest = rs.getBoolean("ezidRequest");
-        ezidMade = rs.getBoolean("ezidMade");
-        shoulder = encode(new BigInteger(datasets_id.toString()));
-        this.doi = rs.getString("doi");
-        this.title = rs.getString("title");
-        //this.projectCode = rs.getString("projectCode");
-        this.ts = rs.getString("ts");
-        this.who = rs.getString("who");
-        Integer naan = new Integer(prefix.split("/")[1]);
-        this.datasets_id = datasets_id;
-        this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
-        setBow(naan);
-
         try {
-            this.webAddress = new URI(rs.getString("webAddress"));
-        } catch (NullPointerException e) {
-            this.webAddress = null;
+            Statement stmt = conn.createStatement();
+
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            prefix = rs.getString("prefix");
+            try {
+                identifier = new URI(prefix);
+            } catch (URISyntaxException e) {
+                throw new RuntimeException("URISyntaxException from prefix: " + prefix + " from datasetId: " + datasets_id, e);
+
+            }
+            ezidRequest = rs.getBoolean("ezidRequest");
+            ezidMade = rs.getBoolean("ezidMade");
+            shoulder = encode(new BigInteger(datasets_id.toString()));
+            this.doi = rs.getString("doi");
+            this.title = rs.getString("title");
+            //this.projectCode = rs.getString("projectCode");
+            this.ts = rs.getString("ts");
+            this.who = rs.getString("who");
+            Integer naan = new Integer(prefix.split("/")[1]);
+            this.datasets_id = datasets_id;
+            this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
+            setBow(naan);
+
+            try {
+                this.webAddress = new URI(rs.getString("webAddress"));
+            } catch (NullPointerException e) {
+                logger.info("webAddress doesn't exist for datasetId: {}", datasets_id, e);
+            }catch (URISyntaxException e) {
+                logger.warn("URISyntaxException with uri: {} and datasetId: {}", rs.getString("webAddress"),
+                        datasets_id, e);
+            } finally {
+                this.webAddress = null;
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -211,7 +225,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      *
      * @throws Exception
      */
-    public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) throws Exception {
+    public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) {
 
         database db = new database();
 
@@ -254,7 +268,8 @@ public class dataGroupMinter extends dataGroupEncoder {
             u.execute(updateString);
 
         } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+//            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            logger.warn("SQLException while creating a dataset.", e);
         }
 
         // Create the shoulder identifier (String dataset identifier)
