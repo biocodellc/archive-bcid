@@ -1,5 +1,7 @@
 package bcid;
 
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -567,12 +569,11 @@ public class dataGroupMinter extends dataGroupEncoder {
                 }
 
             } else {
-                config.put("error", "Dataset not found. Are you the owner of this dataset?");
+                throw new BadRequestException("Dataset not found. Are you the owner of this dataset?");
             }
         } catch (SQLException e) {
-            logger.warn("SQLException while retrieving dataGroup configuration for dataset with prefix: {} and userId: {}",
-                    prefix, userId, e);
-            config.put("error", "server error");
+            throw new ServerErrorException("Server Error", "SQLException while retrieving dataGroup configuration for " +
+                    "dataset with prefix: " + prefix + " and userId: " + userId, e);
         }
         return config;
     }
@@ -633,14 +634,17 @@ public class dataGroupMinter extends dataGroupEncoder {
             }
 
             Integer result = stmt.executeUpdate();
-            // result should be '1', if not, an error occurred during the UPDATE statement
+            // result should be '1', if not, nothing was updated
             if (result >= 1) {
                 return true;
+            } else {
+                // if here, then nothing was updated due to the dataset not being found
+                return false;
             }
         } catch (SQLException e) {
-            logger.warn("SQLException while updating config for dataset with prefix: {} and user: {}", prefix, username, e);
+            throw new ServerErrorException("Server Error", "SQLException while updating configuration for " +
+                    "dataset with prefix: " + prefix + " and user: " + username, e);
         }
-        return false;
     }
 
     /**

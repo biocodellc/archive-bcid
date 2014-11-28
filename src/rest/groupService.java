@@ -11,6 +11,8 @@ import bcid.GenericIdentifier;
 import bcid.bcid;
 import bcid.ResourceTypes;
 
+import bcidExceptions.BadRequestException;
+import bcidExceptions.UnauthorizedRequestException;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import org.slf4j.Logger;
@@ -77,11 +79,8 @@ public class groupService {
                 resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).uri;
             }
         } catch (IndexOutOfBoundsException e) {
-            return Response.status(400).entity(new errorInfo("BCID System Unable to set resource type",
-                    "There was an error retrieving the resource type uri. Did you provide a valid resource type?",
-                    400,
-                    e
-            ).toJSON()).build();
+            throw new BadRequestException("BCID System Unable to set resource type",
+                    "There was an error retrieving the resource type uri. Did you provide a valid resource type?");
         }
 
         String username;
@@ -96,10 +95,7 @@ public class groupService {
         }
 
         if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).entity(new errorInfo("You must be logged in to create a data group.",
-                    401
-            ).toJSON()).build();
+            throw new UnauthorizedRequestException("You must be logged in to create a data group.");
         }
 
         Boolean suffixPassthrough;
@@ -193,10 +189,7 @@ public class groupService {
         String username = (String) session.getAttribute("user");
 
         if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).entity(new errorInfo("You must be logged in to view your data groups.",
-                    401
-            ).toJSON()).build();
+            throw new UnauthorizedRequestException("You must be logged in to view your data groups.");
         }
 
         dataGroupMinter d = null;
@@ -218,10 +211,7 @@ public class groupService {
         String username = (String) session.getAttribute("user");
 
         if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).entity(new errorInfo("You must be logged in to view your BCIDs.",
-                    401
-            ).toHTMLTable()).build();
+            throw new UnauthorizedRequestException("You must be logged in to view your BCIDs.");
         }
 
         dataGroupMinter d = null;
@@ -243,10 +233,7 @@ public class groupService {
         String username = (String) session.getAttribute("user");
 
         if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).entity(new errorInfo("You must be logged in to view your expeditions.",
-                    401
-            ).toHTMLTable()).build();
+            throw new UnauthorizedRequestException("You must be logged in to view your expeditions.");
         }
 
         expeditionMinter p = null;
@@ -271,16 +258,11 @@ public class groupService {
         String username = (String) session.getAttribute("user");
 
         if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).entity(new errorInfo("You must be logged in to edit your BCID's configuration.",
-                    401
-            ).toHTMLTable()).build();
+            throw new UnauthorizedRequestException("You must be logged in to edit your BCID's configuration.");
         }
 
         if (prefix == null) {
-            return Response.status(400).entity(new errorInfo("You must provide an \"ark\" query parameter.",
-                    400
-            ).toHTMLTable()).build();
+            throw new BadRequestException("You must provide an \"ark\" query parameter.");
         }
 
         dataGroupMinter d = new dataGroupMinter();
@@ -318,20 +300,13 @@ public class groupService {
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         if (username == null) {
-            return Response.status(401).entity(new errorInfo("You must be logged in to edit BCID's.",
-                    401
-            ).toHTMLTable()).build();
+            throw new UnauthorizedRequestException("You must be logged in to edit BCID's.");
         }
 
         // get this BCID's config
 
         dataGroupMinter d = new dataGroupMinter();
         config = d.getDataGroupConfig(prefix, username.toString());
-
-        if (config.containsKey("error")) {
-            // Some error occured when fetching BCID configuration
-            return Response.status(500).entity(new errorInfo(config.get("error"), 500).toJSON()).build();
-        }
 
         if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
             resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).string;
@@ -365,8 +340,8 @@ public class groupService {
         } else if (d.updateDataGroupConfig(update, prefix, username.toString())) {
             return Response.ok("{\"success\": \"BCID successfully updated.\"}").build();
         } else {
-            // if we are here, there was an error during d.updateDataGroupConfig
-            return Response.status(500).entity("{\"error\": \"server error.\"}").build();
+            // if we are here, the dataset wasn't found
+            throw new BadRequestException("Dataset wasn't found");
         }
 
     }
