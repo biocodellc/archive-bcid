@@ -2,6 +2,7 @@ package auth.oauth2;
 
 import bcid.database;
 import bcidExceptions.OAUTHException;
+import bcidExceptions.ServerErrorException;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,7 +74,7 @@ public class provider {
                 return rs.getString("callback");
             }
         } catch (SQLException e) {
-            throw new OAUTHException("SQLException while trying to retrieve callback url for oauth client_id: " + clientID, 500, e);
+            throw new OAUTHException("server_error", "SQLException while trying to retrieve callback url for oauth client_id: " + clientID, 500, e);
         }
         return null;
     }
@@ -224,7 +225,8 @@ public class provider {
             }
 
         } catch (SQLException e) {
-            logger.warn("SQLException thrown while retrieving the userID that belongs to the oauth code: {}", code, e);
+            throw new ServerErrorException("Server Error",
+                    "SQLException thrown while retrieving the userID that belongs to the oauth code: " + code, e);
         }
         return user_id;
     }

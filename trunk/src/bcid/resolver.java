@@ -331,7 +331,7 @@ public class resolver extends database {
                     return true;
                 }
             } catch (SQLException e) {
-                return false;
+                throw new ServerErrorException(e);
             }
         }
     }

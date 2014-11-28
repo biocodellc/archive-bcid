@@ -60,7 +60,8 @@ public class database {
                 return rs.getInt("user_id");
             }
         } catch (SQLException e) {
-            logger.warn("SQLException attempting to getUserId when given the username: {}", e);
+            throw new ServerErrorException("Server Error",
+                    "SQLException attempting to getUserId when given the username: {}", e);
         }
         return null;
     }
@@ -80,7 +81,8 @@ public class database {
                 return rs.getString("username");
             }
         } catch (SQLException e) {
-            logger.warn("SQLException attempting to getUserName when given the userId: {}", e);
+            throw new ServerErrorException("Server Error",
+                    "SQLException attempting to getUserName when given the userId: {}", e);
         }
         return null;
     }
