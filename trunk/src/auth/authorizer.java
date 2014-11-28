@@ -71,7 +71,11 @@ public class authorizer {
         return false;
     }
 
-    public void close() throws SQLException {
-        conn.close();
+    public void close() {
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            logger.warn("SQLException while trying to close connection.", e);
+        }
     }
 }

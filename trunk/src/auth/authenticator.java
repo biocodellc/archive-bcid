@@ -14,6 +14,8 @@ import java.util.Iterator;
 
 import bcid.projectMinter;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.sendEmail;
 import util.stringGenerator;
@@ -26,6 +28,7 @@ public class authenticator {
     protected Connection conn;
     SettingsManager sm;
     private static LDAPAuthentication ldapAuthentication;
+    private static Logger logger = LoggerFactory.getLogger(authenticator.class);
 
     /**
      * Constructor that initializes the class level variables
@@ -442,7 +445,7 @@ public class authenticator {
      *
      * @throws Exception
      */
-    public String sendResetToken(String username) throws Exception {
+    public String sendResetToken(String username) {
         String email = null;
         String sql = "SELECT email FROM users WHERE username = ?";
 
@@ -482,11 +485,7 @@ public class authenticator {
 
                 // Initialize settings manager
                 SettingsManager sm = SettingsManager.getInstance();
-                try {
-                    sm.loadProperties();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                sm.loadProperties();
 
                 // Send an Email that this completed
                 sendEmail sendEmail = new sendEmail(
@@ -498,13 +497,13 @@ public class authenticator {
                         emailBody);
                 sendEmail.start();
             }
-        } catch (Exception e) {
-            throw new Exception(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         } finally {
             if (stmt != null) try {
                 stmt.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.warn("SQLException while attempting to close db connection.", e);
             }
         }
         return email;
