@@ -1,6 +1,8 @@
 package auth;
 
 import bcid.database;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Calendar;
@@ -11,8 +13,9 @@ import java.util.Calendar;
 public class authorizer {
     protected Connection conn;
     private database db;
+    private static Logger logger = LoggerFactory.getLogger(authorizer.class);
 
-    public authorizer() throws Exception{
+    public authorizer() {
         db = new database();
         conn = db.getConn();
     }
@@ -62,8 +65,8 @@ public class authorizer {
                     return true;
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            logger.warn("SQLException thrown trying to validate reset token.", e);
         }
         return false;
     }
