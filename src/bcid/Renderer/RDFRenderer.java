@@ -63,6 +63,7 @@ public class RDFRenderer extends Renderer {
      * @param map
      */
     private void propertyAppender(metadataElement map) {
+        //TODO is this appropriate use of Exception catching?
         try {
         if (map != null) {
             if (!map.getValue().trim().equals("")) {

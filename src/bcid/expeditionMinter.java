@@ -730,9 +730,10 @@ public class expeditionMinter {
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 String rtString;
-                try {
-                    rtString = rt.get(rs.getString("d.resourceType")).string;
-                } catch (Exception e) {
+                ResourceType resourceType = rt.get(rs.getString("d.resourceType"));
+                if (resourceType != null) {
+                    rtString = resourceType.string;
+                } else {
                     rtString = rs.getString("d.resourceType");
                 }
 
@@ -790,9 +791,10 @@ public class expeditionMinter {
             ResultSet rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 String rtString;
-                try {
-                    rtString = rt.get(rs.getString("d.resourceType")).string;
-                } catch (Exception e) {
+                ResourceType resourceType = rt.get(rs.getString("d.resourceType"));
+                if (resourceType != null) {
+                    rtString = resourceType.string;
+                } else {
                     rtString = rs.getString("d.resourceType");
                 }
 

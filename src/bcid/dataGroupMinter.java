@@ -2,6 +2,7 @@ package bcid;
 
 import bcidExceptions.BadRequestException;
 import bcidExceptions.ServerErrorException;
+import org.apache.commons.lang.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -562,9 +563,10 @@ public class dataGroupMinter extends dataGroupEncoder {
                     config.put("webaddress", rs.getString("webaddress"));
                 }
 
-                try {
-                    config.put("resourceType", rts.get(rs.getString("resourceType")).string);
-                } catch (Exception e) {
+                ResourceType resourceType = rts.get(rs.getString("resourceType"));
+                if (resourceType != null) {
+                    config.put("resourceType", resourceType.string);
+                } else {
                     config.put("resourceType", rs.getString("resourceType"));
                 }
 

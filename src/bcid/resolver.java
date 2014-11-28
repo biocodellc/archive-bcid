@@ -352,8 +352,8 @@ public class resolver extends database {
                 ResultSet rs = stmt.executeQuery(select);
                 rs.next();
                 element_id = new BigInteger(rs.getString("identifiers_id"));
-            } catch (Exception e) {
-                return false;
+            } catch (SQLException e) {
+                throw new ServerErrorException(e);
             }
         }
         if (element_id == null) {

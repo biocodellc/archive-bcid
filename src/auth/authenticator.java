@@ -116,9 +116,9 @@ public class authenticator {
             try {
                 return passwordHash.validatePassword(password, hashedPass);
             } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
+                throw new ServerErrorException(e);
             } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
+                throw new ServerErrorException(e);
             }
         }
 

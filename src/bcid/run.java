@@ -184,13 +184,9 @@ public class run {
     }
 
     private static void resolverResults(EZIDService ezidService, String identifier) {
-        try {
-            resolver r = new resolver(identifier);
-            System.out.println("Attempting to resolve " + identifier);
-            System.out.println(r.resolveAllAsJSON(ezidService));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        resolver r = new resolver(identifier);
+        System.out.println("Attempting to resolve " + identifier);
+        System.out.println(r.resolveAllAsJSON(ezidService));
     }
 
     /**
@@ -227,15 +223,8 @@ public class run {
 
         // Create a new dataset
         System.out.println("\nCreating a new dataset");
-        try {
-            dataset = new dataGroupMinter(true, true);
-            dataset.mint(NAAN, user_id, new ResourceTypes().get(ResourceType).uri, doi, webaddress, null,title);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        }  finally {
-            dataset.close();
-        }
+        dataset = new dataGroupMinter(true, true);
+        dataset.mint(NAAN, user_id, new ResourceTypes().get(ResourceType).uri, doi, webaddress, null,title);
 
         /*
          // Create test data by using input file
