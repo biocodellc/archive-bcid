@@ -1,7 +1,7 @@
 package auth.oauth2;
 
 /**
- * An exception that encapsulates errors from the bcid system.
+ * An exception that encapsulates errors from the oauth system.
  */
 public class OAUTHException extends Exception {
     public OAUTHException() { super(); }
