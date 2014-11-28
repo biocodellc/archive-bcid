@@ -36,23 +36,12 @@ public class authenticator {
     public authenticator() {
 
         // Initialize database
-        try {
-            this.db = new database();
-            this.conn = db.getConn();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
-        }
+        this.db = new database();
+        this.conn = db.getConn();
 
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
+        sm.loadProperties();
     }
 
     public static LDAPAuthentication getLdapAuthentication() {
@@ -71,42 +60,31 @@ public class authenticator {
     public Boolean loginLDAP(String username, String password, Boolean recognizeDemo) {
         // 1. check that this is a valid username in this system
         if (!validUser(LDAPAuthentication.showShortUserName(username))) {
-            System.out.println("attempting to add user " + username+" to system");
+//            System.out.println("attempting to add user " + username+" to system");
             /*
             ADD LDAP authenticated user
             */
             // A. Check LDAP authentication
-            System.out.println("LDAP authentication");
+//            System.out.println("LDAP authentication");
             ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
-            System.out.println("message = " + ldapAuthentication.getMessage() + ";status=" + ldapAuthentication.getStatus());
+//            System.out.println("message = " + ldapAuthentication.getMessage() + ";status=" + ldapAuthentication.getStatus());
 
             if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
 
                 // B. If LDAP is good, then insert account into database (if not return false)
-                System.out.println("create LDAP user");
-                try {
-                    createLdapUser(LDAPAuthentication.showShortUserName(username));
-                }   catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
+//                System.out.println("create LDAP user");
+                createLdapUser(LDAPAuthentication.showShortUserName(username));
 
                 // C. enable this user for all projects
-                System.out.println("add user to projects");
-                try {
-                    projectMinter p = new projectMinter();
-                    // get the user_id for this username
-                    int user_id = getUserId(username);
-                    // Loop projects and assign user to them
-                    ArrayList<Integer> projects = p.getAllProjects();
-                    Iterator projectsIt = projects.iterator();
-                    while (projectsIt.hasNext()) {
-                        p.addUserToProject(user_id, (Integer) projectsIt.next());
-                    }
-                } catch (Exception e) {
-                    // TODO: if it fails at this point not sure if we should pass or fail this? for now we still say true
-                    e.printStackTrace();
-                    return true;
+//                System.out.println("add user to projects");
+                projectMinter p = new projectMinter();
+                // get the user_id for this username
+                int user_id = getUserId(username);
+                // Loop projects and assign user to them
+                ArrayList<Integer> projects = p.getAllProjects();
+                Iterator projectsIt = projects.iterator();
+                while (projectsIt.hasNext()) {
+                    p.addUserToProject(user_id, (Integer) projectsIt.next());
                 }
                 // D. return true because we got this far and already authenticated
                 return true;
@@ -116,7 +94,7 @@ public class authenticator {
         }
         // 2. If a valid username, we just need to check that the LDAP authentication worked
         else {
-            System.out.println("the user exists, just authenticating using LDAP");
+//            System.out.println("the user exists, just authenticating using LDAP");
             ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
             if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
                 return true;
@@ -259,8 +237,8 @@ public class authenticator {
 
                 return setHashedPass(username, password);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return false;
     }
@@ -295,10 +273,8 @@ public class authenticator {
      */
     public Boolean createLdapUser(String username) {
         PreparedStatement stmt = null;
-        Boolean success = false;
 
         try {
-
 
             String insertString = "INSERT INTO users (username,set_password,institution,email,firstName,lastName,pass_reset_token,password,admin,IDlimit)" +
                     " VALUES(?,?,?,?,?,?,?,?,?,?)";
@@ -315,22 +291,17 @@ public class authenticator {
             stmt.setInt(9, 0);
             stmt.setInt(10, 100000);
 
-
-
             stmt.execute();
-            success = true;
+            return true;
         } catch (SQLException e) {
-            e.printStackTrace();
-            success = false;
+            throw new RuntimeException(e);
         } finally {
             if (stmt != null) try {
                 stmt.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.warn("SQLException while closing db connection.", e);
             }
         }
-
-        return success;
     }
 
 
@@ -354,8 +325,8 @@ public class authenticator {
                 user_id = rs.getInt("user_id");
             }
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
         return user_id;
     }
@@ -388,13 +359,13 @@ public class authenticator {
                 stmt.execute();
                 success = true;
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.warn("SQLException while creating new user.", e);
                 success = false;
             } finally {
                 if (stmt != null) try {
                     stmt.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.warn("SQLException while closing db connection.", e);
                 }
             }
         }
@@ -442,8 +413,6 @@ public class authenticator {
      * @param username
      *
      * @return
-     *
-     * @throws Exception
      */
     public String sendResetToken(String username) {
         String email = null;
@@ -590,7 +559,7 @@ public class authenticator {
         if (conn != null) try {
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("SQLException while closing db connection.", e);
         }
     }
 }

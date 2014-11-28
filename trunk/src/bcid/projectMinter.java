@@ -24,8 +24,6 @@ public class projectMinter {
      * The constructor defines the class-level variables used when minting Expeditions.
      * It defines a generic set of entities (process, information content, objects, agents)
      * that can be used for any expedition.
-     *
-     * @throws Exception
      */
     public projectMinter() {
         database db = new database();
@@ -103,7 +101,6 @@ public class projectMinter {
             return sb.toString();
 
         } catch (SQLException e) {
-            e.printStackTrace();
             throw new RuntimeException("Trouble getting list of all projects.", e);
         }
     }
@@ -123,7 +120,7 @@ public class projectMinter {
                    projects.add(rs.getInt("project_id"));
                }
                return projects;
-           } catch (Exception e) {
+           } catch (SQLException e) {
                throw new RuntimeException("Trouble getting project List", e);
            }
        }
