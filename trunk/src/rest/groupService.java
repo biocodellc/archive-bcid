@@ -3,13 +3,11 @@ package rest;
 import auth.oauth2.provider;
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.Renderer;
-import bcid.Renderer.TextRenderer;
 import bcid.dataGroupMinter;
 import bcid.expeditionMinter;
 import bcid.database;
 import bcid.manageEZID;
 import bcid.GenericIdentifier;
-import bcid.resolver;
 import bcid.bcid;
 import bcid.ResourceTypes;
 
@@ -19,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.errorInfo;
-import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -192,17 +189,18 @@ public class groupService {
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
     public Response datasetList(@Context HttpServletRequest request) {
-//      TODO send a 401 if the user isn't logged in
         HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
+        String username = (String) session.getAttribute("user");
+
+        if (username == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).entity(new errorInfo("You must be logged in to view your data groups.",
+                    401
+            ).toJSON()).build();
+        }
 
         dataGroupMinter d = null;
-        try {
-            d = new dataGroupMinter();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo("test", 500).toJSON()).build();
-        }
+        d = new dataGroupMinter();
 
         return Response.ok(d.datasetList(username)).build();
     }
@@ -215,19 +213,21 @@ public class groupService {
     @GET
     @Path("/listUserBCIDsAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String listUserBCIDsAsTable(@Context HttpServletRequest request) {
+    public Response listUserBCIDsAsTable(@Context HttpServletRequest request) {
         HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
+        String username = (String) session.getAttribute("user");
 
-        dataGroupMinter d = null;
-        try {
-            d = new dataGroupMinter();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new errorInfo("test", 500).toHTMLTable();
+        if (username == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).entity(new errorInfo("You must be logged in to view your BCIDs.",
+                    401
+            ).toHTMLTable()).build();
         }
 
-        return d.datasetTable(username);
+        dataGroupMinter d = null;
+        d = new dataGroupMinter();
+
+        return Response.ok(d.datasetTable(username)).build();
     }
 
     /**
@@ -238,19 +238,21 @@ public class groupService {
     @GET
     @Path("/listUserExpeditionsAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String listUserExpeditionsAsTable(@Context HttpServletRequest request) {
+    public Response listUserExpeditionsAsTable(@Context HttpServletRequest request) {
         HttpSession session = request.getSession();
-        String username = session.getAttribute("user").toString();
+        String username = (String) session.getAttribute("user");
+
+        if (username == null) {
+            // status=401 means unauthorized user
+            return Response.status(401).entity(new errorInfo("You must be logged in to view your expeditions.",
+                    401
+            ).toHTMLTable()).build();
+        }
 
         expeditionMinter p = null;
-        try {
-            p = new expeditionMinter();
-            String tablename = p.expeditionTable(username);
-            return tablename;
-        } catch (Exception e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-            return new errorInfo("test", 500).toHTMLTable();
-        }
+        p = new expeditionMinter();
+        String tablename = p.expeditionTable(username);
+        return Response.ok(tablename).build();
     }
 
     /**
@@ -263,26 +265,26 @@ public class groupService {
     @GET
     @Path("/dataGroupEditorAsTable")
     @Produces(MediaType.TEXT_HTML)
-    public String dataGroupEditorAsTable(@QueryParam("ark") String prefix,
-                                         @Context HttpServletRequest request) {
+    public Response dataGroupEditorAsTable(@QueryParam("ark") String prefix,
+                                           @Context HttpServletRequest request) {
         HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
+        String username = (String) session.getAttribute("user");
 
         if (username == null) {
-            return "You must be logged in to edit a BCID.";
+            // status=401 means unauthorized user
+            return Response.status(401).entity(new errorInfo("You must be logged in to edit your BCID's configuration.",
+                    401
+            ).toHTMLTable()).build();
         }
 
         if (prefix == null) {
-            return "You must provide an \"ark\" query parameter.";
+            return Response.status(400).entity(new errorInfo("You must provide an \"ark\" query parameter.",
+                    400
+            ).toHTMLTable()).build();
         }
 
-        try {
-            dataGroupMinter d = new dataGroupMinter();
-            return d.bcidEditorAsTable(username.toString(), prefix);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new errorInfo("test", 500).toHTMLTable();
-        }
+        dataGroupMinter d = new dataGroupMinter();
+        return Response.ok(d.bcidEditorAsTable(username, prefix)).build();
     }
 
     /**
@@ -316,58 +318,56 @@ public class groupService {
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         if (username == null) {
-            return Response.status(401).entity("{\"error\": \"You must be logged in to edit BCIDs.\"}").build();
+            return Response.status(401).entity(new errorInfo("You must be logged in to edit BCID's.",
+                    401
+            ).toHTMLTable()).build();
         }
 
         // get this BCID's config
 
-        try {
-            dataGroupMinter d = new dataGroupMinter();
-            config = d.getDataGroupConfig(prefix, username.toString());
+        dataGroupMinter d = new dataGroupMinter();
+        config = d.getDataGroupConfig(prefix, username.toString());
 
-            if (config.containsKey("error")) {
-                // Some error occured when fetching BCID configuration
-                return Response.status(500).entity("{\"error\": \"" + config.get("error") + "\"}").build();
-            }
-
-            if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
-                resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).string;
-            }
-
-            // compare every field and if they don't match, add them to the update hashtable
-            if (doi != null && (!config.containsKey("doi") || !config.get("doi").equals(doi))) {
-                update.put("doi", doi);
-            }
-            if (webaddress != null && (!config.containsKey("webaddress") || !config.get("webaddress").equals(webaddress))) {
-                update.put("webaddress", webaddress);
-            }
-            if (!config.containsKey("title") || !config.get("title").equals(title)) {
-                update.put("title", title);
-            }
-            if (!config.containsKey("resourceType") || !config.get("resourceType").equals(resourceTypeString)) {
-                update.put("resourceTypeString", resourceTypeString);
-            }
-            if ((stringSuffixPassThrough != null && (stringSuffixPassThrough.equals("on") || stringSuffixPassThrough.equals("true")) && config.get("suffix").equals("false")) ||
-                    (stringSuffixPassThrough == null && config.get("suffix").equals("true"))) {
-                if (stringSuffixPassThrough != null && (stringSuffixPassThrough.equals("on") || stringSuffixPassThrough.equals("true"))) {
-                    update.put("suffixPassthrough", "true");
-                } else {
-                    update.put("suffixPassthrough", "false");
-                }
-            }
-
-            if (!update.isEmpty()) {
-                if (d.updateDataGroupConfig(update, prefix, username.toString())) {
-                    return Response.ok("{\"success\": \"BCID successfully updated.\"}").build();
-                }
-            } else {
-                return Response.ok("{\"success\": \"Nothing needed to be updated.\"}").build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo("test", 500).toJSON()).build();
+        if (config.containsKey("error")) {
+            // Some error occured when fetching BCID configuration
+            return Response.status(500).entity(new errorInfo(config.get("error"), 500).toJSON()).build();
         }
-        // if we are here, there was an error during d.updateDataGroupConfig
-        return Response.status(500).entity("{\"error\": \"server error.\"}").build();
+
+        if (resourceTypesMinusDataset != null && resourceTypesMinusDataset > 0) {
+            resourceTypeString = new ResourceTypes().get(resourceTypesMinusDataset).string;
+        }
+
+        // compare every field and if they don't match, add them to the update hashtable
+        if (doi != null && (!config.containsKey("doi") || !config.get("doi").equals(doi))) {
+            update.put("doi", doi);
+        }
+        if (webaddress != null && (!config.containsKey("webaddress") || !config.get("webaddress").equals(webaddress))) {
+            update.put("webaddress", webaddress);
+        }
+        if (!config.containsKey("title") || !config.get("title").equals(title)) {
+            update.put("title", title);
+        }
+        if (!config.containsKey("resourceType") || !config.get("resourceType").equals(resourceTypeString)) {
+            update.put("resourceTypeString", resourceTypeString);
+        }
+        if ((stringSuffixPassThrough != null && (stringSuffixPassThrough.equals("on") || stringSuffixPassThrough.equals("true")) && config.get("suffix").equals("false")) ||
+                (stringSuffixPassThrough == null && config.get("suffix").equals("true"))) {
+            if (stringSuffixPassThrough != null && (stringSuffixPassThrough.equals("on") || stringSuffixPassThrough.equals("true"))) {
+                update.put("suffixPassthrough", "true");
+            } else {
+                update.put("suffixPassthrough", "false");
+            }
+        }
+
+        if (update.isEmpty()) {
+            return Response.ok("{\"success\": \"Nothing needed to be updated.\"}").build();
+        // try to update the config by calling d.updateDataGroupConfig
+        } else if (d.updateDataGroupConfig(update, prefix, username.toString())) {
+            return Response.ok("{\"success\": \"BCID successfully updated.\"}").build();
+        } else {
+            // if we are here, there was an error during d.updateDataGroupConfig
+            return Response.status(500).entity("{\"error\": \"server error.\"}").build();
+        }
+
     }
 }
