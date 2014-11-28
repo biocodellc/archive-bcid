@@ -155,6 +155,7 @@ public class expeditionMinter {
             rs.next();
             return rs.getInt("expedition_id");
         } catch (SQLException e) {
+            logger.warn("SQLException while getting expedition Identifier", e);
             return null;
         }
     }
