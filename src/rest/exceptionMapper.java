@@ -113,8 +113,9 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
     }
 
     private void logException(Exception e) {
-        // don't log BadRequestexceptions or UnauthorizedRequestExceptions
-        if (!(e instanceof BadRequestException || e instanceof UnauthorizedRequestException)) {
+        // don't log BadRequestexceptions or UnauthorizedRequestExceptions or ForbiddenRequestExceptions
+        if (!(e instanceof BadRequestException || e instanceof UnauthorizedRequestException ||
+                e instanceof ForbiddenRequestException)) {
             logger.warn("{} thrown.", e.getClass().toString(), e);
         }
     }
