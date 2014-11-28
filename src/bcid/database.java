@@ -2,8 +2,6 @@ package bcid;
 
 import util.SettingsManager;
 
-import java.io.FileNotFoundException;
-import java.math.BigInteger;
 import java.sql.*;
 
 /**
