@@ -3,9 +3,9 @@ package bcidExceptions;
 /**
  * An exception that encapsulates errors from the bcid oauth system.
  */
-public class OAUTHException extends BCIDRuntimeException{
+public class OAUTHException extends BCIDAbstractException {
 
-    public OAUTHException (String developerMessage,  Integer httpStatusCode, Throwable cause) {
+    public OAUTHException (String developerMessage, Integer httpStatusCode, Throwable cause) {
         super(developerMessage, httpStatusCode, cause);
     }
 
