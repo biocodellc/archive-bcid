@@ -1,7 +1,7 @@
 package rest;
 
 import auth.authenticator;
-import bcid.BCIDException;
+import bcidExceptions.BCIDException;
 import bcid.database;
 import bcid.projectMinter;
 import bcid.userMinter;

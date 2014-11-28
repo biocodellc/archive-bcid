@@ -4,16 +4,15 @@ import auth.oauth2.provider;
 import bcid.*;
 
 
+import bcidExceptions.BCIDException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.errorInfo;
-import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;

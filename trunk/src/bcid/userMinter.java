@@ -2,6 +2,7 @@ package bcid;
 
 import auth.authenticator;
 import auth.oauth2.provider;
+import bcidExceptions.BCIDException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,6 @@
 package rest;
 
-import bcid.BCIDRuntimeException;
+import bcidExceptions.BCIDRuntimeException;
 import com.sun.jersey.api.core.ExtendedUriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
