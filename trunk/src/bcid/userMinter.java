@@ -177,7 +177,7 @@ public class userMinter {
         String email = getEmail(username);
         String institution = getInstitution(username);
 
-        sb.append("<form method=\"POST\" action=\"/id/userService/profile/update\">\n");
+        sb.append("<form>\n");
 
         sb.append("<table>\n");
         sb.append("\t<tr>\n");

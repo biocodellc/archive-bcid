@@ -420,7 +420,20 @@ function getProfileEditor() {
             if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
                 $(".error").html("password too weak");
             } else {
-                $("form").submit();
+                var form = $("form");
+                var return_to = getQueryParam("return_to");
+                var postURL = "/id/userService/profile/update";
+                if (return_to != null) {
+                    postURL += "?return_to=" + encodeURIComponent(return_to);
+                }
+                var jqxhr3 = $.post(postURL, form.serialize(), "json")
+                    .done(function(data) {
+                        $(location).attr("href", data.success);
+                    })
+                    .fail(function(jqxhr4) {
+                        var json = $.parseJSON(jqxhr4.responseText);
+                        $(".error").html(json.usrMessage);
+                });
             }
         });
     });

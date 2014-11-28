@@ -18,6 +18,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Hashtable;
 
 /**
@@ -189,21 +190,20 @@ public class userService {
      * @param old_password
      * @param new_password
      * @param return_to
-     * @throws IOException
+     * @returns either error message or the url to redirect to upon success
      */
     @POST
     @Path("/profile/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.TEXT_HTML)
-    public void updateProfile(@FormParam("firstName") String firstName,
-                              @FormParam("lastName") String lastName,
-                              @FormParam("email") String email,
-                              @FormParam("institution") String institution,
-                              @FormParam("old_password") String old_password,
-                              @FormParam("new_password") String new_password,
-                              @QueryParam("return_to") String return_to,
-                              @Context HttpServletResponse response)
-        throws IOException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateProfile(@FormParam("firstName") String firstName,
+                                  @FormParam("lastName") String lastName,
+                                  @FormParam("email") String email,
+                                  @FormParam("institution") String institution,
+                                  @FormParam("old_password") String old_password,
+                                  @FormParam("new_password") String new_password,
+                                  @QueryParam("return_to") String return_to,
+                                  @Context HttpServletResponse response) {
 
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
@@ -263,21 +263,11 @@ public class userService {
             }
         }
 
-//        if (error.isEmpty()) {
         if (return_to != null) {
-            response.sendRedirect(return_to);
+            return Response.ok("{\"success\": \"" + return_to + "\"}").build();
         } else {
-            response.sendRedirect("/bcid/secure/profile.jsp");
-            return;
+            return Response.ok("{\"success\": \"/bcid/secure/profile.jsp\"}").build();
         }
-//        }
-
-//        Error occurred somewhere, inform user
-//        if (return_to != null) {
-//            response.sendRedirect("/bcid/secure/profile.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
-//            return;
-//        }
-//        response.sendRedirect("/bcid/secure/profile.jsp?error=" + error);
     }
 
     /**
