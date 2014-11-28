@@ -1,4 +1,4 @@
-package bcid;
+package bcidExceptions;
 
 /**
  * An exception that encapsulates errors from the oauth system.

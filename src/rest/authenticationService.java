@@ -3,7 +3,8 @@ package rest;
 import auth.authenticator;
 import auth.authorizer;
 import auth.oauth2.provider;
-import auth.oauth2.OAUTHException;
+import bcidExceptions.OAUTHException;
+import bcidExceptions.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -450,7 +451,7 @@ public class authenticationService {
     public Response sendResetToken(@FormParam("username") String username) {
 
         if (username.isEmpty()) {
-            return Response.status(400).entity(new errorInfo("User not found", "username is null", 400).toJSON()).build();
+            throw new BadRequestException("User not found.", "username is null");
         }
         authenticator a = new authenticator();
         String email = a.sendResetToken(username);
@@ -458,7 +459,7 @@ public class authenticationService {
         if (email != null) {
             return Response.ok("{\"success\": \"" + email + "\"}").build();
         } else {
-            return Response.status(400).entity(new errorInfo("User not found", 400).toJSON()).build();
+            throw new BadRequestException("User not found.");
         }
     }
 }

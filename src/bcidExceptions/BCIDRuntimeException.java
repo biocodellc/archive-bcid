@@ -1,7 +1,7 @@
-package bcid;
+package bcidExceptions;
 
 /**
- * An exception that encapsulates errors from the oauth system.
+ * An exception that encapsulates errors from the bcid system.
  */
 public class BCIDRuntimeException extends RuntimeException {
     private Integer httpStatusCode;
@@ -15,6 +15,19 @@ public class BCIDRuntimeException extends RuntimeException {
     public BCIDRuntimeException(String developerMessage) {
         super(developerMessage);
         this.developerMessage = developerMessage;
+    }
+
+    public BCIDRuntimeException(String usrMessage,  Integer httpStatusCode, Throwable cause) {
+        super(usrMessage, cause);
+        this.usrMessage = usrMessage;
+        this.httpStatusCode = httpStatusCode;
+    }
+
+    public BCIDRuntimeException(String usrMessage, String developerMessage, Integer httpStatusCode, Throwable cause) {
+        super(developerMessage, cause);
+        this.developerMessage = developerMessage;
+        this.usrMessage = usrMessage;
+        this.httpStatusCode = httpStatusCode;
     }
 
     public BCIDRuntimeException(String developerMessage, Throwable cause) {

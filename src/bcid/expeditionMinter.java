@@ -1,5 +1,6 @@
 package bcid;
 
+import bcidExceptions.BCIDException;
 import ezid.EZIDService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

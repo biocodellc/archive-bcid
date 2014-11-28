@@ -1,6 +1,7 @@
 package auth.oauth2;
 
 import bcid.database;
+import bcidExceptions.OAUTHException;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -252,7 +253,7 @@ public class provider {
      *
      * @return
      *
-     * @throws auth.oauth2.OAUTHException
+     * @throws bcidExceptions.OAUTHException
      */
     public String generateToken(String refreshToken)
             throws OAUTHException {
@@ -292,7 +293,7 @@ public class provider {
      *
      * @return
      *
-     * @throws auth.oauth2.OAUTHException
+     * @throws bcidExceptions.OAUTHException
      */
     public String generateToken(String clientID, String state, String code) throws OAUTHException {
         Integer user_id = getUserId(clientID, code);
@@ -313,7 +314,7 @@ public class provider {
      *
      * @return
      *
-     * @throws auth.oauth2.OAUTHException
+     * @throws bcidExceptions.OAUTHException
      */
     private String generateToken(String clientID, Integer userId, String state) throws OAUTHException {
         stringGenerator sg = new stringGenerator();
