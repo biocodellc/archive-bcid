@@ -81,7 +81,8 @@ public class BCIDMetadataSchema {
                     bscSuffixPassthrough = new metadataElement("bsc:suffixPassthrough", pairs.getValue().toString(), "Indicates that this identifier supports suffixPassthrough.");
                 }
             } catch (NullPointerException e) {
-                e.getMessage();
+                //TODO should we silence this exception?
+                logger.warn("NullPointerException thrown for identifier: {}", identifier);
             }
         }
         if (ark != null) {

@@ -93,8 +93,6 @@ public class resolver extends database {
             rs.next();
             this.ark = rs.getString("prefix");
         } catch (SQLException e) {
-            //TODO is it necessary to set this.ark to null?
-            this.ark = null;
             throw new ServerErrorException(e);
         }
     }
@@ -218,6 +216,7 @@ public class resolver extends database {
                     bcid = new bcid(sourceID, bcid.getResolutionTarget(), datagroup_id);
                 }
             } catch (URISyntaxException e) {
+                //TODO should we silence this exception?
                 logger.warn("URISyntaxException thrown", e);
             }
             //}

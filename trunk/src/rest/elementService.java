@@ -51,6 +51,7 @@ public class elementService {
             // Setup EZID account/login information
             ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
         } catch (EZIDException e) {
+            //TODO should we silence this exception?
             logger.warn("EZIDException trying to login.", e);
         }
     }

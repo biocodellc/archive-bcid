@@ -78,6 +78,7 @@ public class inputFileParser {
                     try {
                         webAddress = new URI(st.nextToken());
                     } catch (NullPointerException e) {
+                        //TODO should we silence this exception?
                         logger.warn("NullPointerException for webAddress in the file: {}", inputString, e);
                         webAddress = null;
                     }

@@ -57,6 +57,7 @@ public class ResourceType {
         try {
             return string.split(":")[1];
         } catch (NullPointerException e) {
+            //TODO should we silence this exception?
             logger.warn("ResourceType.string is null", e);
             return "";
         }

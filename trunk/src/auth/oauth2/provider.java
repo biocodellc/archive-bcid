@@ -225,7 +225,7 @@ public class provider {
             }
 
         } catch (SQLException e) {
-            throw new ServerErrorException("Server Error",
+            throw new ServerErrorException("server_error",
                     "SQLException thrown while retrieving the userID that belongs to the oauth code: " + code, e);
         }
         return user_id;

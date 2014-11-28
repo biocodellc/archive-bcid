@@ -1,6 +1,8 @@
 package bcid;
 
 import com.ibm.icu.math.BigDecimal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -19,6 +21,8 @@ import java.util.HashMap;
 public class dataGroupEncoder extends GenericIdentifier implements encoder {
     private boolean debug = false;
     int[] endDigits = {1};
+
+    private static Logger logger = LoggerFactory.getLogger(dataGroupEncoder.class);
 
     /**
      * Tell if DEBUG mode is on or off
@@ -83,7 +87,7 @@ public class dataGroupEncoder extends GenericIdentifier implements encoder {
             try {
                 results += this.chars[position];
             } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println("Increment = " + i + ", position = " + position + ", selector=" + selectorForCurrentPosition + ", possperincrement =" + possibilitiesPerIncrement);
+                logger.warn("Increment = " + i + ", position = " + position + ", selector=" + selectorForCurrentPosition + ", possperincrement =" + possibilitiesPerIncrement);
             }
 
             // Update selector for current Position

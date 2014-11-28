@@ -85,7 +85,7 @@ public class manageEZID extends elementMinter {
             } catch (EZIDException e1) {
                 // After attempting to set the Metadata, if another exception is thrown then who knows,
                 // probably just a permissions issue.
-                throw new EZIDException("  Exception thrown in attempting to create EZID " + myIdentifier + ", likely a permission issue");
+                throw new EZIDException("  Exception thrown in attempting to create EZID " + myIdentifier + ", likely a permission issue", e1);
             }
 
 
@@ -146,6 +146,7 @@ public class manageEZID extends elementMinter {
                         ezid.setMetadata(myIdentifier,map);
                         idSuccessList.add(rs.getString("datasets_id"));
                     } catch (EZIDException e1) {
+                        //TODO should we silence this exception?
                         logger.warn("Exception thrown in attempting to create OR update EZID {}, a permission issue?", myIdentifier, e1);
                     }
 
@@ -218,6 +219,7 @@ public class manageEZID extends elementMinter {
                         myIdentifier = this.createUUIDARK(rs.getString("localID"));
                     } catch (BCIDException e) {
                         // TODO: special exception to handle for unable to create this identifier
+                        //TODO should we silence this exception?
                         logger.warn("BCIDException thrown.", e);
                     }
                     // If this is not tagged as a uuid

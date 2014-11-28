@@ -109,6 +109,7 @@ public class bcid extends GenericIdentifier {
             }
             projectCode = dataset.getProject(dataset_id);
         } catch (URISyntaxException e) {
+            //TODO should we silence this exception?
             logger.warn("URISyntaxException for uri: {}", dataset.identifier + sm.retrieveValue("divider") + sourceID, e);
         }
         // Reformat webAddress in this constructor if there is a sourceID
@@ -117,6 +118,7 @@ public class bcid extends GenericIdentifier {
             try {
                 this.webAddress = new URI(webAddress + sourceID);
             } catch (URISyntaxException e) {
+                //TODO should we silence this exception?
                 logger.warn("URISyntaxException for uri: {}", webAddress + sourceID, e);
             }
         }
