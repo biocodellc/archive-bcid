@@ -2,6 +2,8 @@ package bcid;
 
 import auth.authenticator;
 import auth.oauth2.provider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Enumeration;
@@ -13,7 +15,9 @@ import java.util.Hashtable;
 public class userMinter {
     protected Connection conn;
 
-    public userMinter() throws Exception {
+    private static Logger logger = LoggerFactory.getLogger(userMinter.class);
+
+    public userMinter() {
         database db = new database();
         conn = db.getConn();
     }
@@ -21,7 +25,7 @@ public class userMinter {
          try {
              conn.close();
          } catch (SQLException e) {
-             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+             logger.warn("SQLException while closing db.", e);
          }
 
      }
@@ -31,7 +35,8 @@ public class userMinter {
      * @param projectId
      * @return
      */
-    public String createUser(Hashtable<String, String> userInfo, Integer projectId) throws Exception{
+    //TODO is this an appropriate use of exceptions?
+    public String createUser(Hashtable<String, String> userInfo, Integer projectId) throws BCIDException {
         authenticator auth = new authenticator();
         Boolean success = auth.createUser(userInfo);
         auth.close();
@@ -43,11 +48,9 @@ public class userMinter {
 
             if (p.addUserToProject(userId, projectId)) {
                 return "{\"success\": \"successfully created new user\"}";
-            } else {
-                throw new Exception("error adding user to project");
             }
         }
-        throw new Exception("error creating new user");
+        throw new BCIDException("error creating new user");
     }
 
     /**
@@ -255,7 +258,7 @@ public class userMinter {
                 return rs.getString("institution");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -279,7 +282,7 @@ public class userMinter {
                 return rs.getString("email");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -302,7 +305,7 @@ public class userMinter {
                 return rs.getString("firstName");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -325,7 +328,7 @@ public class userMinter {
                 return rs.getString("lastName");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         return null;
     }
@@ -335,31 +338,28 @@ public class userMinter {
      * @param token
      * @return
      */
+    //TODO throw an exception here to have consistant error responses?
     public String getOauthProfile(String token) {
-        try {
-            provider  p = new provider();
-            database db = new database();
+        provider  p = new provider();
+        database db = new database();
 
-            String username = p.validateToken(token);
-            if (username != null) {
-                Integer user_id = db.getUserId(username);
+        String username = p.validateToken(token);
+        if (username != null) {
+            Integer user_id = db.getUserId(username);
 
-                StringBuilder sb = new StringBuilder();
-                sb.append("{\n");
+            StringBuilder sb = new StringBuilder();
+            sb.append("{\n");
 
-                sb.append("\t\"first_name\": \"" + getFirstName(username) + "\",\n");
-                sb.append("\t\"last_name\": \"" + getLastName(username) + "\",\n");
-                sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
-                sb.append("\t\"institution\": \"" + getInstitution(username) + "\",\n");
-                sb.append("\t\"user_id\": \"" + user_id + "\",\n");
-                sb.append("\t\"username\": \"" + username + "\"\n");
+            sb.append("\t\"first_name\": \"" + getFirstName(username) + "\",\n");
+            sb.append("\t\"last_name\": \"" + getLastName(username) + "\",\n");
+            sb.append("\t\"email\": \"" + getEmail(username) + "\",\n");
+            sb.append("\t\"institution\": \"" + getInstitution(username) + "\",\n");
+            sb.append("\t\"user_id\": \"" + user_id + "\",\n");
+            sb.append("\t\"username\": \"" + username + "\"\n");
 
-                sb.append("}");
+            sb.append("}");
 
-                return sb.toString();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            return sb.toString();
         }
 
         return "{\"error\": \"invalid_grant\"}";
@@ -382,8 +382,7 @@ public class userMinter {
             return rs.getInt("count") >= 1;
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            throw new RuntimeException(e);
         }
     }
 
@@ -432,8 +431,7 @@ public class userMinter {
             // result should be '1', if not, an error occurred during the UPDATE statement
             return result == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return false;
     }
 }
