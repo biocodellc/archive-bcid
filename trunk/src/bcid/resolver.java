@@ -218,7 +218,7 @@ public class resolver extends database {
                     bcid = new bcid(sourceID, bcid.getResolutionTarget(), datagroup_id);
                 }
             } catch (URISyntaxException e) {
-                e.printStackTrace();
+                logger.warn("URISyntaxException thrown", e);
             }
             //}
 
