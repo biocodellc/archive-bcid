@@ -3,6 +3,8 @@ package bcid;
 import auth.authenticator;
 import auth.oauth2.provider;
 import bcidExceptions.BCIDException;
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,22 +38,17 @@ public class userMinter {
      * @param projectId
      * @return
      */
-    //TODO is this an appropriate use of exceptions?
-    public String createUser(Hashtable<String, String> userInfo, Integer projectId) throws BCIDException {
+    public String createUser(Hashtable<String, String> userInfo, Integer projectId) {
         authenticator auth = new authenticator();
-        Boolean success = auth.createUser(userInfo);
+        auth.createUser(userInfo);
         auth.close();
-        // if user was created, add user to project
-        if (success) {
-            database db = new database();
-            Integer userId = db.getUserId(userInfo.get("username"));
-            projectMinter p = new projectMinter();
+        // add user to project
+        database db = new database();
+        Integer userId = db.getUserId(userInfo.get("username"));
+        projectMinter p = new projectMinter();
 
-            if (p.addUserToProject(userId, projectId)) {
-                return "{\"success\": \"successfully created new user\"}";
-            }
-        }
-        throw new BCIDException("error creating new user");
+        p.addUserToProject(userId, projectId);
+        return "{\"success\": \"successfully created new user\"}";
     }
 
     /**
@@ -259,7 +256,7 @@ public class userMinter {
                 return rs.getString("institution");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return null;
     }
@@ -283,7 +280,7 @@ public class userMinter {
                 return rs.getString("email");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return null;
     }
@@ -306,7 +303,7 @@ public class userMinter {
                 return rs.getString("firstName");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return null;
     }
@@ -329,7 +326,7 @@ public class userMinter {
                 return rs.getString("lastName");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return null;
     }
@@ -339,7 +336,6 @@ public class userMinter {
      * @param token
      * @return
      */
-    //TODO throw an exception here to have consistant error responses?
     public String getOauthProfile(String token) {
         provider  p = new provider();
         database db = new database();
@@ -363,7 +359,7 @@ public class userMinter {
             return sb.toString();
         }
 
-        return "{\"error\": \"invalid_grant\"}";
+        throw new BadRequestException("invalid_grant", "access token is not valid");
     }
 
     /**
@@ -432,7 +428,7 @@ public class userMinter {
             // result should be '1', if not, an error occurred during the UPDATE statement
             return result == 1;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 }
