@@ -1,6 +1,8 @@
 package rest;
 
 import bcid.*;
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,16 +65,16 @@ public class elementService {
     @GET
     @Path("/select/{select}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String jsonSelectOptions(@PathParam("select") String select) {
+    public Response jsonSelectOptions(@PathParam("select") String select) {
 
         if (select.equalsIgnoreCase("resourceTypes")) {
             ResourceTypes rts = new ResourceTypes();
-            return rts.getAllAsJSON();
+            return Response.ok(rts.getAllAsJSON()).build();
         } else if (select.equalsIgnoreCase("resourceTypesMinusDataset")) {
             ResourceTypes rts = new ResourceTypes();
-            return rts.getAllButDatasetAsJSON();
+            return Response.ok(rts.getAllButDatasetAsJSON()).build();
         } else {
-            return "{}";
+            throw new BadRequestException("Invalid value. Must be either resourceTypes or resourceTypesMinusDataset");
         }
     }
 
@@ -84,10 +86,9 @@ public class elementService {
     @GET
     @Path("/resourceTypes")
     @Produces(MediaType.TEXT_HTML)
-    public String htmlResourceTypes() {
+    public Response htmlResourceTypes() {
         ResourceTypes rts = new ResourceTypes();
-        return rts.getResourceTypesAsTable();
-
+        return Response.ok(rts.getResourceTypesAsTable()).build();
     }
 
 
@@ -140,18 +141,16 @@ public class elementService {
 
             // Some input form validation
             // TODO: create a generic way of validating this input form content
-            if (dataset_id != 0 &&
-                    (resourceType == 0 ||
+            if (resourceType == 0 ||
                             resourceType == ResourceTypes.SPACER1 ||
                             resourceType == ResourceTypes.SPACER2 ||
                             resourceType == ResourceTypes.SPACER3 ||
                             resourceType == ResourceTypes.SPACER4 ||
                             resourceType == ResourceTypes.SPACER5 ||
                             resourceType == ResourceTypes.SPACER6 ||
-                            resourceType == ResourceTypes.SPACER7)
+                            resourceType == ResourceTypes.SPACER7
                     ) {
-                return Response.status(400).entity(new errorInfo("Must choose a valid concept!", 400).toJSON())
-                        .build();
+                throw new BadRequestException("Must choose a valid concept!");
             }
             // TODO: check for valid local ID's, no reserved characters
 
@@ -203,13 +202,9 @@ public class elementService {
             dataset.close();
             return Response.ok(returnVal).build();
         } catch (URISyntaxException e) {
-            logger.warn("URISyntaxException while parsing file: {}", data, e);
-            return Response.status(500).entity(new errorInfo("Server Error",
-                    "URISyntaxException while parsing input file: " + data, 500).toJSON()).build();
+            throw new ServerErrorException("Server Error", "URISyntaxException while parsing input file: " + data, e);
         } catch (IOException e) {
-            logger.warn("IOException while reading input file: {}", data, e);
-            return Response.status(500).entity(new errorInfo("Server Error",
-                    "IOException while parsing input file: " + data, 500).toJSON()).build();
+            throw new ServerErrorException("Server Error", "IOException while parsing input file: " + data, e);
         }
     }
 }

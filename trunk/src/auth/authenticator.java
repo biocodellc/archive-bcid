@@ -2,8 +2,6 @@ package auth;
 
 import bcid.database;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
@@ -13,7 +11,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 
 import bcid.projectMinter;
-import bcidExceptions.BCIDRuntimeException;
+import bcidExceptions.ServerErrorException;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,7 +237,7 @@ public class authenticator {
                 return setHashedPass(username, password);
             }
         } catch (SQLException e) {
-            throw new BCIDRuntimeException("Server Error resetting password.","", 500, e);
+            throw new ServerErrorException("Server Error resetting password.", e);
         }
         return false;
     }
@@ -468,8 +466,8 @@ public class authenticator {
                 sendEmail.start();
             }
         } catch (SQLException e) {
-            throw new BCIDRuntimeException("Server Error while sending reset token.", "db error retrieving email for user "
-                    + username, 500, e);
+            throw new ServerErrorException("Server Error while sending reset token.", "db error retrieving email for user "
+                    + username, e);
         } finally {
             if (stmt != null) try {
                 stmt.close();

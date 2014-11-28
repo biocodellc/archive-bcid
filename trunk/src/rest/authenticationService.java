@@ -22,7 +22,6 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 
 /**
  * REST interface for handling user authentication
@@ -269,14 +268,8 @@ public class authenticationService {
             return;
         }
         //TODO ask user if they want to share profile information with requesting party
-        String code = "";
-        try {
-            code = p.generateCode(clientId, redirectURL, username.toString());
-        } catch (OAUTHException e) {
-            logger.warn("BCIDException thrown while attempting to generate oauth code.", e);
-            response.sendError(400, e.getMessage());
-            return;
-        }
+        String code = p.generateCode(clientId, redirectURL, username.toString());
+
         redirectURL += "?code=" + code;
 
         if (state != null) {
