@@ -244,8 +244,8 @@ public class authenticationService {
             String callback = null;
             try {
                 callback = p.getCallback(clientId);
-            } catch (SQLException e) {
-                logger.warn("SQLException retrieving callback for OAUTH clientID {}", clientId, e);
+            } catch (OAUTHException e) {
+                logger.warn("OAUTHException retrieving callback for OAUTH clientID {}", clientId, e);
             }
 
             if (callback != null) {
@@ -331,17 +331,11 @@ public class authenticationService {
                     400).toJSON()).location(url).build();
         }
 
-        try {
-            return Response.ok(p.generateToken(clientId, state, code))
-                    .header("Cache-Control", "no-store")
-                    .header("Pragma", "no-cache")
-                    .location(url)
-                    .build();
-        } catch (OAUTHException e) {
-            logger.warn(e.getMessage(), e);
-            return Response.status(500).entity(new errorInfo("server_error", "Server Error accessing db.", 500).toJSON())
-                .location(url).build();
-        }
+        return Response.ok(p.generateToken(clientId, state, code))
+                .header("Cache-Control", "no-store")
+                .header("Pragma", "no-cache")
+                .location(url)
+                .build();
     }
 
     /**
@@ -362,32 +356,22 @@ public class authenticationService {
         provider p = new provider();
 
         if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
-            return Response.status(400).entity(new errorInfo("invalid_client", 400).toJSON()).build();
+            throw new BadRequestException("invalid_client");
         }
 
         if (refreshToken == null || !p.validateRefreshToken(refreshToken)) {
-            return Response.status(400).entity(new errorInfo("invalid_grant",
-                    "refresh_token is invalid",
-                    400).toJSON()).build();
+            throw new BadRequestException("invalid_grant", "refresh_token is invalid");
         }
 
+        String accessToken = p.generateToken(refreshToken);
 
-        try {
-            String accessToken = p.generateToken(refreshToken);
+        // refresh tokens are only good once, so delete the old access token so the refresh token can no longer be used
+        p.deleteAccessToken(refreshToken);
 
-            // refresh tokens are only good once, so delete the old access token so the refresh token can no longer be used
-            p.deleteAccessToken(refreshToken);
-
-            return Response.ok(accessToken)
-                    .header("Cache-Control", "no-store")
-                    .header("Pragma", "no-cache")
-                    .build();
-
-        } catch (Exception e) {
-            logger.warn(e.getMessage(), e);
-            return Response.status(500).entity(new errorInfo("server_error", "Server Error accessing db.", 500).toJSON())
-                    .build();
-        }
+        return Response.ok(accessToken)
+                .header("Cache-Control", "no-store")
+                .header("Pragma", "no-cache")
+                .build();
     }
 
     /**

@@ -1,6 +1,7 @@
 package auth;
 
 import bcid.database;
+import bcidExceptions.BCIDRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +67,8 @@ public class authorizer {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new BCIDRuntimeException("Server Error while validating reset token",
+                    "db error retrieving reset token expiration", 500, e);
         }
         return false;
     }
