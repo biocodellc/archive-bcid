@@ -1,6 +1,5 @@
 package util;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Timestamp;
@@ -29,9 +28,6 @@ public class errorInfo {
         this.e = e;
         this.ts = new Timestamp(new java.util.Date().getTime());
     }
-    public errorInfo(Throwable t, HttpServletRequest r) {
-        this.usrMessage = t.getMessage();
-    }
 
     public errorInfo(String usrMessage, int httpStatusCode) {
         this.httpStatusCode = httpStatusCode;
@@ -56,7 +52,7 @@ public class errorInfo {
         sb.append("\t\"httpStatusCode\": \"" + httpStatusCode + "\",\n");
         sb.append("\t\"time\": \"" + ts + "\"");
 
-        if (!e.equals(null)) {
+        if (e != null) {
             SettingsManager sm = SettingsManager.getInstance();
             sm.loadProperties();
             String debug = sm.retrieveValue("debug", "false");
@@ -101,7 +97,7 @@ public class errorInfo {
             sb.append("\t\t<td>" + ts + "</td>\n");
             sb.append("\t</tr>\n");
 
-            if (!e.equals(null)) {
+            if (e != null) {
                 sb.append("\t<tr>\n");
                 sb.append("\t\t<td>Exception Message:</td>\n");
                 sb.append("\t\t<td>" + e.getMessage() + "</td>\n");
