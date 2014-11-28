@@ -232,8 +232,7 @@ public class authenticationService {
     public Response authorize(@QueryParam("client_id") String clientId,
                               @QueryParam("redirect_uri") String redirectURL,
                               @QueryParam("state") String state,
-                              @Context HttpServletResponse response)
-            throws IOException {
+                              @Context HttpServletResponse response) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
