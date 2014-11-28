@@ -252,7 +252,6 @@ public class expeditionService {
 
         resolver r = new resolver(expedition, project_id, resourceAlias);
         String response = r.getArk();
-        //TODO will the response ever be null since an exception is thrown with the resolver constructor above when r.getArk would return null?
         if (response == null) {
             return Response.status(Response.Status.NO_CONTENT).entity("{\"ark\": \"\"}").build();
         } else {

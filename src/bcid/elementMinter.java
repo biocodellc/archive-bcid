@@ -106,6 +106,7 @@ public class elementMinter extends dataGroupMinter {
             alterStatement.setInt(1, startingNumber);
             alterStatement.executeUpdate();
         } catch (SQLException e) {
+            //TODO should we silence this exception?
             logger.warn("SQLException trying to set AUTO_INCREMENT for identifiers table.", e);
         }
     }
@@ -133,7 +134,7 @@ public class elementMinter extends dataGroupMinter {
             String sql = "DELETE FROM identifiers WHERE loadedSetUUID='" + uuid + "'";
             return stmt.executeUpdate(sql);
         } catch (SQLException e) {
-            //TODO is it appropriate to silence this SQLException?
+            //TODO should we silence this exception?
             logger.warn("SQLException trying to delete loadedSetUUID: {} from identifiers table.", uuid, e);
         }
         return 0;
@@ -326,7 +327,7 @@ public class elementMinter extends dataGroupMinter {
             return big.add(new BigInteger("1"));
 
         } catch (SQLException e) {
-            throw new BCIDException("Unable to find start", e);
+            throw new ServerErrorException("Server Error", "Unable to find start", e);
         }
     }
 

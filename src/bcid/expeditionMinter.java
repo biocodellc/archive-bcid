@@ -641,8 +641,6 @@ public class expeditionMinter {
                     "WHERE expedition_code = '" + expedition_code + "' AND " +
                     "project_id = " + project_id;
 
-            System.out.println(sql);
-
             ResultSet rs = stmt.executeQuery(sql);
             rs.next();
             Integer count = rs.getInt("count");
