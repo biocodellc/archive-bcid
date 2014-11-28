@@ -1,6 +1,7 @@
 package auth.oauth2;
 
 import bcid.database;
+import bcidExceptions.BCIDRuntimeException;
 import bcidExceptions.OAUTHException;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -22,8 +23,12 @@ public class provider {
          conn = db.getConn();
     }
 
-    public void close() throws SQLException {
-        conn.close();
+    public void close() {
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            logger.warn("SQLException thrown while trying to close db connection.", e);
+        }
     }
 
     /**
@@ -45,7 +50,7 @@ public class provider {
                 return rs.getInt("count") >= 1;
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new OAUTHException("server_error", "error validating clientId", 500, e);
         }
         return false;
     }
@@ -56,18 +61,20 @@ public class provider {
      * @param clientID
      *
      * @return
-     *
-     * @throws SQLException
      */
-    public String getCallback(String clientID) throws SQLException {
-        String selectString = "SELECT callback FROM oauthClients WHERE client_id = ?";
-        PreparedStatement stmt = conn.prepareStatement(selectString);
+    public String getCallback(String clientID) {
+        try {
+            String selectString = "SELECT callback FROM oauthClients WHERE client_id = ?";
+            PreparedStatement stmt = conn.prepareStatement(selectString);
 
-        stmt.setString(1, clientID);
+            stmt.setString(1, clientID);
 
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getString("callback");
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("callback");
+            }
+        } catch (SQLException e) {
+            throw new OAUTHException("SQLException while trying to retrieve callback url for oauth client_id: " + clientID, 500, e);
         }
         return null;
     }
@@ -80,17 +87,15 @@ public class provider {
      * @param username
      *
      * @return
-     *
-     * @throws Exception
      */
-    public String generateCode(String clientID, String redirectURL, String username) throws OAUTHException {
+    public String generateCode(String clientID, String redirectURL, String username) {
         stringGenerator sg = new stringGenerator();
         String code = sg.generateString(20);
 
         database db = new database();
         Integer user_id = db.getUserId(username);
         if (user_id == null) {
-            throw new OAUTHException("Issue with username/session.  Please logout, then login again to refresh your session.");
+            throw new OAUTHException("server_error", "null user_id returned for username: " + username, 500);
         }
 
         String insertString = "INSERT INTO oauthNonces (client_id, code, user_id, redirect_uri) VALUES(?, \"" + code + "\",?,?)";
@@ -103,7 +108,7 @@ public class provider {
 
             stmt.execute();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new OAUTHException("server_error", "error saving oauth nonce to db", 500, e);
         }
         return code;
     }
@@ -140,7 +145,7 @@ public class provider {
         try {
             String selectString = "SELECT count(*) as count FROM oauthClients WHERE client_id = ? AND client_secret = ?";
 
-            System.out.println("clientId = \'" + clientId + "\' clientSecret=\'" + clientSecret + "\'");
+//            System.out.println("clientId = \'" + clientId + "\' clientSecret=\'" + clientSecret + "\'");
 
 
             PreparedStatement stmt = conn.prepareStatement(selectString);
@@ -153,7 +158,7 @@ public class provider {
                 return rs.getInt("count") >= 1;
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new OAUTHException("server_error", "Server Error validating oauth client", 500, e);
         }
         return false;
     }
@@ -192,7 +197,7 @@ public class provider {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new OAUTHException("server_error", "Server Error validating oauth code", 500, e);
         }
         return false;
     }
@@ -252,11 +257,8 @@ public class provider {
      * @param refreshToken
      *
      * @return
-     *
-     * @throws bcidExceptions.OAUTHException
      */
-    public String generateToken(String refreshToken)
-            throws OAUTHException {
+    public String generateToken(String refreshToken) {
         Integer userId = null;
         String clientId = null;
 
@@ -272,12 +274,11 @@ public class provider {
                 clientId = rs.getString("client_id");
             }
         } catch (SQLException e) {
-            logger.warn("SQLException while retieving user_id and client_id from oauthTokens table with refresh_token: {}",
-                    refreshToken, e);
+            throw new OAUTHException("server_error", "error retrieving oauth client information from db", 500, e);
         }
 
-        if (userId == null) {
-            throw new OAUTHException("Error retrieving userId");
+        if (userId == null || clientId == null) {
+            throw new OAUTHException("server_error", "userId or clientId was null for refreshToken: " + refreshToken, 500);
         }
 
         return generateToken(clientId, userId, null);
@@ -292,14 +293,12 @@ public class provider {
      * @param code
      *
      * @return
-     *
-     * @throws bcidExceptions.OAUTHException
      */
-    public String generateToken(String clientID, String state, String code) throws OAUTHException {
+    public String generateToken(String clientID, String state, String code) {
         Integer user_id = getUserId(clientID, code);
         deleteNonce(clientID, code);
         if (user_id == null) {
-            throw new OAUTHException("Error retrieving userId");
+            throw new OAUTHException("server_error", "userId was null for oauthNonce with code: " + code, 500);
         }
 
         return generateToken(clientID, user_id, state);
@@ -313,10 +312,8 @@ public class provider {
      * @param state
      *
      * @return
-     *
-     * @throws bcidExceptions.OAUTHException
      */
-    private String generateToken(String clientID, Integer userId, String state) throws OAUTHException {
+    private String generateToken(String clientID, Integer userId, String state) {
         stringGenerator sg = new stringGenerator();
         String token = sg.generateString(20);
         String refreshToken = sg.generateString(20);
@@ -330,7 +327,7 @@ public class provider {
             stmt.setInt(2, userId);
             stmt.execute();
         } catch (SQLException e) {
-            throw new OAUTHException("Server error while trying to save oauth access token to db.", e);
+            throw new OAUTHException("server_error", "Server error while trying to save oauth access token to db.", 500, e);
         }
 
         StringBuilder sb = new StringBuilder();
@@ -396,7 +393,7 @@ public class provider {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new OAUTHException("server_error", "server error validating refresh token", 500, e);
         }
 //        System.out.println(sql + refreshToken);
         return false;
@@ -432,7 +429,7 @@ public class provider {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new OAUTHException("server_error", "error while validating access_token", 500, e);
         }
 
         return null;
@@ -475,15 +472,15 @@ public class provider {
             String clientId = p.generateClientId();
             String clientSecret = p.generateClientSecret();
 
-            //String insertString = "INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
-            //                      + clientId + "\",\"" + clientSecret + "\",?)";
+            String insertString = "INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
+                                  + clientId + "\",\"" + clientSecret + "\",?)";
 
             System.out.println("USE THE FOLLOWING INSERT STATEMENT IN YOUR DATABASE:\n\n");
             System.out.println("INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
                     + clientId + "\",\"" + clientSecret + "\",\"" + host + "\")");
             System.out.println(".\nYou will need the following information:\n\nclient_id: "
                     + clientId + "\nclient_secret: " + clientSecret);
-            /*PreparedStatement stmt = p.conn.prepareStatement(insertString);
+            PreparedStatement stmt = p.conn.prepareStatement(insertString);
 
             stmt.setString(1, host);
             stmt.execute();
@@ -491,16 +488,11 @@ public class provider {
             System.out.println("Successfully registered oauth2 client app at host: " + host
                     + ".\nYou will need the following information:\n\nclient_id: "
                     + clientId + "\nclient_secret: " + clientSecret);
-                    */
         } catch (Exception e) {
             e.printStackTrace();
             return;
         } finally {
-            try {
-                p.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            p.close();
         }
     }
 

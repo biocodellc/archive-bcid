@@ -1,11 +1,19 @@
 package bcidExceptions;
 
 /**
- * An exception that encapsulates errors from the oauth system.
+ * An exception that encapsulates errors from the bcid oauth system.
  */
-public class OAUTHException extends Exception {
-    public OAUTHException() { super(); }
-    public OAUTHException(String message) { super(message); }
-    public OAUTHException(String message, Throwable cause) { super(message, cause); }
-    public OAUTHException(Throwable cause) { super(cause); }
+public class OAUTHException extends BCIDRuntimeException{
+
+    public OAUTHException (String developerMessage,  Integer httpStatusCode, Throwable cause) {
+        super(developerMessage, httpStatusCode, cause);
+    }
+
+    public OAUTHException (String usrMessage, String developerMessage, Integer httpStatusCode, Throwable cause) {
+        super(usrMessage, developerMessage, httpStatusCode, cause);
+    }
+
+    public OAUTHException (String usrMessage, String developerMessage, Integer httpStatusCode) {
+        super(usrMessage, developerMessage, httpStatusCode);
+    }
 }

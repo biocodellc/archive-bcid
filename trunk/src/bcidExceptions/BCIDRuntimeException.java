@@ -8,18 +8,17 @@ public class BCIDRuntimeException extends RuntimeException {
     private String usrMessage;
     private String developerMessage;
 
-    public BCIDRuntimeException() {
-        super();
-    }
 
-    public BCIDRuntimeException(String developerMessage) {
+    public BCIDRuntimeException(String usrMessage, String developerMessage, Integer httpStatusCode) {
         super(developerMessage);
+        this.usrMessage = usrMessage;
         this.developerMessage = developerMessage;
+        this.httpStatusCode = httpStatusCode;
     }
 
-    public BCIDRuntimeException(String usrMessage,  Integer httpStatusCode, Throwable cause) {
-        super(usrMessage, cause);
-        this.usrMessage = usrMessage;
+    public BCIDRuntimeException(String developerMessage,  Integer httpStatusCode, Throwable cause) {
+        super(developerMessage, cause);
+        this.developerMessage = developerMessage;
         this.httpStatusCode = httpStatusCode;
     }
 
@@ -28,15 +27,6 @@ public class BCIDRuntimeException extends RuntimeException {
         this.developerMessage = developerMessage;
         this.usrMessage = usrMessage;
         this.httpStatusCode = httpStatusCode;
-    }
-
-    public BCIDRuntimeException(String developerMessage, Throwable cause) {
-        super(developerMessage, cause);
-        this.developerMessage = developerMessage;
-    }
-
-    public BCIDRuntimeException(Throwable cause) {
-        super(cause);
     }
 
     public String getDeveloperMessage() {
