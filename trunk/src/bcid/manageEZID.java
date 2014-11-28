@@ -2,6 +2,8 @@ package bcid;
 
 import ezid.EZIDException;
 import ezid.EZIDService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -20,7 +22,9 @@ import java.util.Iterator;
  */
 public class manageEZID extends elementMinter {
 
-    public manageEZID() throws Exception {
+    private static Logger logger = LoggerFactory.getLogger(manageEZID.class);
+
+    public manageEZID() {
         super();
     }
 
@@ -97,7 +101,7 @@ public class manageEZID extends elementMinter {
      * @param ezid
      * @throws java.net.URISyntaxException
      */
-    public void createDatasetsEZIDs(EZIDService ezid) throws URISyntaxException {
+    public void createDatasetsEZIDs(EZIDService ezid) throws EZIDException{
         // Grab a row where ezid is false
         Statement stmt = null;
         ResultSet rs = null;
@@ -133,30 +137,30 @@ public class manageEZID extends elementMinter {
                 try {
                     identifier = new URI(ezid.createIdentifier(myIdentifier, map));
                     idSuccessList.add(rs.getString("datasets_id"));
-                    System.out.println("  " + identifier.toString());
+                    logger.info("{}", identifier.toString());
                 } catch (EZIDException e) {
                     // Attempt to set Metadata if this is an Exception
                     try {
                         ezid.setMetadata(myIdentifier,map);
                         idSuccessList.add(rs.getString("datasets_id"));
                     } catch (EZIDException e1) {
-                        e1.printStackTrace();
-                        System.out.println("  Exception thrown in attempting to create OR update EZID " + myIdentifier + ", a permission issue?");
+                        logger.warn("Exception thrown in attempting to create OR update EZID {}, a permission issue?", myIdentifier, e1);
                     }
 
+                } catch (URISyntaxException e) {
+                    throw new EZIDException("Bad uri syntax for " + myIdentifier + ", " + map, e);
                 }
 
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("SQLException when creating EZID", e);
         }
 
         // Update the Identifiers Table and let it know that we've created the EZID
         try {
             updateEZIDMadeField(idSuccessList, "datasets");
         } catch (SQLException e) {
-            System.out.println("It appears we have created " + idSuccessList.size() + " EZIDs but not able to update the identifiers table");
-            e.printStackTrace();
+            logger.warn("It appears we have created {} EZIDs but not able to update the identifiers table", idSuccessList.size(), e);
         }
 
     }
