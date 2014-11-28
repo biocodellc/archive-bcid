@@ -44,7 +44,7 @@ public class provider {
                 return rs.getInt("count") >= 1;
             }
         } catch (SQLException e) {
-            logger.warn("SQLException validating oauth clientID: {}", clientId, e);
+            throw new RuntimeException(e);
         }
         return false;
     }
@@ -152,7 +152,7 @@ public class provider {
                 return rs.getInt("count") >= 1;
             }
         } catch (SQLException e) {
-            logger.warn("SQLException while validatingClient with oauth clientID: {}", clientId, e);
+            throw new RuntimeException(e);
         }
         return false;
     }
@@ -191,7 +191,7 @@ public class provider {
                 }
             }
         } catch (SQLException e) {
-            logger.warn("SQLException thrown while attempting to validate oauth code for clientID: {}", clientID, e);
+            throw new RuntimeException(e);
         }
         return false;
     }
@@ -395,7 +395,7 @@ public class provider {
                 }
             }
         } catch (SQLException e) {
-            logger.warn("SQLException while validating oauth refreshToken: {}", refreshToken, e);
+            throw new RuntimeException(e);
         }
 //        System.out.println(sql + refreshToken);
         return false;
@@ -431,7 +431,7 @@ public class provider {
                 }
             }
         } catch (SQLException e) {
-            logger.warn("SQLException while validating oauth token: {}", token, e);
+            throw new RuntimeException(e);
         }
 
         return null;

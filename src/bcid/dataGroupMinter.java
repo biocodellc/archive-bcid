@@ -447,8 +447,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             sb.append("\n</table>");
 
         } catch (SQLException e) {
-            logger.warn("SQLException while creating datasetsTable for user: {}", username, e);
-            return null;
+            throw new RuntimeException(e);
         }
         return sb.toString();
     }

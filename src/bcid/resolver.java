@@ -50,27 +50,21 @@ public class resolver extends database {
      * @param ark
      * @throws Exception
      */
-    public resolver(String ark) throws Exception {
+    public resolver(String ark) {
         super();
 
-        try {
-            this.ark = ark;
-            // Pull off potential last piece of string which would represent the local Identifier
-            // The piece to decode is ark:/NAAN/bcidIdentifer (anything else after a last trailing "/" not decoded)
-            StringBuilder stringBuilder = new StringBuilder();
+        this.ark = ark;
+        // Pull off potential last piece of string which would represent the local Identifier
+        // The piece to decode is ark:/NAAN/bcidIdentifer (anything else after a last trailing "/" not decoded)
+        StringBuilder stringBuilder = new StringBuilder();
 
-            String bits[] = ark.split("/", 3);
-            // just want the first chunk between the "/"'s
-            naan = bits[1];
-            // Now decipher the shoulder and sourceID in the next bit
-            setShoulderAndSourceID(bits[2]);
-            // Call setDataGroup() to set datagroup_id
-            setDataGroup();
-
-        } catch (Exception e) {
-            System.out.println("The ark = " + ark);
-            throw new Exception("Invalid ARK", e);
-        }
+        String bits[] = ark.split("/", 3);
+        // just want the first chunk between the "/"'s
+        naan = bits[1];
+        // Now decipher the shoulder and sourceID in the next bit
+        setShoulderAndSourceID(bits[2]);
+        // Call setDataGroup() to set datagroup_id
+        setDataGroup();
     }
 
     /**
@@ -80,7 +74,7 @@ public class resolver extends database {
      * @param conceptAlias    defines the alias to narrow this,  a one-word reference denoting a BCID
      * @return returns the BCID for this expedition and conceptURI combination
      */
-    public resolver(String expedition_code, Integer project_id, String conceptAlias) throws Exception {
+    public resolver(String expedition_code, Integer project_id, String conceptAlias) {
         ResourceTypes resourceTypes = new ResourceTypes();
         ResourceType rt = resourceTypes.getByShortName(conceptAlias);
         String uri = rt.uri;
@@ -102,8 +96,6 @@ public class resolver extends database {
             rs.next();
             this.ark = rs.getString("prefix");
         } catch (SQLException e) {
-            this.ark = null;
-        } catch (Exception e) {
             this.ark = null;
         }
     }

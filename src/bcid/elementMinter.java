@@ -287,7 +287,7 @@ public class elementMinter extends dataGroupMinter {
             }
 
         } catch (SQLException e) {
-            logger.warn("SQLException while retieving identifiers.", e);
+            logger.warn("SQLException while retrieving identifiers.", e);
         }
         return results;
     }
