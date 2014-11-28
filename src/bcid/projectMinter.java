@@ -1,5 +1,7 @@
 package bcid;
 
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
 import com.sun.xml.internal.bind.v2.model.runtime.RuntimeNonElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,8 +57,7 @@ public class projectMinter {
             rs.next();
             return rs.getString("biovalidator_validation_xml");
         } catch (SQLException e) {
-            logger.warn("Trouble getting Validation XML for project Id: {}", project_id, e);
-            throw new RuntimeException("Trouble getting Validation XML", e);
+            throw new ServerErrorException("Server Error", "Trouble getting Validation XML", e);
         }
     }
 
@@ -101,7 +102,7 @@ public class projectMinter {
             return sb.toString();
 
         } catch (SQLException e) {
-            throw new RuntimeException("Trouble getting list of all projects.", e);
+            throw new ServerErrorException("Server Error", "Trouble getting list of all projects.", e);
         }
     }
 
@@ -181,7 +182,7 @@ public class projectMinter {
             sb.append("\t]\n}\n");
             return sb.toString();
         } catch (SQLException e) {
-            throw new RuntimeException("Trouble getting latest graphs.", e);
+            throw new ServerErrorException("Server Error", "Trouble getting latest graphs.", e);
         }
     }
 
@@ -226,11 +227,10 @@ public class projectMinter {
             }
             sb.append("\t]\n}");
 
+            return sb.toString();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
-
-        return sb.toString();
     }
 
     /**
@@ -267,7 +267,7 @@ public class projectMinter {
             sb.append("\t]\n}");
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
 
         return sb.toString();
@@ -283,41 +283,37 @@ public class projectMinter {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getProjectConfig(project_id, username);
 
-        if (config.contains("error")) {
-            return "You must be this project's admin in order to view its configuration.";
-        } else {
-            sb.append("<table>\n");
-            sb.append("\t<tbody>\n");
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Title:</td>\n");
-            sb.append("\t\t\t<td>");
-            sb.append(config.get("title"));
-            sb.append("</td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("<table>\n");
+        sb.append("\t<tbody>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Title:</td>\n");
+        sb.append("\t\t\t<td>");
+        sb.append(config.get("title"));
+        sb.append("</td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Validation XML:</td>\n");
-            sb.append("\t\t\t<td>");
-            sb.append(config.get("validation_xml"));
-            sb.append("</td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Validation XML:</td>\n");
+        sb.append("\t\t\t<td>");
+        sb.append(config.get("validation_xml"));
+        sb.append("</td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Public Project</td>\n");
-            sb.append("\t\t\t<td>\n");
-            sb.append(config.get("public"));
-            sb.append("</td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Public Project</td>\n");
+        sb.append("\t\t\t<td>\n");
+        sb.append(config.get("public"));
+        sb.append("</td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td></td>\n");
-            sb.append("\t\t\t<td><a href=\"javascript:void()\" id=\"edit_config\">Edit Configuration</a></td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td><a href=\"javascript:void()\" id=\"edit_config\">Edit Configuration</a></td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t</tbody>\n</table>\n");
+        sb.append("\t</tbody>\n</table>\n");
 
-            return sb.toString();
-        }
+        return sb.toString();
     }
 
     /**
@@ -330,48 +326,43 @@ public class projectMinter {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getProjectConfig(projectId, username);
 
-        if (config.contains("error")) {
-            return "You must me this project's admin in order to edit its configuration.";
-        } else {
-            sb.append("<form id=\"submitForm\" method=\"POST\">\n");
-            sb.append("<table>\n");
-            sb.append("\t<tbody>\n");
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Title</td>\n");
-            sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"title\" value=\""));
-            sb.append(config.get("title"));
-            sb.append("\"></td>\n\t\t</tr>\n");
+        sb.append("<form id=\"submitForm\" method=\"POST\">\n");
+        sb.append("<table>\n");
+        sb.append("\t<tbody>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Title</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"title\" value=\""));
+        sb.append(config.get("title"));
+        sb.append("\"></td>\n\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Validation XML</td>\n");
-            sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"validation_xml\" value=\""));
-            sb.append(config.get("validation_xml"));
-            sb.append("\"></td>\n\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Validation XML</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"validation_xml\" value=\""));
+        sb.append(config.get("validation_xml"));
+        sb.append("\"></td>\n\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Public Project</td>\n");
-            sb.append("\t\t\t<td><input type=\"checkbox\" name=\"public\"");
-            if (config.get("public").equalsIgnoreCase("true")) {
-                sb.append(" checked=\"checked\"");
-            }
-            sb.append("></td>\n\t\t</tr>\n");
-
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td></td>\n");
-            sb.append("\t\t\t<td class=\"error\" align=\"center\">");
-            sb.append("</td>\n\t\t</tr>\n");
-
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td></td>\n");
-            sb.append(("\t\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
-            sb.append("</td>\n\t\t</tr>\n");
-            sb.append("\t</tbody>\n");
-            sb.append("</table>\n");
-            sb.append("</form>\n");
-
-
-            return sb.toString();
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Public Project</td>\n");
+        sb.append("\t\t\t<td><input type=\"checkbox\" name=\"public\"");
+        if (config.get("public").equalsIgnoreCase("true")) {
+            sb.append(" checked=\"checked\"");
         }
+        sb.append("></td>\n\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td class=\"error\" align=\"center\">");
+        sb.append("</td>\n\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append(("\t\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
+        sb.append("</td>\n\t\t</tr>\n");
+        sb.append("\t</tbody>\n");
+        sb.append("</table>\n");
+        sb.append("</form>\n");
+
+        return sb.toString();
     }
 
     /**
@@ -429,7 +420,7 @@ public class projectMinter {
                 return true;
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return false;
     }
@@ -458,11 +449,11 @@ public class projectMinter {
                     config.put("validation_xml", rs.getString("validation_xml"));
                 }
             } else {
-                config.put("error", "true");
+                throw new BadRequestException("You must be this project's admin in order to view its configuration.");
             }
         } catch (SQLException e) {
-            logger.warn("SQLException retrieving project configuration for projectID: {}", projectId, e);
-            config.put("error", "true");
+            throw new ServerErrorException("Server Error", "SQLException retrieving project configuration for projectID: " +
+                    projectId, e);
         }
         return config;
     }
@@ -515,15 +506,14 @@ public class projectMinter {
      * @param projectId
      * @return
      */
-    public Boolean removeUser(Integer userId, Integer projectId) {
+    public void removeUser(Integer userId, Integer projectId) {
         try {
             String sql = "DELETE FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
             Statement stmt = conn.createStatement();
 
             stmt.executeUpdate(sql);
-            return true;
         } catch (SQLException e) {
-            throw new RuntimeException("Server error while removing user", e);
+            throw new ServerErrorException("Server error while removing user", e);
         }
     }
 
@@ -533,7 +523,7 @@ public class projectMinter {
      * @param projectId
      * @return
      */
-    public Boolean addUserToProject(Integer userId, Integer projectId) {
+    public void addUserToProject(Integer userId, Integer projectId) {
         PreparedStatement stmt;
 
         try {
@@ -544,9 +534,8 @@ public class projectMinter {
             stmt.setInt(2, projectId);
 
             stmt.execute();
-            return true;
         } catch (SQLException e) {
-            throw new RuntimeException("Server error while adding user to project.", e);
+            throw new ServerErrorException("Server error while adding user to project.", e);
         }
     }
 
@@ -615,14 +604,13 @@ public class projectMinter {
             sb.append("\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"projectUserSubmit(\'" + project_title.replaceAll(" ", "_") + '_' + projectId + "\')\"></td>\n");
             sb.append("\t</tr>\n");
 
+            sb.append("</table>\n");
+            sb.append("\t</form>\n");
+
+            return sb.toString();
         } catch (SQLException e) {
-            throw new RuntimeException("Server error retrieving project users.", e);
+            throw new ServerErrorException("Server error retrieving project users.", e);
         }
-
-        sb.append("</table>\n");
-        sb.append("\t</form>\n");
-
-        return sb.toString();
     }
 }
 

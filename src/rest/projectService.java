@@ -3,6 +3,9 @@ package rest;
 import auth.oauth2.provider;
 import bcid.database;
 import bcid.projectMinter;
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ForbiddenRequestException;
+import bcidExceptions.UnauthorizedRequestException;
 import util.errorInfo;
 
 import javax.servlet.http.HttpServletRequest;
@@ -59,11 +62,7 @@ public class projectService {
         projectMinter project = new projectMinter();
         String response = project.listProjects();
 
-        if (response == null) {
-            return Response.status(204).build();
-        } else {
-            return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
-        }
+        return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
     }
 
     /**
@@ -80,11 +79,7 @@ public class projectService {
 
         String response = project.getLatestGraphs(project_id);
 
-        if (response == null) {
-            return Response.status(204).build();
-        } else {
-            return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
-        }
+        return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
     }
 
     /**
@@ -98,8 +93,7 @@ public class projectService {
         HttpSession session = request.getSession();
 
         if (session.getAttribute("projectAdmin") == null) {
-            // if not an project admin, then return nothing
-            return Response.status(403).entity(new errorInfo("You must be the project's admin.", 403).toJSON()).build();
+            throw new ForbiddenRequestException("You must be the project's admin.");
         }
         String username = session.getAttribute("user").toString();
 
@@ -119,14 +113,11 @@ public class projectService {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
-        if (username != null) {
-            projectMinter project = new projectMinter();
-            return Response.ok(project.getProjectConfigAsTable(project_id, username.toString())).build();
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must be this project's admin in order to view its configuration");
         }
-        return Response.status(401).entity(new errorInfo(
-                "You must be this project's admin in order to view its configuration",
-                401).toJSON())
-                .build();
+        projectMinter project = new projectMinter();
+        return Response.ok(project.getProjectConfigAsTable(project_id, username.toString())).build();
     }
 
     /**
@@ -140,6 +131,10 @@ public class projectService {
     public String getConfigEditorAsTable(@PathParam("project_id") Integer projectId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
+
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must be this project's admin in order to edit its configuration");
+        }
 
         projectMinter project = new projectMinter();
         return project.getProjectConfigEditorAsTable(projectId, username.toString());
@@ -164,15 +159,13 @@ public class projectService {
         Object username = session.getAttribute("user");
 
         if (username == null){
-            return Response.status(401).entity(new errorInfo("You must be logged in to edit a project's config.", 401)
-                .toJSON()).build();
+            throw new UnauthorizedRequestException("You must be logged in to edit a project's config.");
         }
         projectMinter p = new projectMinter();
         database db = new database();
 
         if (!p.userProjectAdmin(db.getUserId(username.toString()), projectID)) {
-            return Response.status(401).entity(new errorInfo("You must be this project's admin in order to edit the config",
-                    401).toJSON()).build();
+            throw new ForbiddenRequestException("You must be this project's admin in order to edit the config");
         }
 
         Hashtable config = p.getProjectConfig(projectID, username.toString());
@@ -197,12 +190,12 @@ public class projectService {
         if (!update.isEmpty()) {
             if (p.updateConfig(update, projectID)) {
                 return Response.ok("{\"success\": \"Successfully update project config.\"}").build();
+            } else {
+                throw new BadRequestException("Project wasn't found");
             }
         } else {
             return Response.ok("{\"success\": \"nothing needed to be updated\"}").build();
         }
-        return Response.status(500).entity(new errorInfo("error updating config", 500).toJSON()).build();
-
     }
 
     /**
@@ -218,21 +211,20 @@ public class projectService {
                                @PathParam("user_id") Integer userId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
-        Boolean success = false;
 
         projectMinter p = new projectMinter();
         database db = new database();
 
-        if (username == null || !p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
-            return Response.status(403).entity(new errorInfo("You are not this project's admin.", 403).toJSON()).build();
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must login.");
+        }
+        if (!p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
+            throw new ForbiddenRequestException("You are not this project's admin.");
         }
 
-        success = p.removeUser(userId, projectId);
+        p.removeUser(userId, projectId);
 
-        if (success) {
-            return Response.ok("{\"success\": \"User has been successfully removed\"}").build();
-        }
-        return Response.status(500).entity(new errorInfo("error removing user", 500).toJSON()).build();
+        return Response.ok("{\"success\": \"User has been successfully removed\"}").build();
     }
 
     /**
@@ -248,26 +240,24 @@ public class projectService {
                             @FormParam("user_id") Integer userId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
-        Boolean success = false;
 
         // userId of 0 means create new user, using ajax to create user, shouldn't ever receive userId of 0
         if (userId == 0) {
-            return Response.status(400).entity(new errorInfo("error creating user", 400).toJSON()).build();
+            throw new BadRequestException("invalid userId");
         }
 
         projectMinter p = new projectMinter();
         database db = new database();
 
-        if (username == null || !p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
-            return Response.status(403).entity(new errorInfo("You are not this project's admin", 403).toJSON()).build();
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must login to access this service.");
         }
-        success = p.addUserToProject(userId, projectId);
-
-        if (success) {
-            return Response.ok("{\"success\": \"User has been successfully added to this project\"}").build();
+        if (!p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
+            throw new ForbiddenRequestException("You are not this project's admin");
         }
+         p.addUserToProject(userId, projectId);
 
-        return Response.status(500).entity(new errorInfo("error adding user to project", 500).toJSON()).build();
+        return Response.ok("{\"success\": \"User has been successfully added to this project\"}").build();
     }
 
     /**
@@ -283,7 +273,7 @@ public class projectService {
 
         if (session.getAttribute("projectAdmin") == null) {
             // only display system users to project admins
-            return "You are not an admin to this project";
+            throw new ForbiddenRequestException("You are not an admin to this project");
         }
 
         projectMinter p = new projectMinter();
@@ -299,7 +289,7 @@ public class projectService {
     @Path("/listUserProjects")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserProjects(@QueryParam("access_token") String accessToken) {
-        String username = null;
+        String username;
 
         // if accessToken != null, then OAuth client is accessing on behalf of a user
         if (accessToken != null) {
@@ -311,8 +301,7 @@ public class projectService {
         }
 
         if (username == null) {
-            // status=401 means unauthorized user
-            return Response.status(401).entity(new errorInfo("authorization_error", 401).toJSON()).build();
+            throw new UnauthorizedRequestException("authorization_error");
         }
 
         projectMinter p = new projectMinter();
