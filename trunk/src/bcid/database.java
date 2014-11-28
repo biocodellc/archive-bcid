@@ -2,6 +2,7 @@ package bcid;
 
 import util.SettingsManager;
 
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.sql.*;
 
@@ -18,25 +19,23 @@ public class database {
     /**
      * Load settings for creating this database connection from the bcidsettings.properties file
      */
-    public database() throws Exception {
-        SettingsManager sm = SettingsManager.getInstance();
-        sm.loadProperties();
-        String bcidUser = sm.retrieveValue("bcidUser");
-        String bcidPassword = sm.retrieveValue("bcidPassword");
-        String bcidUrl = sm.retrieveValue("bcidUrl");
-        String bcidClass = sm.retrieveValue("bcidClass");
-
-
+    public database() {
         try {
+            SettingsManager sm = SettingsManager.getInstance();
+            sm.loadProperties();
+            String bcidUser = sm.retrieveValue("bcidUser");
+            String bcidPassword = sm.retrieveValue("bcidPassword");
+            String bcidUrl = sm.retrieveValue("bcidUrl");
+            String bcidClass = sm.retrieveValue("bcidClass");
+
             Class.forName(bcidClass);
             conn = DriverManager.getConnection(bcidUrl, bcidUser, bcidPassword);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new Exception("Driver issues accessing BCID system");
+            throw new RuntimeException("Driver issues accessing BCID system", e);
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new Exception("SQL Exception accessing BCID system");
+            throw new RuntimeException("SQL Exception accessing BCID system", e);
         }
+
     }
 
     public Connection getConn() {
