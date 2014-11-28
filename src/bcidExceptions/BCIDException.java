@@ -1,7 +1,7 @@
 package bcidExceptions;
 
 /**
- * An exception that encapsulates errors from the oauth system.
+ * An exception that encapsulates errors from the bcid system.
  */
 public class BCIDException extends Exception {
     public BCIDException() { super(); }

@@ -1,5 +1,6 @@
 package rest;
 
+import bcidExceptions.BCIDAbstractException;
 import bcidExceptions.BCIDRuntimeException;
 import com.sun.jersey.api.core.ExtendedUriInfo;
 import org.slf4j.Logger;
@@ -63,11 +64,17 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
     }
 
     // method to set the relevent information in errorInfo
-    //TODO pull information out of BCID Exceptions
     private errorInfo getErrorInfo(Exception e) {
-        String usrMessage = "Server Error";
-        String developerMessage = "Server Error";
+        String usrMessage;
+        String developerMessage = null;
         Integer httpStatusCode = getHttpStatus(e);
+
+        if (e instanceof BCIDAbstractException) {
+            usrMessage = ((BCIDAbstractException) e).getUsrMessage();
+            developerMessage = ((BCIDAbstractException) e).getDeveloperMessage();
+        } else {
+            usrMessage = "Server Error";
+        }
 
         return new errorInfo(usrMessage, developerMessage, httpStatusCode, e);
 
@@ -77,8 +84,8 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
         // if the throwable is an instance of WebApplicationException, get the status code
         if (e instanceof WebApplicationException) {
             return ((WebApplicationException) e).getResponse().getStatus();
-        } else if (e instanceof BCIDRuntimeException) {
-            return ((BCIDRuntimeException) e).getHttpStatusCode();
+        } else if (e instanceof BCIDAbstractException) {
+            return ((BCIDAbstractException) e).getHttpStatusCode();
         } else {
             return Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
         }
