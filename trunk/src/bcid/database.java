@@ -1,5 +1,7 @@
 package bcid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 
 import java.sql.*;
@@ -13,6 +15,7 @@ public class database {
 
     // Mysql Connection
     protected Connection conn;
+    final static Logger logger = LoggerFactory.getLogger(database.class);
 
     /**
      * Load settings for creating this database connection from the bcidsettings.properties file
@@ -56,7 +59,7 @@ public class database {
                 return rs.getInt("user_id");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("SQLException attempting to getUserId when given the username: {}", e);
         }
         return null;
     }
@@ -76,7 +79,7 @@ public class database {
                 return rs.getString("username");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("SQLException attempting to getUserName when given the userId: {}", e);
         }
         return null;
     }
