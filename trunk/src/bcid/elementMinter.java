@@ -48,12 +48,12 @@ public class elementMinter extends dataGroupMinter {
     /**
      * TEST Case, uses test case dataset.
      */
-    public elementMinter(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+    public elementMinter(boolean ezidRequest, Boolean suffixPassThrough) {
         super(ezidRequest, suffixPassThrough);
         init();
     }
 
-    public elementMinter() throws Exception {
+    public elementMinter() {
         super();
         init();
     }
@@ -77,7 +77,7 @@ public class elementMinter extends dataGroupMinter {
      *
      * @throws Exception
      */
-    public elementMinter(Integer dataset_id) throws Exception {
+    public elementMinter(Integer dataset_id) {
         super(dataset_id);
         init();
     }
@@ -87,15 +87,10 @@ public class elementMinter extends dataGroupMinter {
      *
      * @throws Exception
      */
-    private void init() throws Exception {
-        try {
-            SettingsManager sm = SettingsManager.getInstance();
-            sm.loadProperties();
-            startingNumber = Integer.parseInt(sm.retrieveValue("bcidStartingNumber"));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new Exception("Exception in init() function " + e.getMessage());
-        }
+    private void init() {
+        SettingsManager sm = SettingsManager.getInstance();
+        sm.loadProperties();
+        startingNumber = Integer.parseInt(sm.retrieveValue("bcidStartingNumber"));
     }
 
 
