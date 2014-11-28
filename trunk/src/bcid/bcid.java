@@ -53,11 +53,7 @@ public class bcid extends GenericIdentifier {
 
     static {
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
     }
 
     /**
@@ -317,7 +313,7 @@ public class bcid extends GenericIdentifier {
         return map;
     }
 
-    public URI getResolutionTarget() throws URISyntaxException {
+    public URI getResolutionTarget() {
         return webAddress;
     }
 
