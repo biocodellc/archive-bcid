@@ -261,12 +261,7 @@ public class bcid extends GenericIdentifier {
 
 
         // Create a dataset representation based on the dataset_id
-        try {
-            dataset = new dataGroupMinter(pDatasets_id);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        dataset = new dataGroupMinter(pDatasets_id);
         //when =  new dates().now();
         when = dataset.ts;
 

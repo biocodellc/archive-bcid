@@ -1,5 +1,8 @@
 package bcid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.String;
 
 /**
@@ -10,6 +13,8 @@ public class ResourceType {
     public String uri;
     public String description;
     public Integer resourceType;
+
+    private static Logger logger = LoggerFactory.getLogger(ResourceType.class);
 
 
     /**
@@ -51,7 +56,8 @@ public class ResourceType {
     public String getShortName() {
         try {
             return string.split(":")[1];
-        } catch (Exception e) {
+        } catch (NullPointerException e) {
+            logger.warn("ResourceType.string is null", e);
             return "";
         }
     }

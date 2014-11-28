@@ -42,11 +42,7 @@ public class elementEncoder implements encoder {
     static SettingsManager sm;
     static {
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
     }
 
     /**
