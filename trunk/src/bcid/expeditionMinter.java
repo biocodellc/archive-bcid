@@ -755,13 +755,12 @@ public class expeditionMinter {
                 sb.append("</td>\n");
                 sb.append("\t</tr>\n");
             }
-            throw new SQLException("Testing");
         } catch (SQLException e) {
             throw new ServerErrorException(e);
         }
 
-//        sb.append("</table>\n");
-//        return sb.toString();
+        sb.append("</table>\n");
+        return sb.toString();
     }
 
     /**

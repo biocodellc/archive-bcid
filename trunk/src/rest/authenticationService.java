@@ -362,7 +362,7 @@ public class authenticationService {
     }
 
     /**
-     * Service for a user to exchange their reset token in order to update their password
+     * Service for a user to exchange their password reset token in order to update their password
      *
      * @param password
      * @param token
