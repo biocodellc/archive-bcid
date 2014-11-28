@@ -9,6 +9,7 @@ import bcidExceptions.ServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
+import util.errorInfo;
 import util.queryParams;
 
 import javax.servlet.ServletContext;
@@ -19,6 +20,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -57,16 +59,15 @@ public class authenticationService {
      */
     @POST
     @Path("/login")
-    @Produces(MediaType.TEXT_HTML)
-    public void login(@FormParam("username") String usr,
-                      @FormParam("password") String pass,
-                      @QueryParam("return_to") String return_to,
-                      @Context HttpServletResponse res)
-            throws IOException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login(@FormParam("username") String usr,
+                          @FormParam("password") String pass,
+                          @QueryParam("return_to") String return_to,
+                          @Context HttpServletResponse res) {
 
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
-            Boolean isAuthenticated = false;
+            Boolean isAuthenticated;
 
             // Verify that the entered and stored passwords match
             isAuthenticated = authenticator.login(usr, pass);
@@ -91,13 +92,9 @@ public class authenticationService {
                     // don't need authenticator anymore
                     authenticator.close();
 
-                    if (return_to != null) {
-                        res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password" + new queryParams().getQueryParams(request.getParameterMap(), false));
-                        return;
-                    } else {
-                        res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password");
-                        return;
-                    }
+                    return Response.ok("{\"url\": \"/bcid/secure/profile.jsp?error=Update Your Password" +
+                                    new queryParams().getQueryParams(request.getParameterMap(), false) + "\"}")
+                                    .build();
                 } else {
                     // don't need authenticator anymore
                     authenticator.close();
@@ -106,11 +103,11 @@ public class authenticationService {
 
                 // Redirect to return_to uri if provided
                 if (return_to != null) {
-                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
-                    return;
+                    return Response.ok("{\"url\": \"" + return_to +
+                                new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
+                            .build();
                 } else {
-                    res.sendRedirect("/bcid/index.jsp");
-                    return;
+                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
                 }
             }
             // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
@@ -119,11 +116,9 @@ public class authenticationService {
             }
         }
 
-        if (return_to != null) {
-            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
-            return;
-        }
-        res.sendRedirect("/bcid/login.jsp?error");
+        return Response.status(400)
+                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .build();
     }
 
     /**
@@ -137,12 +132,11 @@ public class authenticationService {
      */
     @POST
     @Path("/loginLDAP")
-    @Produces(MediaType.TEXT_HTML)
-    public void loginLDAP(@FormParam("username") String usr,
-                          @FormParam("password") String pass,
-                          @QueryParam("return_to") String return_to,
-                          @Context HttpServletResponse res)
-            throws IOException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response loginLDAP(@FormParam("username") String usr,
+                              @FormParam("password") String pass,
+                              @QueryParam("return_to") String return_to,
+                              @Context HttpServletResponse res) {
 
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
@@ -164,34 +158,45 @@ public class authenticationService {
                 }
 
                 // Redirect to return_to uri if provided
+//                if (return_to != null) {
+//                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
+//                    return;
+//                } else {
+//                    res.sendRedirect("/bcid/index.jsp");
+//                    return;
+//                }
                 if (return_to != null) {
-                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
-                    return;
+                    return Response.ok("{\"url\": \"" + return_to +
+                            new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
+                            .build();
                 } else {
-                    res.sendRedirect("/bcid/index.jsp");
-                    return;
+                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
                 }
             }
             // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
             else {
                 session.invalidate();
             }
+            // Shouldn't need this anymore due to new error handling
             // Check for error message on LDAP
-            if (authenticator.getLdapAuthentication() != null) {
+//            if (authenticator.getLdapAuthentication() != null) {
 //                System.out.println("start6");
-                if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
-                    res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
+//                if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
+//                    res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
 //                    System.out.println("start8");
-                    return;
-                }
-            }
+//                    return;
+//                }
+//            }
         }
 
-        if (return_to != null) {
-            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
-            return;
-        }
-        res.sendRedirect("/bcid/login.jsp?error");
+//        if (return_to != null) {
+//            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
+//            return;
+//        }
+//        res.sendRedirect("/bcid/login.jsp?error");
+        return Response.status(400)
+                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .build();
     }
 
     /**
@@ -220,7 +225,7 @@ public class authenticationService {
         } else {
             try {
                 return Response.status(307)
-                        .location(new URI("/bcid/index.jsp"))
+                        .location(new URI("../bcid/index.jsp"))
                         .build();
             } catch (URISyntaxException e) {
                 throw new ServerErrorException(e);
@@ -279,7 +284,7 @@ public class authenticationService {
             // need the user to login
             try {
                 return Response.status(Response.Status.TEMPORARY_REDIRECT)
-                        .location(new URI("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
+                        .location(new URI("../bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
                                     + request.getQueryString()))
                         .build();
             } catch (URISyntaxException e) {

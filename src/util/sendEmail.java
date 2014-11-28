@@ -115,7 +115,6 @@ public class sendEmail extends Thread {
             //
             Transport.send(message);
         } catch (MessagingException e) {
-            //TODO should we silence this exception?
             logger.warn("MessagingException thrown", e);
         }
     }

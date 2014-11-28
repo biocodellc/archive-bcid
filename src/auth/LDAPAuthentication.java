@@ -26,7 +26,6 @@ public class LDAPAuthentication {
     public static int INVALID_CREDENTIALS = 2;
 
     private BindResult bindResult = null;
-    private String message = null;
     private int status;
 
     private static Logger logger = LoggerFactory.getLogger(LDAPAuthentication.class);
@@ -134,16 +133,6 @@ public class LDAPAuthentication {
         return status;
     }
 
-    /**
-     * Return an information message.  Should only be associated with an error condition, otherwise null
-     *
-     * @return
-     */
-    public String getMessage() {
-        return message;
-    }
-
-
     public static void main(String[] args) throws Exception {
 
         //return sbEmail.toString();
@@ -181,7 +170,7 @@ public class LDAPAuthentication {
         } else if (t.getStatus() == t.INVALID_CREDENTIALS) {
             System.out.println("Invalid username or password, or expired account");
         } else {
-            System.out.println("LDAP Error: " + t.getMessage());
+            System.out.println("LDAP Error: ");
         }
     }
 

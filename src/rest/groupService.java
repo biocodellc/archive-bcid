@@ -18,7 +18,6 @@ import ezid.EZIDService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
-import util.errorInfo;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +42,7 @@ public class groupService {
     static String bcidShoulder;
     static String doiShoulder;
     //static SettingsManager sm;
-    static EZIDService ezidAccount;
+    private static EZIDService ezidAccount;
 
     /**
      * Load settings manager, set ontModelSpec.
@@ -100,12 +99,8 @@ public class groupService {
 
         Boolean suffixPassthrough;
         // Format Input variables
-        if (!stringSuffixPassThrough.isEmpty() && (stringSuffixPassThrough.equalsIgnoreCase("true") ||
-                stringSuffixPassThrough.equalsIgnoreCase("on"))) {
-            suffixPassthrough = true;
-        } else {
-            suffixPassthrough = false;
-        }
+        suffixPassthrough = !stringSuffixPassThrough.isEmpty() && (stringSuffixPassThrough.equalsIgnoreCase("true") ||
+                stringSuffixPassThrough.equalsIgnoreCase("on"));
 
         // Initialize settings manager
         SettingsManager sm = SettingsManager.getInstance();
@@ -192,8 +187,7 @@ public class groupService {
             throw new UnauthorizedRequestException("You must be logged in to view your data groups.");
         }
 
-        dataGroupMinter d = null;
-        d = new dataGroupMinter();
+        dataGroupMinter d = new dataGroupMinter();
 
         return Response.ok(d.datasetList(username)).build();
     }
@@ -214,8 +208,7 @@ public class groupService {
             throw new UnauthorizedRequestException("You must be logged in to view your BCIDs.");
         }
 
-        dataGroupMinter d = null;
-        d = new dataGroupMinter();
+        dataGroupMinter d = new dataGroupMinter();
 
         return Response.ok(d.datasetTable(username)).build();
     }
@@ -236,8 +229,7 @@ public class groupService {
             throw new UnauthorizedRequestException("You must be logged in to view your expeditions.");
         }
 
-        expeditionMinter p = null;
-        p = new expeditionMinter();
+        expeditionMinter p = new expeditionMinter();
         String tablename = p.expeditionTable(username);
         return Response.ok(tablename).build();
     }
