@@ -5,6 +5,7 @@ import auth.authorizer;
 import auth.oauth2.provider;
 import bcidExceptions.OAUTHException;
 import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -228,10 +229,10 @@ public class authenticationService {
     @GET
     @Path("/oauth/authorize")
     @Produces(MediaType.TEXT_HTML)
-    public void authorize(@QueryParam("client_id") String clientId,
-                          @QueryParam("redirect_uri") String redirectURL,
-                          @QueryParam("state") String state,
-                          @Context HttpServletResponse response)
+    public Response authorize(@QueryParam("client_id") String clientId,
+                              @QueryParam("redirect_uri") String redirectURL,
+                              @QueryParam("state") String state,
+                              @Context HttpServletResponse response)
             throws IOException {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
@@ -247,23 +248,34 @@ public class authenticationService {
             }
 
             if (callback != null) {
-                response.sendRedirect(callback + "?error=invalid_request");
-                return;
+                try {
+                    return Response.status(302).location(new URI(callback + "?error=invalid_request")).build();
+                } catch (URISyntaxException e) {
+                    logger.warn("Malformed callback URI for oauth client {} and callback {}", clientId, callback);
+                }
             }
             throw new BadRequestException("invalid_request");
         }
 
         if (clientId == null || !p.validClientId(clientId)) {
             redirectURL += "?error=unauthorized_client";
-            response.sendRedirect(redirectURL);
-            return;
+            try {
+                return Response.status(302).location(new URI(redirectURL)).build();
+            } catch (URISyntaxException e) {
+                throw new BadRequestException("invalid_request", "invalid redirect_uri provided");
+            }
         }
 
         if (username == null) {
             // need the user to login
-            response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
-                    + request.getQueryString());
-            return;
+            try {
+                return Response.status(Response.Status.TEMPORARY_REDIRECT)
+                        .location(new URI("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
+                                    + request.getQueryString()))
+                        .build();
+            } catch (URISyntaxException e) {
+                throw new ServerErrorException(e);
+            }
         }
         //TODO ask user if they want to share profile information with requesting party
         String code = p.generateCode(clientId, redirectURL, username.toString());
@@ -273,9 +285,13 @@ public class authenticationService {
         if (state != null) {
             redirectURL += "&state=" + state;
         }
-//        System.out.println("in oauth/authorize, redirect: " + redirectURL);
-        response.sendRedirect(redirectURL);
-        return;
+        try {
+            return Response.status(302)
+                    .location(new URI(redirectURL))
+                    .build();
+        } catch (URISyntaxException e) {
+            throw new BadRequestException("invalid_request", "invalid redirect_uri provided");
+        }
     }
 
     /**
