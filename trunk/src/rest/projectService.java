@@ -37,16 +37,17 @@ public class projectService {
      */
     @GET
     @Path("/validation/{project_id}")
-    @Produces(MediaType.TEXT_HTML)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response fetchAlias(@PathParam("project_id") Integer project_id) {
 
         projectMinter project = new projectMinter();
         String response = project.getValidationXML(project_id);
 
         if (response == null) {
-            return Response.status(Response.Status.NO_CONTENT).build();
+            return Response.status(Response.Status.NO_CONTENT)
+                    .entity("{\"url\": \"\"}").build();
         } else {
-            return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
+            return Response.ok("{\"url\": \"" + response + "\"}").header("Access-Control-Allow-Origin", "*").build();
         }
     }
 
