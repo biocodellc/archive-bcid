@@ -109,7 +109,6 @@ public class expeditionMinter {
             // Get the datasets_id that was assigned
             expedition_id = getExpeditionIdentifier(internalID);
         } catch (SQLException e) {
-            //e.printStackTrace();
             throw new ServerErrorException(e);
         }
         return expedition_id;
@@ -159,8 +158,7 @@ public class expeditionMinter {
             rs.next();
             return rs.getInt("expedition_id");
         } catch (SQLException e) {
-            logger.warn("SQLException while getting expedition Identifier", e);
-            return null;
+            throw new ServerErrorException("Server Error", "SQLException while getting expedition Identifier", e);
         }
     }
 
@@ -517,10 +515,10 @@ public class expeditionMinter {
                 // Structure the second column-- BCIDs associated with expeditions
                 ResourceTypes rt = new ResourceTypes();
                 String rtString;
-                try {
-                    rtString = "<a href='" + rs.getString("resourceType") + "'>" + rt.get(rs.getString("resourceType")).string + "</a>";
-                } catch (SQLException e) {
-                    logger.warn("SQLException retrieving resourceType for expeditionId: {}", thisExpedition_id, e);
+                ResourceType resourceType = rt.get(rs.getString("resourceType"));
+                if (resourceType != null) {
+                    rtString = "<a href='" + rs.getString("resourceType") + "'>" + resourceType.string + "</a>";
+                } else {
                     rtString = "<a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a>";
                 }
 
@@ -816,9 +814,6 @@ public class expeditionMinter {
                 }
             }
         } catch (SQLException e) {
-//            sb.append("\t<tr>\n");
-//            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
-//            sb.append("\t</tr>\n");
             throw new ServerErrorException(e);
         }
 
@@ -900,9 +895,6 @@ public class expeditionMinter {
             sb.append("\t</tr>\n");
 
         } catch (SQLException e) {
-//            sb.append("\t<tr>\n");
-//            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
-//            sb.append("\t</tr>\n");
             throw new ServerErrorException(e);
         }
 

@@ -143,7 +143,7 @@ public class authenticator {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServerErrorException(e);
         }
         return null;
     }
@@ -168,7 +168,7 @@ public class authenticator {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServerErrorException(e);
         }
         if (count == 1) {
             return true;
@@ -383,12 +383,12 @@ public class authenticator {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("SQLException thrown", e);
         } finally {
             if (stmt != null) try {
                 stmt.close();
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.warn("SQLException thrown", e);
             }
         }
         return false;

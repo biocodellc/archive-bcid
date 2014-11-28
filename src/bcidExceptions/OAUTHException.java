@@ -5,10 +5,6 @@ package bcidExceptions;
  */
 public class OAUTHException extends BCIDAbstractException {
 
-    public OAUTHException (String developerMessage, Integer httpStatusCode, Throwable cause) {
-        super(developerMessage, httpStatusCode, cause);
-    }
-
     public OAUTHException (String usrMessage, String developerMessage, Integer httpStatusCode, Throwable cause) {
         super(usrMessage, developerMessage, httpStatusCode, cause);
     }

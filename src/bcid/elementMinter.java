@@ -133,6 +133,7 @@ public class elementMinter extends dataGroupMinter {
             String sql = "DELETE FROM identifiers WHERE loadedSetUUID='" + uuid + "'";
             return stmt.executeUpdate(sql);
         } catch (SQLException e) {
+            //TODO is it appropriate to silence this SQLException?
             logger.warn("SQLException trying to delete loadedSetUUID: {} from identifiers table.", uuid, e);
         }
         return 0;
@@ -289,7 +290,7 @@ public class elementMinter extends dataGroupMinter {
             }
 
         } catch (SQLException e) {
-            logger.warn("SQLException while retrieving identifiers.", e);
+            throw new ServerErrorException(e);
         }
         return results;
     }

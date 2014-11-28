@@ -1,6 +1,7 @@
 package bcid;
 
 import bcidExceptions.BCIDException;
+import bcidExceptions.ServerErrorException;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class manageEZID extends elementMinter {
     /**
      *  Update EZID dataset metadata for this particular ID
      */
-    public void updateDatasetsEZID(EZIDService ezid, int datasets_id) throws Exception {
+    public void updateDatasetsEZID(EZIDService ezid, int datasets_id) throws EZIDException{
         Statement stmt = null;
         ResultSet rs = null;
         try {
@@ -80,16 +81,16 @@ public class manageEZID extends elementMinter {
 
             try {
                 ezid.setMetadata(myIdentifier, map);
-                System.out.println("  Updated Metadata for " + myIdentifier);
+                logger.info("  Updated Metadata for " + myIdentifier);
             } catch (EZIDException e1) {
                 // After attempting to set the Metadata, if another exception is thrown then who knows,
                 // probably just a permissions issue.
-                throw new Exception("  Exception thrown in attempting to create EZID " + myIdentifier + ", likely a permission issue");
+                throw new EZIDException("  Exception thrown in attempting to create EZID " + myIdentifier + ", likely a permission issue");
             }
 
 
         } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw new ServerErrorException(e);
         }
     }
 
@@ -154,14 +155,15 @@ public class manageEZID extends elementMinter {
 
             }
         } catch (SQLException e) {
-            logger.warn("SQLException when creating EZID", e);
+            throw new ServerErrorException("Server Error", "SQLException when creating EZID", e);
         }
 
         // Update the Identifiers Table and let it know that we've created the EZID
         try {
             updateEZIDMadeField(idSuccessList, "datasets");
         } catch (SQLException e) {
-            logger.warn("It appears we have created {} EZIDs but not able to update the identifiers table", idSuccessList.size(), e);
+            throw new ServerErrorException("Server Error", "It appears we have created " + idSuccessList.size() +
+                    " EZIDs but not able to update the identifiers table", e);
         }
 
     }
@@ -236,16 +238,15 @@ public class manageEZID extends elementMinter {
 
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServerErrorException(e);
         } catch (EZIDException e) {
-            e.printStackTrace();
             throw new URISyntaxException("trouble minting identifier with EZID service", null);
         } finally {
             try {
                 updateEZIDMadeField(idSuccessList, "identifiers");
             } catch (SQLException e) {
-                System.out.println("It appears we have created " + idSuccessList.size() + " EZIDs but not able to update the identifiers table");
-                e.printStackTrace();
+                throw new ServerErrorException("Server Error", "It appears we have created " + idSuccessList.size() +
+                        " EZIDs but not able to update the identifiers table");
             }
         }
     }

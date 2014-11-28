@@ -187,8 +187,8 @@ public class dataGroupMinter extends dataGroupEncoder {
             rs.next();
             return rs.getString("project_code");
         } catch (SQLException e) {
-            logger.warn("Exception retrieving projectCode for dataset: {}", datasets_id, e);
-            return null;
+            throw new ServerErrorException("Server Error",
+                    "Exception retrieving projectCode for dataset: " + datasets_id, e);
         }
     }
 
@@ -265,7 +265,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             u.execute(updateString);
 
         } catch (SQLException e) {
-            logger.warn("SQLException while creating a dataset for user: {}", who, e);
+            throw new ServerErrorException("Server Error", "SQLException while creating a dataset for user: " + who, e);
         }
 
         // Create the shoulder identifier (String dataset identifier)
@@ -311,7 +311,8 @@ public class dataGroupMinter extends dataGroupEncoder {
             rs.next();
             datasetId = rs.getInt("datasets_id");
         } catch (SQLException e) {
-            logger.warn("Exception retieving datasetId for dataset with prefix: {}", prefix, e);
+            throw new ServerErrorException("Server Error",
+                    "Exception retrieving datasetId for dataset with prefix: " + prefix, e);
         }
         return datasetId;
     }
@@ -346,9 +347,9 @@ public class dataGroupMinter extends dataGroupEncoder {
             rs.next();
             return rs.getString("resourceType");
         } catch (SQLException e) {
-            logger.warn("Error retrieving resourceType for datasetID: {}", datasets_id, e);
+            throw new ServerErrorException("Server Error",
+                    "Error retrieving resourceType for datasetID: " + datasets_id, e);
         }
-        return null;
     }
 
     /**
@@ -375,8 +376,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             sb.append("}");
 
         } catch (SQLException e) {
-            logger.warn("Exception retrieving datasets for user {}", username, e);
-            return null;
+            throw new ServerErrorException("Server Error", "Exception retrieving datasets for user " + username, e);
         }
         return sb.toString();
     }
@@ -437,10 +437,10 @@ public class dataGroupMinter extends dataGroupEncoder {
                 //sb.append("<td>" + getDOILink(rs.getString("doi")) + " " + getDOIMetadataLink(rs.getString("doi")) + "</td>");
                 //sb.append("<td>" + rs.getString("webaddress") + "</td>");
 
-                try {
-                    sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rts.get(rs.getString("resourceType")).string + "</a></td>");
-                } catch (SQLException e) {
-                    logger.warn("SQLException retrieving resourceType for datasetId: {}", rs.getString("datasets_id"), e);
+                ResourceType resourceType = rts.get(rs.getString("resourceType"));
+                if (resourceType != null) {
+                    sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + resourceType.string + "</a></td>");
+                } else {
                     sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a></td>");
                 }
                 sb.append("<td>" + rs.getBoolean("suffixPassthrough") + "</td>");
