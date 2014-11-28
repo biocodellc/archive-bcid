@@ -2,6 +2,8 @@ package rest;
 
 import bcidExceptions.BCIDAbstractException;
 import bcidExceptions.BCIDRuntimeException;
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
 import com.sun.jersey.api.core.ExtendedUriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +33,7 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
 
     @Override
     public Response toResponse(Exception e) {
-        logger.warn("{} thrown.", e.getClass().toString(), e);
+        logException(e);
         errorInfo errorInfo = getErrorInfo(e);
 
         // check if the called service is expected to return HTML of JSON
@@ -88,6 +90,13 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
             return ((BCIDAbstractException) e).getHttpStatusCode();
         } else {
             return Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
+        }
+    }
+
+    private void logException(Exception e) {
+        // don't log BadRequestexceptions
+        if (!(e instanceof BadRequestException)) {
+            logger.warn("{} thrown.", e.getClass().toString(), e);
         }
     }
 }
