@@ -1,6 +1,8 @@
 package bcid;
 
 import ezid.EZIDService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 
 import javax.ws.rs.core.MultivaluedMap;
@@ -22,14 +24,14 @@ public class expeditionMinter {
     private String resolverMetadataPrefix;
     database db;
 
+    private static Logger logger = LoggerFactory.getLogger(expeditionMinter.class);
+
     /**
      * The constructor defines the class-level variables used when minting Expeditions.
      * It defines a generic set of entities (process, information content, objects, agents)
      * that can be used for any expedition.
-     *
-     * @throws Exception
      */
-    public expeditionMinter() throws Exception {
+    public expeditionMinter() {
         db = new database();
         conn = db.getConn();
 
@@ -48,7 +50,7 @@ public class expeditionMinter {
         try {
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            logger.warn("SQL Exception while closing db connection.", e);
         }
     }
 
@@ -430,94 +432,99 @@ public class expeditionMinter {
         return sb.toString();
     }
 
-    public String expeditionTable(String remoteUser) throws SQLException {
+    public String expeditionTable(String remoteUser) {
 
-        StringBuilder sb = new StringBuilder();
-        Statement stmt = conn.createStatement();
-        //String sql = "select expedition_id,expedition_code,expedition_title,username from expeditions,users where users.user_id = expeditions.users_id && users.username =\"" + remoteUser + "\"";
+        try {
+            StringBuilder sb = new StringBuilder();
+            Statement stmt = conn.createStatement();
+            //String sql = "select expedition_id,expedition_code,expedition_title,username from expeditions,users where users.user_id = expeditions.users_id && users.username =\"" + remoteUser + "\"";
 
-        String sql = "SELECT " +
-                "   a.expedition_id as expedition_id," +
-                "   a.expedition_code as expedition_code," +
-                "   a.expedition_title as expedition_title," +
-                "   d.prefix as BCID," +
-                "   d.resourceType as resourceType " +
-                "FROM " +
-                "   expeditions a,expeditionsBCIDs b,datasets d,users u " +
-                "WHERE " +
-                "   a.expedition_id=b.expedition_id && " +
-                "   b.datasets_id=d.datasets_id && " +
-                "   a.users_id = u.user_id && " +
-                "   u.username=\"" + remoteUser + "\"";
+            String sql = "SELECT " +
+                    "   a.expedition_id as expedition_id," +
+                    "   a.expedition_code as expedition_code," +
+                    "   a.expedition_title as expedition_title," +
+                    "   d.prefix as BCID," +
+                    "   d.resourceType as resourceType " +
+                    "FROM " +
+                    "   expeditions a,expeditionsBCIDs b,datasets d,users u " +
+                    "WHERE " +
+                    "   a.expedition_id=b.expedition_id && " +
+                    "   b.datasets_id=d.datasets_id && " +
+                    "   a.users_id = u.user_id && " +
+                    "   u.username=\"" + remoteUser + "\"";
 
-        ResultSet rs = stmt.executeQuery(sql);
+            ResultSet rs = stmt.executeQuery(sql);
 
-        // Get result set meta data
+            // Get result set meta data
 
-        sb.append("<table>\n");
-        sb.append("\t<tr>\n");
-        sb.append("\t\t<td><b>Expedition Details</b></td>\n");
-        sb.append("\t\t<td><b>Expedition BCIDs</b></td>\n");
-        sb.append("\t</tr>\n");
+            sb.append("<table>\n");
+            sb.append("\t<tr>\n");
+            sb.append("\t\t<td><b>Expedition Details</b></td>\n");
+            sb.append("\t\t<td><b>Expedition BCIDs</b></td>\n");
+            sb.append("\t</tr>\n");
 
-        Integer expedition_id = 0;
-        Integer thisExpedition_id = 0;
-        int count = 0;
-        while (rs.next()) {
+            Integer expedition_id = 0;
+            Integer thisExpedition_id = 0;
+            int count = 0;
+            while (rs.next()) {
 
-            thisExpedition_id = rs.getInt("expedition_id");
+                thisExpedition_id = rs.getInt("expedition_id");
 
-            // Structure the first column-- expeditions
-            if (thisExpedition_id != expedition_id) {
-                if (count > 0) {
-                    sb.append("\t\t\t</table>\n\t\t</td>\n");
-                    sb.append("\t</tr>\n");
+                // Structure the first column-- expeditions
+                if (thisExpedition_id != expedition_id) {
+                    if (count > 0) {
+                        sb.append("\t\t\t</table>\n\t\t</td>\n");
+                        sb.append("\t</tr>\n");
+                    }
+
+                    sb.append("\t<tr>\n");
+                    sb.append("\t\t<td valign=top>\n");
+                    sb.append("\t\t\t<table><tr><td>expeditionID " + rs.getString("expedition_id") + "</td></tr>" +
+                            "<tr><td>" + rs.getString("expedition_code") + "</td></tr>" +
+                            "<tr><td>" + rs.getString("expedition_title") + "</td></tr></table>\n");
+                    sb.append("\t\t</td>\n");
+
+                    sb.append("\t\t<td valign=top>\n\t\t\t<table>\n");
+                } else {
+                    //sb.append("\n\t\t<td></td>\n");
                 }
 
-                sb.append("\t<tr>\n");
-                sb.append("\t\t<td valign=top>\n");
-                sb.append("\t\t\t<table><tr><td>expeditionID " + rs.getString("expedition_id") + "</td></tr>" +
-                        "<tr><td>" + rs.getString("expedition_code") + "</td></tr>" +
-                        "<tr><td>" + rs.getString("expedition_title") + "</td></tr></table>\n");
-                sb.append("\t\t</td>\n");
+                // Structure the second column-- BCIDs associated with expeditions
+                ResourceTypes rt = new ResourceTypes();
+                String rtString;
+                try {
+                    rtString = "<a href='" + rs.getString("resourceType") + "'>" + rt.get(rs.getString("resourceType")).string + "</a>";
+                } catch (SQLException e) {
+                    logger.warn("SQLException retrieving resourceType for expeditionId: {}", thisExpedition_id, e);
+                    rtString = "<a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a>";
+                }
 
-                sb.append("\t\t<td valign=top>\n\t\t\t<table>\n");
-            } else {
-                //sb.append("\n\t\t<td></td>\n");
+
+                sb.append("\t\t\t\t<tr><td><a href='" + resolverTargetPrefix + rs.getString("BCID") + "'>" +
+                        rs.getString("BCID") + "</a></td>" +
+                        "<td>is_a</td><td>" +
+                        rtString +
+                        "</td></tr>\n");
+
+                // Close the BCID section tag
+                if (thisExpedition_id != expedition_id) {
+                    //if (count > 0) {
+                    //    sb.append("\n\t\t\t</table>");
+                    //    sb.append("\n\t\t</td>");
+                    //}
+                    expedition_id = thisExpedition_id;
+                }
+                count++;
+                if (rs.isLast())
+                    sb.append("\t\t\t</table>\n\t\t</td>\n");
             }
 
-            // Structure the second column-- BCIDs associated with expeditions
-            ResourceTypes rt = new ResourceTypes();
-            String rtString;
-            try {
-                rtString = "<a href='" + rs.getString("resourceType") + "'>" + rt.get(rs.getString("resourceType")).string + "</a>";
-            } catch (Exception e) {
-                rtString = "<a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a>";
-            }
+            sb.append("\t</tr>\n</table>\n");
 
-
-            sb.append("\t\t\t\t<tr><td><a href='" + resolverTargetPrefix + rs.getString("BCID") + "'>" +
-                    rs.getString("BCID") + "</a></td>" +
-                    "<td>is_a</td><td>" +
-                    rtString +
-                    "</td></tr>\n");
-
-            // Close the BCID section tag
-            if (thisExpedition_id != expedition_id) {
-                //if (count > 0) {
-                //    sb.append("\n\t\t\t</table>");
-                //    sb.append("\n\t\t</td>");
-                //}
-                expedition_id = thisExpedition_id;
-            }
-            count++;
-            if (rs.isLast())
-                sb.append("\t\t\t</table>\n\t\t</td>\n");
+            return sb.toString();
+        } catch (SQLException e) {
+            throw new RuntimeException("SQLException while retrieving expeditionTable for user: " + remoteUser, e);
         }
-
-        sb.append("\t</tr>\n</table>\n");
-
-        return sb.toString();
     }
 
 
