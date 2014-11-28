@@ -1,5 +1,8 @@
 package util;
 
+import net.sf.json.JSONNull;
+import net.sf.json.JSONObject;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.Timestamp;
@@ -9,8 +12,8 @@ import java.sql.Timestamp;
  */
 public class errorInfo {
     private Integer httpStatusCode;
-    private String usrMessage;
-    private String developerMessage;
+    private Object usrMessage;
+    private Object developerMessage;
     private Exception e;
     private Timestamp ts;
 
@@ -40,17 +43,17 @@ public class errorInfo {
     }
 
     public String getMessage() {
-        return usrMessage;
+        return usrMessage.toString();
     }
 
     public String toJSON() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{");
+        JSONObject obj = new JSONObject();
+        convertToNull();
 
-        sb.append("\t\"usrMessage\": \"" + usrMessage + "\",\n");
-        sb.append("\t\"developerMessage\": \"" + developerMessage + "\",\n");
-        sb.append("\t\"httpStatusCode\": \"" + httpStatusCode + "\",\n");
-        sb.append("\t\"time\": \"" + ts + "\"");
+        obj.put("usrMessage", usrMessage);
+        obj.put("developerMessage", developerMessage);
+        obj.put("httpStatusCode", httpStatusCode);
+        obj.put("time", ts.toString());
 
         if (e != null) {
             SettingsManager sm = SettingsManager.getInstance();
@@ -58,14 +61,17 @@ public class errorInfo {
             String debug = sm.retrieveValue("debug", "false");
 
             if (debug.equalsIgnoreCase("true")) {
-                sb.append(",\n");
-                sb.append("\t\"exceptionMessage\": \"" + e.getMessage() + "\",\n");
-                sb.append("\t\"stackTrace\": \"" + getStackTraceString() + "\"");
+                obj.put("exceptionMessage", e.getMessage());
+                obj.put("stackTrace", getStackTraceString());
             }
         }
+        return obj.toString(4);
+    }
 
-        sb.append("\n}");
-        return sb.toString();
+    // JSONObject doesn't accept regular null object, so must convert them to JSONNull
+    private void convertToNull() {
+        if (usrMessage == null) usrMessage = JSONNull.getInstance();
+        if (developerMessage == null) developerMessage = JSONNull.getInstance();
     }
 
     public String toHTMLTable() {
@@ -119,9 +125,9 @@ public class errorInfo {
     // returns the full stackTrace as a string
     private String getStackTraceString() {
         final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw, true);
+        final PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
-        return sw.getBuffer().toString();
+        return sw.toString();
     }
 
 }
