@@ -2,6 +2,7 @@ package rest;
 
 import bcid.Renderer.RDFRenderer;
 import bcid.resolver;
+import bcidExceptions.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -64,8 +65,7 @@ public class resolverService {
 //                System.out.println(seeOtherUri);
             } catch (URISyntaxException e) {
                 logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
-                return Response.status(400).entity(new errorInfo("Server error while trying to resolve ARK. Did you supply a valid naan?", 400)
-                        .toString()).build();
+                throw new BadRequestException("Server error while trying to resolve ARK. Did you supply a valid naan?");
             }
             // if the URI is null just print metadata
             /*System.out.println("value of seeOtherUri:" + seeOtherUri.toString() + "END");
