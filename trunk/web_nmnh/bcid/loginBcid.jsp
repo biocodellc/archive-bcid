@@ -1,6 +1,3 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
 <%
    response.setHeader( "Pragma", "no-cache" );
    response.setHeader( "Cache-Control", "no-Store,no-Cache" );
@@ -11,9 +8,11 @@
 
 <html>
 <head>
-    <title>BiSciCol Identifiers</title>
-    <link rel="stylesheet" href="/bcid/css/jquery-ui.css" />
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/flick/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/bcid/js/bcid.js"></script>
 </head>
 
 <body>
@@ -21,16 +20,11 @@
     <div class="sectioncontent" id="login">
         <h2>Login</h2>
 
-        <c:if test="${pageContext.request.getQueryString() != null}">
          <!--
          Hardcoded return_to, client_id, and redirect_uri parameters for the web_nmnh application
          TODO: make this dynamic so we can login from BCID application itself
          -->
-        <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT&redirect_uri=http://nmnh-fims.si.edu/bcid/index.jsp">
-        </c:if>
-        <c:if test="${pageContext.request.getQueryString() == null}">
-        <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP/">
-        </c:if>
+        <form method="POST" autocomplete="off">
             <table>
                 <tr>
                     <td align="right">Username</td>
@@ -40,16 +34,14 @@
                     <td align="right">Password</td>
                     <td><input type="password" name="password"></td>
                 </tr>
-                <c:if test="${param['error'] != null}">
                 <tr></tr>
                 <tr>
                     <td></td>
-                    <td class="error" align="center">Bad Credentials</td>
+                    <td class="error" align="center"></td>
                 </tr>
-                </c:if>
                 <tr>
                     <td></td>
-                    <td ><input type="submit" value="Submit"></td>
+                    <td ><input type="button" value="Submit" onclick="login();"></td>
                 </tr>
             </table>
         </form>

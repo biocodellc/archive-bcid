@@ -688,8 +688,9 @@ function resetPassSubmit() {
     var jqxhr = $.post("/id/authenticationService/sendResetToken/", $('form').serialize())
         .done(function(data) {
             if (data.success) {
-                $('table').html("Reset password link successfully sent.")
-        }).fail(function(jqxhr)) {
+                $('table').html("Reset password link successfully sent.");
+            }
+        }).fail(function(jqxhr) {
             $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
         });
     loadingDialog(jqxhr);
@@ -712,4 +713,20 @@ function loadingDialog(promise) {
     promise.always(function(){
         dialog.dialog("close");
     });
+}
+
+// function to login user
+function login() {
+    var url = "/id/authenticationService/login";
+    var return_to = getQueryParam("return_to");
+    if (return_to != null) {
+        url += "?return_to=" + return_to;
+    }
+    var jqxhr = $.post(url, $('form').serialize())
+        .done(function(data) {
+            window.location.replace(data.url);
+        }).fail(function(jqxhr) {
+            $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
+        });
+    loadingDialog(jqxhr);
 }

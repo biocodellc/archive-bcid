@@ -107,7 +107,7 @@ public class expeditionService {
         //Check that the user exists in this project
         if (!expedition.userExistsInProject(user_id, project_id)) {
             // If the user isn't in the project, then we can't update or create a new expedition
-            throw new UnauthorizedRequestException("User is not authorized to update/create expeditions in this project.");
+            throw new ForbiddenRequestException("User is not authorized to update/create expeditions in this project.");
         }
 
         // If specified, ignore the user.. simply figure out whether we're updating or inserting
@@ -126,7 +126,7 @@ public class expeditionService {
                 return Response.ok("{\"update\": \"user owns this expedition\"}").build();
                 // If the expedition exists in the project but the user does not own the expedition then this means we can't
             } else if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
-                throw new UnauthorizedRequestException("The dataset code '" + expedition_code +
+                throw new ForbiddenRequestException("The dataset code '" + expedition_code +
                         "' exists in this project already and is owned by another user. " +
                         "Please choose another dataset code.");
             } else {
