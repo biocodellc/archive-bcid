@@ -22,17 +22,13 @@ public class projectMinter {
      *
      * @throws Exception
      */
-    public projectMinter() throws Exception {
+    public projectMinter() {
         database db = new database();
         conn = db.getConn();
 
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
     }
 
     /**

@@ -66,7 +66,7 @@ public class authorizer {
                 }
             }
         } catch (SQLException e) {
-            logger.warn("SQLException thrown trying to validate reset token.", e);
+            throw new RuntimeException(e);
         }
         return false;
     }
