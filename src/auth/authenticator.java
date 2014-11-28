@@ -182,7 +182,7 @@ public class authenticator {
      *
      * @param password
      *
-     * @return
+     * @return true upon successful update, false when nothing was updated (most likely due to user not being found)
      */
     public Boolean setHashedPass(String username, String password) {
         PreparedStatement stmt;
@@ -190,23 +190,22 @@ public class authenticator {
         String hashedPass = createHash(password);
 
         // Store the hashed password in the db
-        if (hashedPass != null) {
-            try {
-                String updateString = "UPDATE users SET password = ? WHERE username = ?";
-                stmt = conn.prepareStatement(updateString);
+        try {
+            String updateString = "UPDATE users SET password = ? WHERE username = ?";
+            stmt = conn.prepareStatement(updateString);
 
-                stmt.setString(1, hashedPass);
-                stmt.setString(2, username);
-                Integer result = stmt.executeUpdate();
+            stmt.setString(1, hashedPass);
+            stmt.setString(2, username);
+            Integer result = stmt.executeUpdate();
 
-                if (result == 1) {
-                    return true;
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (result == 1) {
+                return true;
+            } else {
+                return false;
             }
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
-        return false;
     }
 
     /**
@@ -250,17 +249,13 @@ public class authenticator {
      * @return
      */
     public String createHash(String password) {
-        String hashedPass = null;
-
         try {
-            hashedPass = passwordHash.createHash(password);
+            return passwordHash.createHash(password);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            throw new ServerErrorException(e);
         } catch (InvalidKeySpecException e) {
-            e.printStackTrace();
+            throw new ServerErrorException(e);
         }
-
-        return hashedPass;
     }
 
     /**
@@ -337,39 +332,33 @@ public class authenticator {
      *
      * @return
      */
-    public Boolean createUser(Hashtable<String, String> userInfo) {
+    public void createUser(Hashtable<String, String> userInfo) {
         PreparedStatement stmt = null;
-        Boolean success = false;
         String hashedPass = createHash(userInfo.get("password"));
 
-        if (hashedPass != null) {
-            try {
-                String insertString = "INSERT INTO users (username, password, email, firstName, lastName, institution)" +
-                        " VALUES(?,?,?,?,?,?)";
-                stmt = conn.prepareStatement(insertString);
+        try {
+            String insertString = "INSERT INTO users (username, password, email, firstName, lastName, institution)" +
+                    " VALUES(?,?,?,?,?,?)";
+            stmt = conn.prepareStatement(insertString);
 
-                stmt.setString(1, userInfo.get("username"));
-                stmt.setString(2, hashedPass);
-                stmt.setString(3, userInfo.get("email"));
-                stmt.setString(4, userInfo.get("firstName"));
-                stmt.setString(5, userInfo.get("lastName"));
-                stmt.setString(6, userInfo.get("institution"));
+            stmt.setString(1, userInfo.get("username"));
+            stmt.setString(2, hashedPass);
+            stmt.setString(3, userInfo.get("email"));
+            stmt.setString(4, userInfo.get("firstName"));
+            stmt.setString(5, userInfo.get("lastName"));
+            stmt.setString(6, userInfo.get("institution"));
 
-                stmt.execute();
-                success = true;
+            stmt.execute();
+            return;
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
+        } finally {
+            if (stmt != null) try {
+                stmt.close();
             } catch (SQLException e) {
-                logger.warn("SQLException while creating new user.", e);
-                success = false;
-            } finally {
-                if (stmt != null) try {
-                    stmt.close();
-                } catch (SQLException e) {
-                    logger.warn("SQLException while closing db connection.", e);
-                }
+                logger.warn("SQLException while closing db connection.", e);
             }
         }
-
-        return success;
     }
 
     /**
