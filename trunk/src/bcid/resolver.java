@@ -3,6 +3,7 @@ package bcid;
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.RDFRenderer;
 import bcid.Renderer.Renderer;
+import bcidExceptions.ServerErrorException;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import util.SettingsManager;
@@ -36,11 +37,7 @@ public class resolver extends database {
     static {
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
     }
 
 
@@ -96,7 +93,9 @@ public class resolver extends database {
             rs.next();
             this.ark = rs.getString("prefix");
         } catch (SQLException e) {
+            //TODO is it necessary to set this.ark to null?
             this.ark = null;
+            throw new ServerErrorException(e);
         }
     }
 

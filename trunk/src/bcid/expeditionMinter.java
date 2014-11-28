@@ -1,6 +1,9 @@
 package bcid;
 
 import bcidExceptions.BCIDException;
+import bcidExceptions.ForbiddenRequestException;
+import bcidExceptions.ServerErrorException;
+import bcidExceptions.UnauthorizedRequestException;
 import ezid.EZIDService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +138,7 @@ public class expeditionMinter {
             insertStatement.setInt(2, datasetsId);
             insertStatement.execute();
         } catch (SQLException e) {
-            throw new RuntimeException("Db error attaching Reference to Expedition", e);
+            throw new ServerErrorException("Db error attaching Reference to Expedition", e);
         }
     }
 
@@ -172,9 +175,9 @@ public class expeditionMinter {
             rs.next();
             return rs.getInt("expedition_id");
         } catch (SQLException e) {
-            logger.warn("SQLException while retrieving expedition_id from expeditions table with expedition_code: {} " +
-                    "and project_id: {}", expedition_code, project_id, e);
-            return null;
+            throw new ServerErrorException("Db error while retrieving expeditionId",
+                    "SQLException while retrieving expedition_id from expeditions table with expedition_code: " +
+                    expedition_code + " and project_id: " + project_id, e);
         }
     }
 
@@ -244,7 +247,7 @@ public class expeditionMinter {
             sb.append("</table>");
             return sb.toString();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException("Db error retrieving expedition metadata", e);
         }
     }
 
@@ -315,8 +318,6 @@ public class expeditionMinter {
      * @param expedition_code
      *
      * @return
-     *
-     * @throws java.sql.SQLException
      */
     public String getDeepRoots(String expedition_code, Integer project_id) {
         // Get todays's date
@@ -364,7 +365,7 @@ public class expeditionMinter {
                 sb.append("\n");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
 
         sb.append("\t]\n},\n");
@@ -452,7 +453,7 @@ public class expeditionMinter {
             sb.append("\t]\n}");
             return sb.toString();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 
@@ -695,7 +696,7 @@ public class expeditionMinter {
                     sb.append("\n");
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
 
         sb.append("\t]\n}");
@@ -754,15 +755,13 @@ public class expeditionMinter {
                 sb.append("</td>\n");
                 sb.append("\t</tr>\n");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
-            sb.append("\t</tr>\n");
+            throw new SQLException("Testing");
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
 
-        sb.append("</table>\n");
-        return sb.toString();
+//        sb.append("</table>\n");
+//        return sb.toString();
     }
 
     /**
@@ -815,11 +814,11 @@ public class expeditionMinter {
                     sb.append("\t</tr>\n");
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
-            sb.append("\t</tr>\n");
+        } catch (SQLException e) {
+//            sb.append("\t<tr>\n");
+//            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
+//            sb.append("\t</tr>\n");
+            throw new ServerErrorException(e);
         }
 
         sb.append("</table>\n");
@@ -853,7 +852,7 @@ public class expeditionMinter {
             projectMinter p = new projectMinter();
 
             if (!p.userProjectAdmin(userId, projectId)) {
-                return "You must be this project's admin to view its datasets.";
+                throw new ForbiddenRequestException("You must be this project's admin to view its datasets.");
             }
 
             String sql = "SELECT e.expedition_title, e.expedition_id, e.public, u.username \n" +
@@ -899,11 +898,11 @@ public class expeditionMinter {
             sb.append("\t\t<td><input id=\"expeditionForm\" type=\"button\" value=\"Submit\"></td>\n");
             sb.append("\t</tr>\n");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            sb.append("\t<tr>\n");
-            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
-            sb.append("\t</tr>\n");
+        } catch (SQLException e) {
+//            sb.append("\t<tr>\n");
+//            sb.append("\t\t<td class=\"error\" colspan=\"2\">" + e.getClass().toString() + ": " + e.getMessage() + "</td>\n");
+//            sb.append("\t</tr>\n");
+            throw new ServerErrorException(e);
         }
 
         sb.append("</tbody>\n");
@@ -931,8 +930,7 @@ public class expeditionMinter {
                 return false;
 
         } catch (SQLException e) {
-            logger.warn("SQLException while updating expedition public status.", e);
-            return false;
+            throw new ServerErrorException("SQLException while updating expedition public status.", e);
         }
     }
 
@@ -944,7 +942,7 @@ public class expeditionMinter {
      *
      * @return
      */
-    public Boolean updateExpeditionsPublicStatus(MultivaluedMap<String, String> expeditions, Integer projectId) {
+    public void updateExpeditionsPublicStatus(MultivaluedMap<String, String> expeditions, Integer projectId) {
         List<String> updateExpeditions = new ArrayList<String>();
         try {
             String sql = "SELECT expedition_id, public FROM expeditions WHERE project_id = \"" + projectId + "\"";
@@ -969,11 +967,9 @@ public class expeditionMinter {
 
                 stmt.executeUpdate(updateString);
             }
-            return true;
 
         } catch (SQLException e) {
-            logger.warn("SQLException while updating Expeditions public status.", e);
+            throw new ServerErrorException("Db error while updating Expeditions public status.", e);
         }
-        return false;
     }
 }

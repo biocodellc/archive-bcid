@@ -1,9 +1,6 @@
 package rest;
 
-import bcidExceptions.BCIDAbstractException;
-import bcidExceptions.BCIDRuntimeException;
-import bcidExceptions.BadRequestException;
-import bcidExceptions.ServerErrorException;
+import bcidExceptions.*;
 import com.sun.jersey.api.core.ExtendedUriInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,8 +91,8 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
     }
 
     private void logException(Exception e) {
-        // don't log BadRequestexceptions
-        if (!(e instanceof BadRequestException)) {
+        // don't log BadRequestexceptions or UnauthorizedRequestExceptions
+        if (!(e instanceof BadRequestException || e instanceof UnauthorizedRequestException)) {
             logger.warn("{} thrown.", e.getClass().toString(), e);
         }
     }

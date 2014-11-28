@@ -40,8 +40,7 @@ public class authorizer {
             return rs.getInt("count") >= 1;
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            throw new ServerErrorException(e);
         }
     }
 
