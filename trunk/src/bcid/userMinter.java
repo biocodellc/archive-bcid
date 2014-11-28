@@ -379,7 +379,7 @@ public class userMinter {
             return rs.getInt("count") >= 1;
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 

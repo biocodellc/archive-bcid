@@ -138,7 +138,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             try {
                 identifier = new URI(prefix);
             } catch (URISyntaxException e) {
-                throw new RuntimeException("URISyntaxException from prefix: " + prefix + " from datasetId: " + datasets_id, e);
+                throw new ServerErrorException("Server Error","URISyntaxException from prefix: " + prefix + " from datasetId: " + datasets_id, e);
 
             }
             ezidRequest = rs.getBoolean("ezidRequest");
@@ -165,7 +165,7 @@ public class dataGroupMinter extends dataGroupEncoder {
                 this.webAddress = null;
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 
@@ -449,7 +449,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             sb.append("\n</table>");
 
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
         return sb.toString();
     }

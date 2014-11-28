@@ -79,7 +79,7 @@ public class resolverService {
             } */
 
             // The expected response for IDentifiers without a URL
-            return Response.status(303).location(seeOtherUri).build();
+            return Response.status(Response.Status.SEE_OTHER).location(seeOtherUri).build();
         }
     }
 }

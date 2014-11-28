@@ -1,5 +1,7 @@
 package util;
 
+import bcidExceptions.ServerErrorException;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -91,9 +93,11 @@ public class SettingsManager {
             props.load(in);
             in.close();
         } catch (FileNotFoundException e) {
-            throw new RuntimeException("Unable to find settings file " + propsfile + ". Make sure you have included this file in the root class of your deployed application!", e);
+            throw new ServerErrorException("Server Error",
+                    "Unable to find settings file " + propsfile + ". Make sure you have included this file in the root class of your deployed application!", e);
         } catch (IOException e) {
-            throw new RuntimeException("Error while loading the settings file " + propsfile + ". Is the file correct?", e);
+            throw new ServerErrorException("Server Error",
+                    "Error while loading the settings file " + propsfile + ". Is the file correct?", e);
         }
     }
 

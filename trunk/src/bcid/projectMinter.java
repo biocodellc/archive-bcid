@@ -122,7 +122,7 @@ public class projectMinter {
                }
                return projects;
            } catch (SQLException e) {
-               throw new RuntimeException("Trouble getting project List", e);
+               throw new ServerErrorException("Trouble getting project List", e);
            }
        }
 
@@ -476,7 +476,7 @@ public class projectMinter {
             // If the user belongs to this project then there will be a >=1 value and returns true, otherwise false.
             return rs.getInt("count") >= 1;
         }  catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 
@@ -496,7 +496,7 @@ public class projectMinter {
 
             return rs.getInt("count") >= 1;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new ServerErrorException(e);
         }
     }
 

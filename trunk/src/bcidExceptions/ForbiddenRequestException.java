@@ -6,7 +6,7 @@ import javax.ws.rs.core.Response;
  * An exception that encapsulates forbidden requests
  */
 public class ForbiddenRequestException extends BCIDAbstractException {
-    private static Integer httpStatusCode = Response.Status.BAD_REQUEST.getStatusCode();
+    private static Integer httpStatusCode = Response.Status.FORBIDDEN.getStatusCode();
 
     public ForbiddenRequestException (String usrMessage) {
         super(usrMessage,httpStatusCode);

@@ -44,7 +44,7 @@ public class projectService {
         String response = project.getValidationXML(project_id);
 
         if (response == null) {
-            return Response.status(204).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
         } else {
             return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
         }
