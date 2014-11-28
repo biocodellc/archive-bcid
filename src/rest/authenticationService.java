@@ -202,20 +202,30 @@ public class authenticationService {
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_HTML)
-    public void logout(@QueryParam("redirect_uri") String redirect_uri,
-                       @Context HttpServletResponse res)
-            throws IOException {
+    public Response logout(@QueryParam("redirect_uri") String redirect_uri,
+                           @Context HttpServletResponse res) {
 
         HttpSession session = request.getSession();
 
         session.invalidate();
 
         if (redirect_uri != null && !redirect_uri.equals("")) {
-            res.sendRedirect(redirect_uri);
+            try {
+                return Response.status(307)
+                        .location(new URI(redirect_uri))
+                        .build();
+            } catch (URISyntaxException e) {
+                throw new BadRequestException("invalid redirect_uri");
+            }
         } else {
-            res.sendRedirect("/bcid/index.jsp");
+            try {
+                return Response.status(307)
+                        .location(new URI("/bcid/index.jsp"))
+                        .build();
+            } catch (URISyntaxException e) {
+                throw new ServerErrorException(e);
+            }
         }
-        return;
     }
 
     /**
