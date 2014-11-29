@@ -1,10 +1,8 @@
 package bcid;
 
-import bcidExceptions.ServerErrorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 
+import java.math.BigInteger;
 import java.sql.*;
 
 /**
@@ -16,28 +14,29 @@ public class database {
 
     // Mysql Connection
     protected Connection conn;
-    final static Logger logger = LoggerFactory.getLogger(database.class);
 
     /**
      * Load settings for creating this database connection from the bcidsettings.properties file
      */
-    public database() {
-        try {
-            SettingsManager sm = SettingsManager.getInstance();
-            sm.loadProperties();
-            String bcidUser = sm.retrieveValue("bcidUser");
-            String bcidPassword = sm.retrieveValue("bcidPassword");
-            String bcidUrl = sm.retrieveValue("bcidUrl");
-            String bcidClass = sm.retrieveValue("bcidClass");
+    public database() throws Exception {
+        SettingsManager sm = SettingsManager.getInstance();
+        sm.loadProperties();
+        String bcidUser = sm.retrieveValue("bcidUser");
+        String bcidPassword = sm.retrieveValue("bcidPassword");
+        String bcidUrl = sm.retrieveValue("bcidUrl");
+        String bcidClass = sm.retrieveValue("bcidClass");
 
+
+        try {
             Class.forName(bcidClass);
             conn = DriverManager.getConnection(bcidUrl, bcidUser, bcidPassword);
         } catch (ClassNotFoundException e) {
-            throw new ServerErrorException("Server Error","Driver issues accessing BCID system", e);
+            e.printStackTrace();
+            throw new Exception("Driver issues accessing BCID system");
         } catch (SQLException e) {
-            throw new ServerErrorException("Server Error","SQL Exception accessing BCID system", e);
+            e.printStackTrace();
+            throw new Exception("SQL Exception accessing BCID system");
         }
-
     }
 
     public Connection getConn() {
@@ -60,8 +59,7 @@ public class database {
                 return rs.getInt("user_id");
             }
         } catch (SQLException e) {
-            throw new ServerErrorException("Server Error",
-                    "SQLException attempting to getUserId when given the username: {}", e);
+            e.printStackTrace();
         }
         return null;
     }
@@ -81,8 +79,7 @@ public class database {
                 return rs.getString("username");
             }
         } catch (SQLException e) {
-            throw new ServerErrorException("Server Error",
-                    "SQLException attempting to getUserName when given the userId: {}", e);
+            e.printStackTrace();
         }
         return null;
     }

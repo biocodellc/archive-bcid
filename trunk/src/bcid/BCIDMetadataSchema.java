@@ -1,8 +1,5 @@
 package bcid;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Map;
@@ -28,8 +25,6 @@ public class BCIDMetadataSchema {
     public metadataElement dcHasVersion = null;
     public metadataElement bscSuffixPassthrough = null;
     public metadataElement dcPublisher = null;
-
-    private static Logger logger = LoggerFactory.getLogger(BCIDMetadataSchema.class);
 
 
 
@@ -81,16 +76,14 @@ public class BCIDMetadataSchema {
                     bscSuffixPassthrough = new metadataElement("bsc:suffixPassthrough", pairs.getValue().toString(), "Indicates that this identifier supports suffixPassthrough.");
                 }
             } catch (NullPointerException e) {
-                //TODO should we silence this exception?
-                logger.warn("NullPointerException thrown for identifier: {}", identifier);
+                e.getMessage();
             }
         }
         if (ark != null) {
             try {
                 dcMediator = new metadataElement("dcterms:mediator", identifier.getMetadataTarget().toString(), "Metadata mediator");
             } catch (URISyntaxException e) {
-                //TODO should we silence this exception?
-                logger.warn("URISyntaxException thrown", e);
+                e.printStackTrace();
             }
         }
     }

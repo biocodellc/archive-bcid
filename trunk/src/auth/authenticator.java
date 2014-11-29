@@ -2,6 +2,8 @@ package auth;
 
 import bcid.database;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
@@ -11,10 +13,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 
 import bcid.projectMinter;
-import bcidExceptions.ServerErrorException;
 import org.apache.commons.cli.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.sendEmail;
 import util.stringGenerator;
@@ -27,7 +26,6 @@ public class authenticator {
     protected Connection conn;
     SettingsManager sm;
     private static LDAPAuthentication ldapAuthentication;
-    private static Logger logger = LoggerFactory.getLogger(authenticator.class);
 
     /**
      * Constructor that initializes the class level variables
@@ -35,12 +33,23 @@ public class authenticator {
     public authenticator() {
 
         // Initialize database
-        this.db = new database();
-        this.conn = db.getConn();
+        try {
+            this.db = new database();
+            this.conn = db.getConn();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new WebApplicationException(Response.Status.UNAUTHORIZED);
+        }
 
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        sm.loadProperties();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     public static LDAPAuthentication getLdapAuthentication() {
@@ -59,31 +68,42 @@ public class authenticator {
     public Boolean loginLDAP(String username, String password, Boolean recognizeDemo) {
         // 1. check that this is a valid username in this system
         if (!validUser(LDAPAuthentication.showShortUserName(username))) {
-//            System.out.println("attempting to add user " + username+" to system");
+            System.out.println("attempting to add user " + username+" to system");
             /*
             ADD LDAP authenticated user
             */
             // A. Check LDAP authentication
-//            System.out.println("LDAP authentication");
+            System.out.println("LDAP authentication");
             ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
-//            System.out.println("message = " + ldapAuthentication.getMessage() + ";status=" + ldapAuthentication.getStatus());
+            System.out.println("message = " + ldapAuthentication.getMessage() + ";status=" + ldapAuthentication.getStatus());
 
             if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
 
                 // B. If LDAP is good, then insert account into database (if not return false)
-//                System.out.println("create LDAP user");
-                createLdapUser(LDAPAuthentication.showShortUserName(username));
+                System.out.println("create LDAP user");
+                try {
+                    createLdapUser(LDAPAuthentication.showShortUserName(username));
+                }   catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
 
                 // C. enable this user for all projects
-//                System.out.println("add user to projects");
-                projectMinter p = new projectMinter();
-                // get the user_id for this username
-                int user_id = getUserId(username);
-                // Loop projects and assign user to them
-                ArrayList<Integer> projects = p.getAllProjects();
-                Iterator projectsIt = projects.iterator();
-                while (projectsIt.hasNext()) {
-                    p.addUserToProject(user_id, (Integer) projectsIt.next());
+                System.out.println("add user to projects");
+                try {
+                    projectMinter p = new projectMinter();
+                    // get the user_id for this username
+                    int user_id = getUserId(username);
+                    // Loop projects and assign user to them
+                    ArrayList<Integer> projects = p.getAllProjects();
+                    Iterator projectsIt = projects.iterator();
+                    while (projectsIt.hasNext()) {
+                        p.addUserToProject(user_id, (Integer) projectsIt.next());
+                    }
+                } catch (Exception e) {
+                    // TODO: if it fails at this point not sure if we should pass or fail this? for now we still say true
+                    e.printStackTrace();
+                    return true;
                 }
                 // D. return true because we got this far and already authenticated
                 return true;
@@ -93,7 +113,7 @@ public class authenticator {
         }
         // 2. If a valid username, we just need to check that the LDAP authentication worked
         else {
-//            System.out.println("the user exists, just authenticating using LDAP");
+            System.out.println("the user exists, just authenticating using LDAP");
             ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
             if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
                 return true;
@@ -116,9 +136,9 @@ public class authenticator {
             try {
                 return passwordHash.validatePassword(password, hashedPass);
             } catch (InvalidKeySpecException e) {
-                throw new ServerErrorException(e);
+                e.printStackTrace();
             } catch (NoSuchAlgorithmException e) {
-                throw new ServerErrorException(e);
+                e.printStackTrace();
             }
         }
 
@@ -143,7 +163,7 @@ public class authenticator {
             }
 
         } catch (SQLException e) {
-            throw new ServerErrorException(e);
+            e.printStackTrace();
         }
         return null;
     }
@@ -168,7 +188,7 @@ public class authenticator {
             }
 
         } catch (SQLException e) {
-            throw new ServerErrorException(e);
+            e.printStackTrace();
         }
         if (count == 1) {
             return true;
@@ -182,7 +202,7 @@ public class authenticator {
      *
      * @param password
      *
-     * @return true upon successful update, false when nothing was updated (most likely due to user not being found)
+     * @return
      */
     public Boolean setHashedPass(String username, String password) {
         PreparedStatement stmt;
@@ -190,22 +210,23 @@ public class authenticator {
         String hashedPass = createHash(password);
 
         // Store the hashed password in the db
-        try {
-            String updateString = "UPDATE users SET password = ? WHERE username = ?";
-            stmt = conn.prepareStatement(updateString);
+        if (hashedPass != null) {
+            try {
+                String updateString = "UPDATE users SET password = ? WHERE username = ?";
+                stmt = conn.prepareStatement(updateString);
 
-            stmt.setString(1, hashedPass);
-            stmt.setString(2, username);
-            Integer result = stmt.executeUpdate();
+                stmt.setString(1, hashedPass);
+                stmt.setString(2, username);
+                Integer result = stmt.executeUpdate();
 
-            if (result == 1) {
-                return true;
-            } else {
-                return false;
+                if (result == 1) {
+                    return true;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            throw new ServerErrorException(e);
         }
+        return false;
     }
 
     /**
@@ -235,8 +256,8 @@ public class authenticator {
 
                 return setHashedPass(username, password);
             }
-        } catch (SQLException e) {
-            throw new ServerErrorException("Server Error resetting password.", e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }
@@ -249,13 +270,17 @@ public class authenticator {
      * @return
      */
     public String createHash(String password) {
+        String hashedPass = null;
+
         try {
-            return passwordHash.createHash(password);
+            hashedPass = passwordHash.createHash(password);
         } catch (NoSuchAlgorithmException e) {
-            throw new ServerErrorException(e);
+            e.printStackTrace();
         } catch (InvalidKeySpecException e) {
-            throw new ServerErrorException(e);
+            e.printStackTrace();
         }
+
+        return hashedPass;
     }
 
     /**
@@ -267,8 +292,10 @@ public class authenticator {
      */
     public Boolean createLdapUser(String username) {
         PreparedStatement stmt = null;
+        Boolean success = false;
 
         try {
+
 
             String insertString = "INSERT INTO users (username,set_password,institution,email,firstName,lastName,pass_reset_token,password,admin,IDlimit)" +
                     " VALUES(?,?,?,?,?,?,?,?,?,?)";
@@ -285,17 +312,22 @@ public class authenticator {
             stmt.setInt(9, 0);
             stmt.setInt(10, 100000);
 
+
+
             stmt.execute();
-            return true;
+            success = true;
         } catch (SQLException e) {
-            throw new ServerErrorException(e);
+            e.printStackTrace();
+            success = false;
         } finally {
             if (stmt != null) try {
                 stmt.close();
             } catch (SQLException e) {
-                logger.warn("SQLException while closing db connection.", e);
+                e.printStackTrace();
             }
         }
+
+        return success;
     }
 
 
@@ -319,8 +351,8 @@ public class authenticator {
                 user_id = rs.getInt("user_id");
             }
 
-        } catch (SQLException e) {
-            throw new ServerErrorException(e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return user_id;
     }
@@ -332,33 +364,39 @@ public class authenticator {
      *
      * @return
      */
-    public void createUser(Hashtable<String, String> userInfo) {
+    public Boolean createUser(Hashtable<String, String> userInfo) {
         PreparedStatement stmt = null;
+        Boolean success = false;
         String hashedPass = createHash(userInfo.get("password"));
 
-        try {
-            String insertString = "INSERT INTO users (username, password, email, firstName, lastName, institution)" +
-                    " VALUES(?,?,?,?,?,?)";
-            stmt = conn.prepareStatement(insertString);
+        if (hashedPass != null) {
+            try {
+                String insertString = "INSERT INTO users (username, password, email, firstName, lastName, institution)" +
+                        " VALUES(?,?,?,?,?,?)";
+                stmt = conn.prepareStatement(insertString);
 
-            stmt.setString(1, userInfo.get("username"));
-            stmt.setString(2, hashedPass);
-            stmt.setString(3, userInfo.get("email"));
-            stmt.setString(4, userInfo.get("firstName"));
-            stmt.setString(5, userInfo.get("lastName"));
-            stmt.setString(6, userInfo.get("institution"));
+                stmt.setString(1, userInfo.get("username"));
+                stmt.setString(2, hashedPass);
+                stmt.setString(3, userInfo.get("email"));
+                stmt.setString(4, userInfo.get("firstName"));
+                stmt.setString(5, userInfo.get("lastName"));
+                stmt.setString(6, userInfo.get("institution"));
 
-            stmt.execute();
-            return;
-        } catch (SQLException e) {
-            throw new ServerErrorException(e);
-        } finally {
-            if (stmt != null) try {
-                stmt.close();
+                stmt.execute();
+                success = true;
             } catch (SQLException e) {
-                logger.warn("SQLException while closing db connection.", e);
+                e.printStackTrace();
+                success = false;
+            } finally {
+                if (stmt != null) try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         }
+
+        return success;
     }
 
     /**
@@ -383,12 +421,12 @@ public class authenticator {
                 }
             }
         } catch (SQLException e) {
-            logger.warn("SQLException thrown", e);
+            e.printStackTrace();
         } finally {
             if (stmt != null) try {
                 stmt.close();
             } catch (SQLException e) {
-                logger.warn("SQLException thrown", e);
+                e.printStackTrace();
             }
         }
         return false;
@@ -401,8 +439,10 @@ public class authenticator {
      * @param username
      *
      * @return
+     *
+     * @throws Exception
      */
-    public String sendResetToken(String username) {
+    public String sendResetToken(String username) throws Exception {
         String email = null;
         String sql = "SELECT email FROM users WHERE username = ?";
 
@@ -442,7 +482,11 @@ public class authenticator {
 
                 // Initialize settings manager
                 SettingsManager sm = SettingsManager.getInstance();
-                sm.loadProperties();
+                try {
+                    sm.loadProperties();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 // Send an Email that this completed
                 sendEmail sendEmail = new sendEmail(
@@ -454,14 +498,13 @@ public class authenticator {
                         emailBody);
                 sendEmail.start();
             }
-        } catch (SQLException e) {
-            throw new ServerErrorException("Server Error while sending reset token.", "db error retrieving email for user "
-                    + username, e);
+        } catch (Exception e) {
+            throw new Exception(e);
         } finally {
             if (stmt != null) try {
                 stmt.close();
             } catch (SQLException e) {
-                logger.warn("SQLException while attempting to close db connection.", e);
+                e.printStackTrace();
             }
         }
         return email;
@@ -548,7 +591,7 @@ public class authenticator {
         if (conn != null) try {
             conn.close();
         } catch (SQLException e) {
-            logger.warn("SQLException while closing db connection.", e);
+            e.printStackTrace();
         }
     }
 }

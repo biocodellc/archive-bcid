@@ -1,7 +1,5 @@
 package bcid;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.dates;
 
@@ -53,11 +51,13 @@ public class bcid extends GenericIdentifier {
 
     static SettingsManager sm;
 
-    private static Logger logger = LoggerFactory.getLogger(bcid.class);
-
     static {
         sm = SettingsManager.getInstance();
-        sm.loadProperties();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -85,8 +85,7 @@ public class bcid extends GenericIdentifier {
                 identifier = dataset.identifier;
             }
         } catch (URISyntaxException e) {
-            //TODO should we silence this exception?
-            logger.warn("{URISyntaxException thrown", e);
+            e.printStackTrace();
         }
     }
 
@@ -109,8 +108,9 @@ public class bcid extends GenericIdentifier {
             }
             projectCode = dataset.getProject(dataset_id);
         } catch (URISyntaxException e) {
-            //TODO should we silence this exception?
-            logger.warn("URISyntaxException for uri: {}", dataset.identifier + sm.retrieveValue("divider") + sourceID, e);
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         // Reformat webAddress in this constructor if there is a sourceID
         if (sourceID != null && webAddress != null && !sourceID.toString().trim().equals("") && !webAddress.toString().trim().equals("")) {
@@ -118,8 +118,7 @@ public class bcid extends GenericIdentifier {
             try {
                 this.webAddress = new URI(webAddress + sourceID);
             } catch (URISyntaxException e) {
-                //TODO should we silence this exception?
-                logger.warn("URISyntaxException for uri: {}", webAddress + sourceID, e);
+                e.printStackTrace();
             }
         }
     }
@@ -197,8 +196,7 @@ public class bcid extends GenericIdentifier {
                 identifier = dataset.identifier;
             }
         } catch (URISyntaxException e) {
-            //TODO should we silence this exception?
-            logger.warn("URISyntaxException thrown", e);
+            e.printStackTrace();
         }
 
         // Reformat webAddress in this constructor if there is a sourceID
@@ -207,8 +205,7 @@ public class bcid extends GenericIdentifier {
             try {
                 this.webAddress = new URI(webAddress + sourceID);
             } catch (URISyntaxException e) {
-                //TODO should we silence this exception?
-                logger.warn("URISyntaxException thrown", e);
+                e.printStackTrace();
             }
         }
     }
@@ -266,7 +263,12 @@ public class bcid extends GenericIdentifier {
 
 
         // Create a dataset representation based on the dataset_id
-        dataset = new dataGroupMinter(pDatasets_id);
+        try {
+            dataset = new dataGroupMinter(pDatasets_id);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         //when =  new dates().now();
         when = dataset.ts;
 
@@ -315,7 +317,7 @@ public class bcid extends GenericIdentifier {
         return map;
     }
 
-    public URI getResolutionTarget() {
+    public URI getResolutionTarget() throws URISyntaxException {
         return webAddress;
     }
 

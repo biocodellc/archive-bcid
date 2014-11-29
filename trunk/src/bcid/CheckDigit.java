@@ -82,7 +82,7 @@ public class CheckDigit {
      * @param input
      * @return true/false if this verifies
      */
-    public boolean verify(String input) {
+    public boolean verify(String input) throws Exception {
         if (input.length() > 30)  {
             return false;
             //throw new Exception("Unable to decode string due to length, possibly this is a UUID?  Unable to validate");

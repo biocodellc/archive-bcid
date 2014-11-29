@@ -1,12 +1,9 @@
 package rest;
 
 import auth.authenticator;
-import bcidExceptions.*;
 import bcid.database;
 import bcid.projectMinter;
 import bcid.userMinter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import util.errorInfo;
 import util.queryParams;
 
@@ -18,7 +15,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Hashtable;
 
 /**
@@ -29,8 +25,6 @@ public class userService {
 
     @Context
     static HttpServletRequest request;
-
-    private static Logger logger = LoggerFactory.getLogger(userService.class);
 
     /**
      * Service to create a new user.
@@ -58,7 +52,7 @@ public class userService {
 
         if (session.getAttribute("projectAdmin") == null) {
             // only project admins are able to create users
-            throw new ForbiddenRequestException("Only project admins are able to create users.");
+            return Response.status(401).entity("{\"error\": \"only project admins are able to create users\"}").build();
         }
 
         if ((username == null || username.isEmpty()) ||
@@ -67,12 +61,12 @@ public class userService {
                 (lastName == null || lastName.isEmpty()) ||
                 (email == null || email.isEmpty()) ||
                 (institution == null) || institution.isEmpty()) {
-            throw new BadRequestException("all fields are required");
+            return Response.status(400).entity("{\"error\": \"all fields are required\"}").build();
         }
 
         // check that a valid email is given
         if (!email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
-            throw new BadRequestException("please enter a valid email");
+            return Response.status(400).entity("{\"error\": \"please enter a valid email\"}").build();
         }
 
         Hashtable<String, String> userInfo = new Hashtable<String, String>();
@@ -83,20 +77,25 @@ public class userService {
         userInfo.put("institution", institution);
         userInfo.put("password", password);
 
-        userMinter u = new userMinter();
-        projectMinter p = new projectMinter();
-        String admin = session.getAttribute("user").toString();
-        database db = new database();
+        try {
+            userMinter u = new userMinter();
+            projectMinter p = new projectMinter();
+            String admin = session.getAttribute("user").toString();
+            database db = new database();
 
-        if (u.checkUsernameExists(username)) {
-            throw new BadRequestException("username already exists");
-        }
-        // check if the user is this project's admin
-        if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
-            throw new ForbiddenRequestException("You can't add a user to a project that you're not an admin.");
-        }
+            if (u.checkUsernameExists(username)) {
+                return Response.status(400).entity("{\"error\": \"username already exists\"}").build();
+            }
+            // check if the user is this project's admin
+            if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
+                return Response.status(401).entity("{\"error\": \"you can't add a user to a project that you're not an admin\"}").build();
+            }
 
-        return Response.ok(u.createUser(userInfo, projectId)).build();
+            return Response.ok(u.createUser(userInfo, projectId)).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        }
     }
 
     /**
@@ -105,10 +104,14 @@ public class userService {
      */
     @GET
     @Path("/createFormAsTable")
-    @Produces(MediaType.TEXT_HTML)
     public String createFormAsTable() {
-        userMinter u = new userMinter();
-        return u.getCreateForm();
+        try {
+            userMinter u = new userMinter();
+            return u.getCreateForm();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
+        }
     }
 
     /**
@@ -134,51 +137,56 @@ public class userService {
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         if (session.getAttribute("projectAdmin") == null) {
-            throw new ForbiddenRequestException("You must be a project admin to edit another user's profile");
+            return Response.status(401).entity("{\"error\": \"you must be a project admin to edit another user's profile\"}").build();
         }
 
-        // set new password if given
-        if (!new_password.isEmpty()) {
-            authenticator authenticator = new authenticator();
-            Boolean success = authenticator.setHashedPass(username, new_password);
-            authenticator.close();
-            if (!success) {
-                throw new BadRequestException("user: " + username + "not found");
-            } else {
-                // Make the user change their password next time they login
-                update.put("set_password", "0");
+        try {
+            // set new password if given
+            if (!new_password.isEmpty()) {
+                authenticator authenticator = new authenticator();
+                Boolean success = authenticator.setHashedPass(username, new_password);
+                authenticator.close();
+                if (!success) {
+                    throw new Exception("server error hashing password");
+                } else {
+                    // Make the user change their password next time they login
+                    update.put("set_password", "0");
+                }
             }
-        }
 
-        // Check if any other fields should be updated
-        userMinter u = new userMinter();
+            // Check if any other fields should be updated
+            userMinter u = new userMinter();
 
-        if (!firstName.equals(u.getFirstName(username))) {
-            update.put("firstName", firstName);
-        }
-        if (!lastName.equals(u.getLastName(username))) {
-            update.put("lastName", lastName);
-        }
-        if (!email.equals(u.getEmail(username))) {
-            // check that a valid email is given
-            if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
-                update.put("email", email);
-            } else {
-                throw new BadRequestException("Please enter a valid email.");
+            if (!firstName.equals(u.getFirstName(username))) {
+                update.put("firstName", firstName);
             }
-        }
-        if (!institution.equals(u.getInstitution(username))) {
-            update.put("institution", institution);
-        }
-
-
-        if (!update.isEmpty()) {
-            Boolean success = u.updateProfile(update, username);
-            if (!success) {
-                throw new BadRequestException("user: " + username + "not found");
+            if (!lastName.equals(u.getLastName(username))) {
+                update.put("lastName", lastName);
             }
+            if (!email.equals(u.getEmail(username))) {
+                // check that a valid email is given
+                if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
+                    update.put("email", email);
+                } else {
+                    return Response.status(400).entity("{\"error\": \"please enter a valid email\"}").build();
+                }
+            }
+            if (!institution.equals(u.getInstitution(username))) {
+                update.put("institution", institution);
+            }
+
+
+            if (!update.isEmpty()) {
+                Boolean success = u.updateProfile(update, username);
+                if (!success) {
+                    throw new Exception("server error updating profile");
+                }
+            }
+            return Response.ok("{\"success\": \"true\"}").build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
-        return Response.ok("{\"success\": \"true\"}").build();
     }
 
     /**
@@ -190,24 +198,25 @@ public class userService {
      * @param old_password
      * @param new_password
      * @param return_to
-     * @returns either error message or the url to redirect to upon success
+     * @throws IOException
      */
     @POST
     @Path("/profile/update")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateProfile(@FormParam("firstName") String firstName,
-                                  @FormParam("lastName") String lastName,
-                                  @FormParam("email") String email,
-                                  @FormParam("institution") String institution,
-                                  @FormParam("old_password") String old_password,
-                                  @FormParam("new_password") String new_password,
-                                  @QueryParam("return_to") String return_to,
-                                  @Context HttpServletResponse response) {
+    @Produces(MediaType.TEXT_HTML)
+    public void updateProfile(@FormParam("firstName") String firstName,
+                              @FormParam("lastName") String lastName,
+                              @FormParam("email") String email,
+                              @FormParam("institution") String institution,
+                              @FormParam("old_password") String old_password,
+                              @FormParam("new_password") String new_password,
+                              @QueryParam("return_to") String return_to,
+                              @Context HttpServletResponse response)
+            throws Exception{
 
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
-//        String error = "";
+        String error = "";
         Hashtable<String, String> update = new Hashtable<String, String>();
 
         // Only update user's password if both old_password and new_password fields contain values
@@ -220,7 +229,7 @@ public class userService {
             if (valid_pass) {
                 Boolean success = myAuth.setHashedPass(username, new_password);
                 if (!success) {
-                    throw new ServerErrorException("Server Error", "User not found");
+                    error = "server error hashing password";
                 }
                 // Make sure that the set_password field is 1 (true) so they aren't asked to change their password after login
                 else {
@@ -228,7 +237,7 @@ public class userService {
                 }
             }
             else {
-                throw new BadRequestException("Wrong Password");
+                error = "Wrong Password";
             }
             myAuth.close();
 
@@ -249,7 +258,7 @@ public class userService {
             if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
                 update.put("email", email);
             } else {
-                throw new BadRequestException("please enter a valid email");
+                error = "please enter a valid email";
             }
         }
         if (!institution.equals(u.getInstitution(username))) {
@@ -259,15 +268,25 @@ public class userService {
         if (!update.isEmpty()) {
             Boolean success = u.updateProfile(update, username);
             if (!success) {
-                throw new ServerErrorException("Server Error", "User not found");
+                error = "server error updating profile";
             }
         }
 
-        if (return_to != null) {
-            return Response.ok("{\"success\": \"" + return_to + "\"}").build();
-        } else {
-            return Response.ok("{\"success\": \"/bcid/secure/profile.jsp\"}").build();
+        if (error.isEmpty()) {
+            if (return_to != null) {
+                response.sendRedirect(return_to);
+            } else {
+                response.sendRedirect("/bcid/secure/profile.jsp");
+                return;
+            }
         }
+
+        // Error occurred somewhere, inform user
+        if (return_to != null) {
+            response.sendRedirect("/bcid/secure/profile.jsp?error=" + error + new queryParams().getQueryParams(request.getParameterMap(), false));
+            return;
+        }
+        response.sendRedirect("/bcid/secure/profile.jsp?error=" + error);
     }
 
     /**
@@ -282,11 +301,16 @@ public class userService {
         HttpSession session = request.getSession();
 
         if (session.getAttribute("projectAdmin") == null) {
-            throw new ForbiddenRequestException("You must be a project admin to edit a user's profile");
+            return "You must be a project admin to edit a user's profile";
         }
 
-        userMinter u = new userMinter();
-        return u.getProfileEditorAsTable(username, true);
+        try {
+            userMinter u = new userMinter();
+            return u.getProfileEditorAsTable(username, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
+        }
     }
 
     /**
@@ -301,11 +325,18 @@ public class userService {
         Object username = session.getAttribute("user");
 
         if (username == null) {
-            throw new UnauthorizedRequestException("You must be logged in to view your profile.");
+            return "You must be logged in to view your profile.";
         }
 
-        userMinter u = new userMinter();
-        return u.getProfileEditorAsTable(username.toString(), false);
+        userMinter u;
+
+        try {
+            u = new userMinter();
+            return u.getProfileEditorAsTable(username.toString(), false);
+        }   catch (Exception e) {
+            e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
+        }
     }
 
     /**
@@ -322,11 +353,16 @@ public class userService {
         userMinter u;
 
         if (username == null) {
-            throw new UnauthorizedRequestException("You must be logged in to view your profile.");
+            return "You must be logged in to view your profile.";
         }
 
-        u = new userMinter();
-        return u.getProfileHTML(username.toString());
+        try {
+            u = new userMinter();
+            return u.getProfileHTML(username.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new errorInfo(e, request).toHTMLTable();
+        }
     }
 
     /**
@@ -339,9 +375,15 @@ public class userService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserData(@QueryParam("access_token") String access_token) {
         if (access_token != null) {
-            userMinter u = new userMinter();
-            return Response.ok(u.getOauthProfile(access_token)).build();
+            try {
+                userMinter u = new userMinter();
+
+                return Response.ok(u.getOauthProfile(access_token)).build();
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+            }
         }
-        throw new BadRequestException("invalid_grant", "access_token was null");
+        return Response.status(400).entity("{\"error\": \"invalid_grant\"}").build();
     }
 }

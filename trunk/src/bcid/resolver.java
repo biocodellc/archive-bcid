@@ -3,7 +3,6 @@ package bcid;
 import bcid.Renderer.JSONRenderer;
 import bcid.Renderer.RDFRenderer;
 import bcid.Renderer.Renderer;
-import bcidExceptions.ServerErrorException;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import util.SettingsManager;
@@ -37,7 +36,11 @@ public class resolver extends database {
     static {
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        sm.loadProperties();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -47,21 +50,27 @@ public class resolver extends database {
      * @param ark
      * @throws Exception
      */
-    public resolver(String ark) {
+    public resolver(String ark) throws Exception {
         super();
 
-        this.ark = ark;
-        // Pull off potential last piece of string which would represent the local Identifier
-        // The piece to decode is ark:/NAAN/bcidIdentifer (anything else after a last trailing "/" not decoded)
-        StringBuilder stringBuilder = new StringBuilder();
+        try {
+            this.ark = ark;
+            // Pull off potential last piece of string which would represent the local Identifier
+            // The piece to decode is ark:/NAAN/bcidIdentifer (anything else after a last trailing "/" not decoded)
+            StringBuilder stringBuilder = new StringBuilder();
 
-        String bits[] = ark.split("/", 3);
-        // just want the first chunk between the "/"'s
-        naan = bits[1];
-        // Now decipher the shoulder and sourceID in the next bit
-        setShoulderAndSourceID(bits[2]);
-        // Call setDataGroup() to set datagroup_id
-        setDataGroup();
+            String bits[] = ark.split("/", 3);
+            // just want the first chunk between the "/"'s
+            naan = bits[1];
+            // Now decipher the shoulder and sourceID in the next bit
+            setShoulderAndSourceID(bits[2]);
+            // Call setDataGroup() to set datagroup_id
+            setDataGroup();
+
+        } catch (Exception e) {
+            System.out.println("The ark = " + ark);
+            throw new Exception("Invalid ARK", e);
+        }
     }
 
     /**
@@ -71,7 +80,7 @@ public class resolver extends database {
      * @param conceptAlias    defines the alias to narrow this,  a one-word reference denoting a BCID
      * @return returns the BCID for this expedition and conceptURI combination
      */
-    public resolver(String expedition_code, Integer project_id, String conceptAlias) {
+    public resolver(String expedition_code, Integer project_id, String conceptAlias) throws Exception {
         ResourceTypes resourceTypes = new ResourceTypes();
         ResourceType rt = resourceTypes.getByShortName(conceptAlias);
         String uri = rt.uri;
@@ -93,7 +102,9 @@ public class resolver extends database {
             rs.next();
             this.ark = rs.getString("prefix");
         } catch (SQLException e) {
-            throw new ServerErrorException(e);
+            this.ark = null;
+        } catch (Exception e) {
+            this.ark = null;
         }
     }
 
@@ -216,8 +227,7 @@ public class resolver extends database {
                     bcid = new bcid(sourceID, bcid.getResolutionTarget(), datagroup_id);
                 }
             } catch (URISyntaxException e) {
-                //TODO should we silence this exception?
-                logger.warn("URISyntaxException thrown", e);
+                e.printStackTrace();
             }
             //}
 
@@ -259,8 +269,7 @@ public class resolver extends database {
         try {
             ezid = new ezid(ezidService.getMetadata(ark));
         } catch (EZIDException e) {
-            //TODO should we silence this exception?
-            logger.warn("URISyntaxException thrown", e);
+            e.printStackTrace();
         }
         return renderer.render(ezid);
     }
@@ -281,8 +290,7 @@ public class resolver extends database {
         try {
             sb.append("  " + this.resolveARK().toString());
         } catch (URISyntaxException e) {
-            //TODO should we silence this exception?
-            logger.warn("URISyntaxException thrown", e);
+            e.printStackTrace();
         }
         t.lap("resolveARK");
         sb.append("\n  ,\n");
@@ -332,7 +340,7 @@ public class resolver extends database {
                     return true;
                 }
             } catch (SQLException e) {
-                throw new ServerErrorException(e);
+                return false;
             }
         }
     }
@@ -353,8 +361,8 @@ public class resolver extends database {
                 ResultSet rs = stmt.executeQuery(select);
                 rs.next();
                 element_id = new BigInteger(rs.getString("identifiers_id"));
-            } catch (SQLException e) {
-                throw new ServerErrorException(e);
+            } catch (Exception e) {
+                return false;
             }
         }
         if (element_id == null) {

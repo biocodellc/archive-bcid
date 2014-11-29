@@ -21,7 +21,11 @@ public abstract class GenericIdentifier implements GenericIdentifierInterface {
     protected GenericIdentifier() {
          // Initialize settings manager
         sm = SettingsManager.getInstance();
-        sm.loadProperties();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         rights = sm.retrieveValue("rights");
         resolverTargetPrefix = sm.retrieveValue("resolverTargetPrefix");

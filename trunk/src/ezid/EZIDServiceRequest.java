@@ -21,8 +21,8 @@ package ezid;
 
 import java.util.HashMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * An EZIDServiceRequest request represents the data needed for a single request
@@ -45,7 +45,7 @@ public class EZIDServiceRequest implements Runnable
     private String identifier;
     private HashMap<String, String> metadata = null;
     
-    protected static Logger log = LoggerFactory.getLogger(EZIDServiceRequest.class);
+    protected static Log log = LogFactory.getLog(EZIDServiceRequest.class);
 
     protected EZIDServiceRequest(EZIDService ezid, int method, String identifier) {
         if (ezid == null) {

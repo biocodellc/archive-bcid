@@ -19,27 +19,39 @@ public class dataGroupMinterTest {
 
     @Test
     public void testMinter() throws Exception {
-        sm.loadProperties();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Create a Dataset
         database db = null;
-        db = new database();
+        try {
+            db = new database();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         // Check for remote-user
         Integer user_id = db.getUserId("demo");
 
         // Mint the data group
         dataGroupMinter minter = null;
-        minter = new dataGroupMinter(false, true);
+        try {
+            minter = new dataGroupMinter(false, true);
 
-        minter.mint(
-                new Integer(sm.retrieveValue("bcidNAAN")),
-                user_id,
-                "urn:Test",
-                null,
-                "http://biocode.berkeley.edu/specimens/",
-                null,
-                "TEST minter");
+            minter.mint(
+                    new Integer(sm.retrieveValue("bcidNAAN")),
+                    user_id,
+                    "urn:Test",
+                    null,
+                    "http://biocode.berkeley.edu/specimens/",
+                    null,
+                    "TEST minter");
+        } catch (Exception e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
         minter.close();
         String datasetPrefix = minter.getPrefix();
 

@@ -1,8 +1,6 @@
 package bcid.Renderer;
 
 import bcid.GenericIdentifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 import java.util.Iterator;
@@ -12,8 +10,6 @@ import java.util.Map;
  * jsonRenderer renders objects as JSON
  */
 public class RedirectRenderer extends TextRenderer {
-
-    private static Logger logger = LoggerFactory.getLogger(RedirectRenderer.class);
 
     public void enter(GenericIdentifier identifier) {
     }
@@ -30,8 +26,7 @@ public class RedirectRenderer extends TextRenderer {
         try {
             outputSB.append(identifier.getResolutionTarget());
         } catch (URISyntaxException e) {
-            //TODO should we silence this exception?
-            logger.warn("URISyntaxException thrown", e);
+            e.printStackTrace();
         }
     }
 
