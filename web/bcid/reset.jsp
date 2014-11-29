@@ -9,10 +9,13 @@
                     <td align="right">Username</td>
                     <td><input type="text" name="username"></td>
                 </tr>
+                <c:if test="${param['error'] != null}">
+                <tr></tr>
                 <tr>
                     <td></td>
-                    <td class="error" align="center"></td>
+                    <td class="error" align="center">${param.error}</td>
                 </tr>
+                </c:if>
                 <tr>
                     <td></td>
                     <td><input type="button" value="Submit" onclick="resetPassSubmit();"></td>

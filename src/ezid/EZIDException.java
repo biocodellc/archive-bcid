@@ -28,11 +28,4 @@ public class EZIDException extends Exception {
         super(msg);
     }
 
-    public EZIDException(String msg, Throwable cause) {
-        super(msg, cause);
-    }
-
-    public EZIDException(Throwable cause) {
-        super(cause);
-    }
 }

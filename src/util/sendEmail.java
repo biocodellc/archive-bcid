@@ -2,8 +2,6 @@ package util;
 
 import ezid.EZIDException;
 import ezid.EZIDService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.mail.*;
 import javax.mail.internet.AddressException;
@@ -26,14 +24,16 @@ public class sendEmail extends Thread {
     String subject;
     String text;
 
-    private static Logger logger = LoggerFactory.getLogger(sendEmail.class);
-
     public static void main(String[] args) {
         SettingsManager sm;
 
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        sm.loadProperties();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String subject = "From a thread...";
         String text = "How are you?";
@@ -115,7 +115,7 @@ public class sendEmail extends Thread {
             //
             Transport.send(message);
         } catch (MessagingException e) {
-            logger.warn("MessagingException thrown", e);
+            e.printStackTrace();
         }
     }
 }

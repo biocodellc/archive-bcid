@@ -26,6 +26,8 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -50,8 +52,6 @@ import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * EZIDService provides access to the EZID identifier service maintained by the
@@ -103,7 +103,7 @@ public class EZIDService
     private DefaultHttpClient httpclient = null;
     private BasicCookieStore cookieStore = null;
 
-    protected static Logger log = LoggerFactory.getLogger(EZIDService.class);
+    protected static Log log = LogFactory.getLog(EZIDService.class);
 
     /**
      * Construct an EZIDService to be used to access EZID.
@@ -153,11 +153,11 @@ public class EZIDService
             String message = new String(body);
             String msg = parseIdentifierResponse(message);
         } catch (URISyntaxException e) {
-            throw new EZIDException("Bad syntax for uri: " + LOGIN_SERVICE, e);
+            throw new EZIDException(e.getMessage());
         } catch (ClientProtocolException e) {
-            throw new EZIDException(e);
+            throw new EZIDException(e.getMessage());
         } catch (IOException e) {
-            throw new EZIDException(e);
+            throw new EZIDException(e.getMessage());
         }
     }
     
@@ -328,7 +328,7 @@ public class EZIDService
                     StringEntity myEntity = new StringEntity(requestBody, "UTF-8");
                     ((HttpPut) request).setEntity(myEntity);
                 } catch (UnsupportedEncodingException e) {
-                    throw new EZIDException(e);
+                    throw new EZIDException(e.getMessage());
                 }
             }
             break;
@@ -339,7 +339,7 @@ public class EZIDService
                     StringEntity myEntity = new StringEntity(requestBody, "UTF-8");
                     ((HttpPost) request).setEntity(myEntity);
                 } catch (UnsupportedEncodingException e) {
-                    throw new EZIDException(e);
+                    throw new EZIDException(e.getMessage());
                 }
             }
             break;
@@ -367,9 +367,9 @@ public class EZIDService
         try {
             body = httpclient.execute(request, handler);
         } catch (ClientProtocolException e) {
-            throw new EZIDException(e);
+            throw new EZIDException(e.getMessage());
         } catch (IOException e) {
-            throw new EZIDException(e);
+            throw new EZIDException(e.getMessage());
         }
         return body;
     }

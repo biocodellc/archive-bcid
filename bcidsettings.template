@@ -45,7 +45,3 @@ defaultLdapDomain = myDomain.com
 
 # turn on or off ezid request mechanism (the part that actually creates the EZID)
 ezidRequests = true
-
-# when set to true, stack traces will be returned form the server when exceptions occur.
-# should be set to false for production use.
-debug = false

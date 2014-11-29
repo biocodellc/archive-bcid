@@ -1,9 +1,5 @@
 package bcid;
 
-import bcidExceptions.BCIDException;
-import bcidExceptions.ServerErrorException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.timer;
 
@@ -36,26 +32,28 @@ public class elementMinter extends dataGroupMinter {
     // this can be set manually here to bypass existing EZIDS
     private Integer startingNumber;
 
-    private static Logger logger = LoggerFactory.getLogger(elementMinter.class);
-
     static int TRUE = 1;
     static int FALSE = 0;
     static SettingsManager sm;
 
     static {
         sm = SettingsManager.getInstance();
-        sm.loadProperties();
+        try {
+            sm.loadProperties();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * TEST Case, uses test case dataset.
      */
-    public elementMinter(boolean ezidRequest, Boolean suffixPassThrough) {
+    public elementMinter(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
         super(ezidRequest, suffixPassThrough);
         init();
     }
 
-    public elementMinter() {
+    public elementMinter() throws Exception {
         super();
         init();
     }
@@ -67,8 +65,9 @@ public class elementMinter extends dataGroupMinter {
      * @param NAAN
      * @param shoulder
      * @param ezidRequest
+     * @throws Exception
      */
-    public elementMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) {
+    public elementMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
         super(NAAN, shoulder, ezidRequest, suffixPassThrough);
         init();
     }
@@ -78,7 +77,7 @@ public class elementMinter extends dataGroupMinter {
      *
      * @throws Exception
      */
-    public elementMinter(Integer dataset_id) {
+    public elementMinter(Integer dataset_id) throws Exception {
         super(dataset_id);
         init();
     }
@@ -88,10 +87,15 @@ public class elementMinter extends dataGroupMinter {
      *
      * @throws Exception
      */
-    private void init() {
-        SettingsManager sm = SettingsManager.getInstance();
-        sm.loadProperties();
-        startingNumber = Integer.parseInt(sm.retrieveValue("bcidStartingNumber"));
+    private void init() throws Exception {
+        try {
+            SettingsManager sm = SettingsManager.getInstance();
+            sm.loadProperties();
+            startingNumber = Integer.parseInt(sm.retrieveValue("bcidStartingNumber"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Exception in init() function " + e.getMessage());
+        }
     }
 
 
@@ -106,8 +110,7 @@ public class elementMinter extends dataGroupMinter {
             alterStatement.setInt(1, startingNumber);
             alterStatement.executeUpdate();
         } catch (SQLException e) {
-            //TODO should we silence this exception?
-            logger.warn("SQLException trying to set AUTO_INCREMENT for identifiers table.", e);
+            e.printStackTrace();
         }
     }
 
@@ -116,8 +119,9 @@ public class elementMinter extends dataGroupMinter {
      * Get a UniqueDataSetID to identify the set of elements inserted at one time
      *
      * @return
+     * @throws java.net.URISyntaxException
      */
-    private String generateUUIDString() {
+    private String generateUUIDString() throws URISyntaxException {
         return UUID.randomUUID().toString();
     }
 
@@ -134,8 +138,7 @@ public class elementMinter extends dataGroupMinter {
             String sql = "DELETE FROM identifiers WHERE loadedSetUUID='" + uuid + "'";
             return stmt.executeUpdate(sql);
         } catch (SQLException e) {
-            //TODO should we silence this exception?
-            logger.warn("SQLException trying to delete loadedSetUUID: {} from identifiers table.", uuid, e);
+            e.printStackTrace();
         }
         return 0;
     }
@@ -148,7 +151,7 @@ public class elementMinter extends dataGroupMinter {
      * @param b
      * @throws Exception
      */
-    public void mint(bcid b) {
+    public void mint(bcid b) throws Exception {
         ArrayList<bcid> arrayList = new ArrayList<bcid>();
         arrayList.add(b);
 
@@ -162,7 +165,7 @@ public class elementMinter extends dataGroupMinter {
      * @return returns a DatasetIdentifier String
      * @throws Exception
      */
-    public String mintList(ArrayList elementList) {
+    public String mintList(ArrayList elementList) throws Exception {
         timer t = new timer();
 
         t.lap("begin mintList");
@@ -230,15 +233,9 @@ public class elementMinter extends dataGroupMinter {
 
             insertStatement.close();
 
-        } catch (SQLException e) {
-            throw new ServerErrorException(e);
         } finally {
             // Finish up
-            try {
-                insertStatement.close();
-            } catch (SQLException e) {
-                logger.warn("SQLException while trying to close db connection.", e);
-            }
+            insertStatement.close();
         }
         t.lap("end mintList");
         return loadedSetUUID.toString();
@@ -291,7 +288,7 @@ public class elementMinter extends dataGroupMinter {
             }
 
         } catch (SQLException e) {
-            throw new ServerErrorException(e);
+            e.printStackTrace();
         }
         return results;
     }
@@ -303,7 +300,7 @@ public class elementMinter extends dataGroupMinter {
      * @return
      * @throws Exception
      */
-    private BigInteger start() throws BCIDException {
+    private BigInteger start() throws Exception {
         BigInteger big = null;
         try {
             Statement stmt = conn.createStatement();
@@ -320,14 +317,14 @@ public class elementMinter extends dataGroupMinter {
                 }
 
             } else {
-                throw new BCIDException();
+                throw new Exception();
             }
 
             // Add 1 to the start value
             return big.add(new BigInteger("1"));
 
         } catch (SQLException e) {
-            throw new ServerErrorException("Server Error", "Unable to find start", e);
+            throw new Exception("Unable to find start");
         }
     }
 
@@ -340,16 +337,17 @@ public class elementMinter extends dataGroupMinter {
      *
      * @param numIdentifiers
      * @return An ArrayList of all the GUIDs
+     * @throws java.sql.SQLException
      * @throws java.net.URISyntaxException
      */
-    public String createBCIDs(int numIdentifiers, URI what) throws URISyntaxException {
+    public String createBCIDs(int numIdentifiers, URI what) throws SQLException, URISyntaxException {
         String datasetIdentifier = this.generateUUIDString();
 
+        // Turn off autocommits just for this method
+        conn.setAutoCommit(false);
         PreparedStatement insertStatement = null;
-        try {
-            // Turn off autocommits just for this method
-            conn.setAutoCommit(false);
 
+        try {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             // Also, use auto date assignment feature for when this was applied.
             String insertString = "INSERT INTO identifiers(ezidRequest,loadedSetUUID, datasets_id) " +
@@ -373,15 +371,9 @@ public class elementMinter extends dataGroupMinter {
             // Execute remainder as batch
             insertStatement.executeBatch();
             conn.commit();
-        } catch (SQLException e) {
-            throw new ServerErrorException(e);
         } finally {
-            try {
-                insertStatement.close();
-                conn.setAutoCommit(true);
-            } catch (SQLException e) {
-                logger.warn("SQLException thrown while trying to close db connection or setAutoCommit(true).", e);
-            }
+            insertStatement.close();
+            conn.setAutoCommit(true);
         }
 
         return datasetIdentifier.toString();
@@ -406,12 +398,12 @@ public class elementMinter extends dataGroupMinter {
      *
      * @param uuidAsString
      * @return A full ARK representation of this ID
-     * @throws BCIDException
+     * @throws Exception
      */
-    public String createUUIDARK(String uuidAsString) throws BCIDException {
+    public String createUUIDARK(String uuidAsString) throws Exception {
         // Validate this UUID
         if (!validateUUID(uuidAsString)) {
-            throw new BCIDException("Invalid uuid: " + uuidAsString);
+            throw new Exception("Invalid uuid: " + uuidAsString);
         }
         return prefix + sm.retrieveValue("divider") + UUID.fromString(uuidAsString).toString();
     }
