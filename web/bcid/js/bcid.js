@@ -11,7 +11,7 @@ function dataGroupEditorSubmit() {
         .done(function(data) {
             populateBCIDPage();
         }).fail(function(jqxhr) {
-            $(".error").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+            $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
         });
     loadingDialog(posting);
 }
@@ -47,7 +47,7 @@ function results(posting, a) {
     });
    posting.fail(function(jqxhr) {
         $( a ).html( "<table><tr><th>System error, unable to perform function!!</th></tr><tr><td>" +
-            JSON.stringify($.parseJSON(jqxhr.responseText).error) + "</td></tr></table>" );
+            $.parseJSON(jqxhr.responseText).usrMessage + "</td></tr></table>" );
    });
 }
 
@@ -169,7 +169,13 @@ function getQueryParam(sParam) {
     for (var i = 0; i < sURLVariables.length; i++) {
         var sParameterName = sURLVariables[i].split('=');
         if (sParameterName[0] == sParam) {
-            return decodeURIComponent(sParameterName[1]);
+            if (sParam == "return_to") {
+                // if we want the return_to query param, we need to return everything after "return_to="
+                // this is assuming that "return_to" is the last query param, which it should be
+                return decodeURIComponent(sPageURL.slice(sPageURL.indexOf(sParameterName[1])));
+            } else {
+                return decodeURIComponent(sParameterName[1]);
+            }
         }
     }
 }
@@ -243,7 +249,7 @@ function listProjects(username, url, expedition) {
             }
         });
     }).fail(function(jqxhr) {
-        $(".sectioncontent").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+        $(".sectioncontent").html($.parseJSON(jqxhr.responseText).usrMessage);
     });
     return jqxhr;
 
@@ -385,12 +391,29 @@ function populateProjectSubsections(id) {
 function profileSubmit(username, divId) {
     if ($("input.pwcheck", divId).val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
         $(".error", divId).html("password too weak");
+    } else if ($("input[name='new_password']").val().length > 0 &&
+                    ($("input[name='old_password']").length > 0 && $("input[name='old_password']").val().length == 0)) {
+        $(".error", divId).html("Old Password field required to change your Password");
     } else {
-        var jqxhr = $.post("/id/userService/profile/update/" + username, $("form", divId).serialize()
-        ).done (function() {
-            populateProjectSubsections(divId);
+        var postURL = "/id/userService/profile/update/";
+        var return_to = getQueryParam("return_to");
+        if (username != null) {
+            postURL += username
+        }
+        if (return_to != null) {
+            postURL += "?return_to=" + encodeURIComponent(return_to);
+        }
+        var jqxhr = $.post(postURL, $("form", divId).serialize(), 'json'
+        ).done (function(data) {
+            // if success == "true", an admin updated the user's password, so no need to redirect
+            if (data.success == "true") {
+                populateProjectSubsections(divId);
+            } else {
+                $(location).attr("href", data.success);
+            }
         }).fail(function(jqxhr) {
-            $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+            var json = $.parseJSON(jqxhr.responseText);
+            $(".error", divId).html(json.usrMessage);
         });
         loadingDialog(jqxhr);
     }
@@ -417,11 +440,7 @@ function getProfileEditor() {
             loadingDialog(jqxhr2);
         });
         $("#profile_submit").click(function() {
-            if ($("input.pwcheck").val().length > 0 && $(".label", "#pwindicator").text() == "weak") {
-                $(".error").html("password too weak");
-            } else {
-                $("form").submit();
-            }
+            profileSubmit(null, 'div#listUserProfile');
         });
     });
     loadingDialog(jqxhr);
@@ -443,7 +462,7 @@ function expeditionsPublicSubmit(divId) {
     ).done(function() {
         populateProjectSubsections(divId);
     }).fail(function(jqxhr) {
-        $(divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+        $(divId).html($.parseJSON(jqxhr.responseText).usrMessage);
     });
     loadingDialog(jqxhr);
 }
@@ -473,7 +492,7 @@ function projectUserSubmit(id) {
             var jqxhr2 = populateProjectSubsections(divId);
         }).fail(function(jqxhr) {
             var jqxhr2 = populateProjectSubsections(divId);
-            $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+            $(".error", divId).html($.parseJSON(jqxhr.responseText).usrMessage);
         });
         loadingDialog(jqxhr);
     }
@@ -488,7 +507,7 @@ function createUserSubmit(project_id, divId) {
         ).done(function() {
             populateProjectSubsections(divId);
         }).fail(function(jqxhr) {
-            $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+            $(".error", divId).html($.parseJSON(jqxhr.responseText).usrMessage);
         });
         loadingDialog(jqxhr);
     }
@@ -506,7 +525,7 @@ function projectRemoveUser(e) {
     }).fail(function(jqxhr) {
         var jqxhr2 = populateProjectSubsections(divId)
             .done(function() {
-                $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+                $(".error", divId).html($.parseJSON(jqxhr.responseText).usrMessage);
             });
     });
     loadingDialog(jqxhr);
@@ -518,7 +537,7 @@ function projectConfigSubmit(project_id, divId) {
     ).done(function(data) {
         populateProjectSubsections(divId);
     }).fail(function(jqxhr) {
-        $(".error", divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+        $(".error", divId).html($.parseJSON(jqxhr.responseText).usrMessage);
     });
     loadingDialog(jqxhr);
 }
@@ -532,7 +551,7 @@ function populateExpeditionPage(username) {
             loadExpeditions(this.id)
         });
     }).fail(function(jqxhr) {
-        $("#sectioncontent").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+        $("#sectioncontent").html($.parseJSON(jqxhr.responseText).usrMessage);
     });
     loadingDialog(jqxhr);
 }
@@ -599,7 +618,7 @@ function listExpeditions(divId) {
                 loadExpeditions(this.id);
             });
         }).fail(function(jqxhr) {
-            $(divId).html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+            $(divId).html($.parseJSON(jqxhr.responseText).usrMessage);
         });
     loadingDialog(jqxhr);
 }
@@ -658,7 +677,7 @@ function populateBCIDPage() {
             getBCIDEditor(this);
         });
     }).fail(function(jqxhr) {
-        $("#sectioncontent").html(JSON.stringify($.parseJSON(jqxhr.responseText).error));
+        $("#sectioncontent").html($.parseJSON(jqxhr.responseText).usrMessage);
     });
     loadingDialog(jqxhr);
     return jqxhr;
@@ -669,10 +688,10 @@ function resetPassSubmit() {
     var jqxhr = $.post("/id/authenticationService/sendResetToken/", $('form').serialize())
         .done(function(data) {
             if (data.success) {
-                $('table').html("Reset password link successfully sent.")
-            } else {
-                window.location.href = "/bcid/reset.jsp?error=" + data.error;
+                $('table').html("Reset password link successfully sent.");
             }
+        }).fail(function(jqxhr) {
+            $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
         });
     loadingDialog(jqxhr);
 }
@@ -694,4 +713,20 @@ function loadingDialog(promise) {
     promise.always(function(){
         dialog.dialog("close");
     });
+}
+
+// function to login user
+function login() {
+    var url = "/id/authenticationService/login";
+    var return_to = getQueryParam("return_to");
+    if (return_to != null) {
+        url += "?return_to=" + return_to;
+    }
+    var jqxhr = $.post(url, $('form').serialize())
+        .done(function(data) {
+            window.location.replace(data.url);
+        }).fail(function(jqxhr) {
+            $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
+        });
+    loadingDialog(jqxhr);
 }

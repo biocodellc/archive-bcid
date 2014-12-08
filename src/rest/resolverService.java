@@ -2,6 +2,9 @@ package rest;
 
 import bcid.Renderer.RDFRenderer;
 import bcid.resolver;
+import bcidExceptions.BadRequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.errorInfo;
 
@@ -15,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.lang.Exception;
 import java.lang.String;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * This is the core resolver Service for BCIDs.  It returns URIs
@@ -27,6 +31,8 @@ public class resolverService {
     static ServletContext context;
     @Context
     static HttpServletRequest request;
+
+    private static Logger logger = LoggerFactory.getLogger(resolverService.class);
 
     /**
      * User passes in an identifier of the form scheme:/naan/shoulder_identifier
@@ -50,21 +56,16 @@ public class resolverService {
 
         // When the Accept Header = "application/rdf+xml" return Metadata as RDF
         if (accept.equalsIgnoreCase("application/rdf+xml")) {
-            try {
-                return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return Response.serverError().entity(new errorInfo(e, request).toJSON()).build();
-            }
+            return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
         // All other Accept Headers, or none specified, then attempt a redirect
         } else {
             URI seeOtherUri = null;
             try {
                 seeOtherUri = new resolver(element).resolveARK();
-                System.out.println(seeOtherUri);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
+//                System.out.println(seeOtherUri);
+            } catch (URISyntaxException e) {
+                logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
+                throw new BadRequestException("Server error while trying to resolve ARK. Did you supply a valid naan?");
             }
             // if the URI is null just print metadata
             /*System.out.println("value of seeOtherUri:" + seeOtherUri.toString() + "END");
@@ -78,7 +79,7 @@ public class resolverService {
             } */
 
             // The expected response for IDentifiers without a URL
-            return Response.status(303).location(seeOtherUri).build();
+            return Response.status(Response.Status.SEE_OTHER).location(seeOtherUri).build();
         }
     }
 }

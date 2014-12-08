@@ -1,5 +1,7 @@
 package bcid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.timer;
 
 import java.io.BufferedReader;
@@ -16,6 +18,7 @@ import java.util.StringTokenizer;
  */
 public class inputFileParser {
 
+    private static Logger logger = LoggerFactory.getLogger(inputFileParser.class);
     public ArrayList<bcid> elementArrayList = new ArrayList();
 
     /**
@@ -75,6 +78,8 @@ public class inputFileParser {
                     try {
                         webAddress = new URI(st.nextToken());
                     } catch (NullPointerException e) {
+                        //TODO should we silence this exception?
+                        logger.warn("NullPointerException for webAddress in the file: {}", inputString, e);
                         webAddress = null;
                     }
                 }

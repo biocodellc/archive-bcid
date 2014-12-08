@@ -36,11 +36,7 @@ public class resolverMetadataService {
     static {
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
     }
 
     /**
@@ -81,20 +77,16 @@ public class resolverMetadataService {
 */
         // Return an appropriate response based on the Accepts header that was passed in.
         //
-        try {
-            if (accept.equalsIgnoreCase("application/rdf+xml")) {
-                // Return RDF when the Accepts header specifies rdf+xml
-                return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
-            } else {
-                // This next section uses the Jersey Viewable class, which is a type of Model, View, Controller
-                // construct, enabling us to pass content JSP code to a JSP template.  We do this in this section
-                // so we can have a REST style call and provide human readable content with BCID header/footer
-                Map<String, Object> map = new HashMap<String, Object>();
-                map.put("response", new resolver(element).printMetadata(new HTMLTableRenderer()));
-                return Response.ok(new Viewable("/index", map)).build();
-            }
-        } catch (Exception e) {
-            return Response.status(500).entity(new serviceErrorReporter(e).json()).build();
+        if (accept.equalsIgnoreCase("application/rdf+xml")) {
+            // Return RDF when the Accepts header specifies rdf+xml
+            return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
+        } else {
+            // This next section uses the Jersey Viewable class, which is a type of Model, View, Controller
+            // construct, enabling us to pass content JSP code to a JSP template.  We do this in this section
+            // so we can have a REST style call and provide human readable content with BCID header/footer
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("response", new resolver(element).printMetadata(new HTMLTableRenderer()));
+            return Response.ok(new Viewable("/index", map)).build();
         }
     }
 }

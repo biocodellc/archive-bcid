@@ -1,10 +1,16 @@
 package bcid;
 
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
+import org.apache.commons.lang.ObjectUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 
 import javax.ws.rs.core.Response;
 import java.math.BigInteger;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.*;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -16,6 +22,8 @@ import java.util.UUID;
  * elements.
  */
 public class dataGroupMinter extends dataGroupEncoder {
+
+    final static Logger logger = LoggerFactory.getLogger(dataGroupMinter.class);
 
     // Mysql Connection
     protected Connection conn;
@@ -36,10 +44,8 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     /**
      * Default to ezidRequest = false using default Constructor
-     *
-     * @throws Exception
      */
-    public dataGroupMinter() throws Exception {
+    public dataGroupMinter() {
         this(false, false);
     }
 
@@ -59,10 +65,8 @@ public class dataGroupMinter extends dataGroupEncoder {
     /**
      * Default constructor for data group uses the temporary ARK ark:/99999/fk4.  Values can be overridden in
      * the mint method.
-     *
-     * @throws Exception
      */
-    public dataGroupMinter(boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+    public dataGroupMinter(boolean ezidRequest, Boolean suffixPassThrough) {
         database db = new database();
         conn = db.getConn();
         // Generate defaults in constructor, these will be overridden later
@@ -83,7 +87,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      *
      * @throws Exception
      */
-    public dataGroupMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) throws Exception {
+    public dataGroupMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) {
         database db = new database();
         conn = db.getConn();
         setBow(NAAN);
@@ -91,11 +95,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         this.shoulder = shoulder;
         this.ezidRequest = ezidRequest;
         this.suffixPassThrough = suffixPassThrough;
-        try {
-            datasets_id = this.getDatasetId(prefix);
-        } catch (Exception e) {
-            throw new Exception("problem getting shoulder " + e.getMessage());
-        }
+        datasets_id = this.getDatasetId(prefix);
     }
 
 
@@ -104,13 +104,10 @@ public class dataGroupMinter extends dataGroupEncoder {
      * after minting.
      *
      * @param datasets_id
-     *
-     * @throws Exception
      */
-    public dataGroupMinter(Integer datasets_id) throws Exception {
+    public dataGroupMinter(Integer datasets_id) {
         database db = new database();
         conn = db.getConn();
-        Statement stmt = conn.createStatement();
         String sql = "SELECT " +
                 "d.prefix as prefix," +
                 "d.ezidRequest as ezidRequest," +
@@ -133,27 +130,43 @@ public class dataGroupMinter extends dataGroupEncoder {
         //" AND eb.expedition_id=e.expedition_id " +
         //" AND e.project_id=p.project_id";
 
-        ResultSet rs = stmt.executeQuery(sql);
-        rs.next();
-        prefix = rs.getString("prefix");
-        identifier = new URI(prefix);
-        ezidRequest = rs.getBoolean("ezidRequest");
-        ezidMade = rs.getBoolean("ezidMade");
-        shoulder = encode(new BigInteger(datasets_id.toString()));
-        this.doi = rs.getString("doi");
-        this.title = rs.getString("title");
-        //this.projectCode = rs.getString("projectCode");
-        this.ts = rs.getString("ts");
-        this.who = rs.getString("who");
-        Integer naan = new Integer(prefix.split("/")[1]);
-        this.datasets_id = datasets_id;
-        this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
-        setBow(naan);
-
         try {
-            this.webAddress = new URI(rs.getString("webAddress"));
-        } catch (NullPointerException e) {
-            this.webAddress = null;
+            Statement stmt = conn.createStatement();
+
+            ResultSet rs = stmt.executeQuery(sql);
+            rs.next();
+            prefix = rs.getString("prefix");
+            try {
+                identifier = new URI(prefix);
+            } catch (URISyntaxException e) {
+                throw new ServerErrorException("Server Error","URISyntaxException from prefix: " + prefix + " from datasetId: " + datasets_id, e);
+
+            }
+            ezidRequest = rs.getBoolean("ezidRequest");
+            ezidMade = rs.getBoolean("ezidMade");
+            shoulder = encode(new BigInteger(datasets_id.toString()));
+            this.doi = rs.getString("doi");
+            this.title = rs.getString("title");
+            //this.projectCode = rs.getString("projectCode");
+            this.ts = rs.getString("ts");
+            this.who = rs.getString("who");
+            Integer naan = new Integer(prefix.split("/")[1]);
+            this.datasets_id = datasets_id;
+            this.suffixPassThrough = rs.getBoolean("suffixPassthrough");
+            setBow(naan);
+
+            try {
+                this.webAddress = new URI(rs.getString("webAddress"));
+            } catch (NullPointerException e) {
+                logger.info("webAddress doesn't exist for datasetId: {}", datasets_id, e);
+            }catch (URISyntaxException e) {
+                logger.warn("URISyntaxException with uri: {} and datasetId: {}", rs.getString("webAddress"),
+                        datasets_id, e);
+            } finally {
+                this.webAddress = null;
+            }
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
     }
 
@@ -162,22 +175,20 @@ public class dataGroupMinter extends dataGroupEncoder {
      * Get the projectCode given a datasets_id
      *
      * @param datasets_id
-     *
-     * @throws Exception
      */
-    public String getProject(Integer datasets_id) throws Exception {
+    public String getProject(Integer datasets_id) {
         database db = new database();
         conn = db.getConn();
-        Statement stmt = conn.createStatement();
         String sql = "select p.project_code from projects p, expeditionsBCIDs eb, expeditions e, datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` and e.`project_id`=p.`project_id` and d.datasets_id=" + datasets_id;
 
         try {
+            Statement stmt = conn.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
             rs.next();
             return rs.getString("project_code");
-        } catch (Exception e) {
-            return null;
-        }  finally {
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error",
+                    "Exception retrieving projectCode for dataset: " + datasets_id, e);
         }
     }
 
@@ -211,7 +222,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      *
      * @throws Exception
      */
-    public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) throws Exception {
+    public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) {
 
         database db = new database();
 
@@ -254,7 +265,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             u.execute(updateString);
 
         } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw new ServerErrorException("Server Error", "SQLException while creating a dataset for user: " + who, e);
         }
 
         // Create the shoulder identifier (String dataset identifier)
@@ -289,8 +300,6 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param prefix
      *
      * @return An Integer representing a dataset
-     *
-     * @throws java.sql.SQLException
      */
     public Integer getDatasetId(String prefix) {
         Statement stmt = null;
@@ -302,7 +311,8 @@ public class dataGroupMinter extends dataGroupEncoder {
             rs.next();
             datasetId = rs.getInt("datasets_id");
         } catch (SQLException e) {
-            return null;
+            throw new ServerErrorException("Server Error",
+                    "Exception retrieving datasetId for dataset with prefix: " + prefix, e);
         }
         return datasetId;
     }
@@ -313,14 +323,12 @@ public class dataGroupMinter extends dataGroupEncoder {
 
     /**
      * Close the SQL connection
-     *
-     * @throws java.sql.SQLException
      */
     public void close() {
         try {
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            logger.warn("Exception closing the database connection.", e);
         }
     }
 
@@ -339,9 +347,9 @@ public class dataGroupMinter extends dataGroupEncoder {
             rs.next();
             return rs.getString("resourceType");
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServerErrorException("Server Error",
+                    "Error retrieving resourceType for datasetID: " + datasets_id, e);
         }
-        return null;
     }
 
     /**
@@ -354,7 +362,6 @@ public class dataGroupMinter extends dataGroupEncoder {
      */
     public String datasetList(String username) {
         Statement stmt = null;
-        Integer datasetId = null;
         StringBuilder sb = new StringBuilder();
         sb.append("{");
         sb.append("\"0\":\"Create new group\"");
@@ -369,7 +376,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             sb.append("}");
 
         } catch (SQLException e) {
-            return null;
+            throw new ServerErrorException("Server Error", "Exception retrieving datasets for user " + username, e);
         }
         return sb.toString();
     }
@@ -384,7 +391,6 @@ public class dataGroupMinter extends dataGroupEncoder {
      */
     public String datasetTable(String username) {
         Statement stmt = null;
-        Integer datasetId = null;
         ResourceTypes rts = new ResourceTypes();
 
         StringBuilder sb = new StringBuilder();
@@ -431,9 +437,10 @@ public class dataGroupMinter extends dataGroupEncoder {
                 //sb.append("<td>" + getDOILink(rs.getString("doi")) + " " + getDOIMetadataLink(rs.getString("doi")) + "</td>");
                 //sb.append("<td>" + rs.getString("webaddress") + "</td>");
 
-                try {
-                    sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rts.get(rs.getString("resourceType")).string + "</a></td>");
-                } catch (Exception e) {
+                ResourceType resourceType = rts.get(rs.getString("resourceType"));
+                if (resourceType != null) {
+                    sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + resourceType.string + "</a></td>");
+                } else {
                     sb.append("<td><a href='" + rs.getString("resourceType") + "'>" + rs.getString("resourceType") + "</a></td>");
                 }
                 sb.append("<td>" + rs.getBoolean("suffixPassthrough") + "</td>");
@@ -443,7 +450,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             sb.append("\n</table>");
 
         } catch (SQLException e) {
-            return null;
+            throw new ServerErrorException(e);
         }
         return sb.toString();
     }
@@ -533,10 +540,10 @@ public class dataGroupMinter extends dataGroupEncoder {
     public Hashtable<String, String> getDataGroupConfig(String prefix, String username) {
         Hashtable<String, String> config = new Hashtable<String, String>();
         ResourceTypes rts = new ResourceTypes();
-        try {
-            database db = new database();
-            Integer userId = db.getUserId(username);
+        database db = new database();
+        Integer userId = db.getUserId(username);
 
+        try {
             String sql = "SELECT suffixPassThrough as suffix, doi, title, webaddress, resourceType " +
                     "FROM datasets WHERE BINARY prefix = ? AND users_id = \"" + userId + "\"";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -556,18 +563,19 @@ public class dataGroupMinter extends dataGroupEncoder {
                     config.put("webaddress", rs.getString("webaddress"));
                 }
 
-                try {
-                    config.put("resourceType", rts.get(rs.getString("resourceType")).string);
-                } catch (Exception e) {
+                ResourceType resourceType = rts.get(rs.getString("resourceType"));
+                if (resourceType != null) {
+                    config.put("resourceType", resourceType.string);
+                } else {
                     config.put("resourceType", rs.getString("resourceType"));
                 }
 
             } else {
-                config.put("error", "Dataset not found. Are you the owner of this dataset?");
+                throw new BadRequestException("Dataset not found. Are you the owner of this dataset?");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            config.put("error", "server error");
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "SQLException while retrieving dataGroup configuration for " +
+                    "dataset with prefix: " + prefix + " and userId: " + userId, e);
         }
         return config;
     }
@@ -628,14 +636,17 @@ public class dataGroupMinter extends dataGroupEncoder {
             }
 
             Integer result = stmt.executeUpdate();
-            // result should be '1', if not, an error occurred during the UPDATE statement
+            // result should be '1', if not, nothing was updated
             if (result >= 1) {
                 return true;
+            } else {
+                // if here, then nothing was updated due to the dataset not being found
+                return false;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "SQLException while updating configuration for " +
+                    "dataset with prefix: " + prefix + " and user: " + username, e);
         }
-        return false;
     }
 
     /**

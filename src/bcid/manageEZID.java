@@ -1,7 +1,11 @@
 package bcid;
 
+import bcidExceptions.BCIDException;
+import bcidExceptions.ServerErrorException;
 import ezid.EZIDException;
 import ezid.EZIDService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigInteger;
 import java.net.URI;
@@ -20,7 +24,9 @@ import java.util.Iterator;
  */
 public class manageEZID extends elementMinter {
 
-    public manageEZID() throws Exception {
+    private static Logger logger = LoggerFactory.getLogger(manageEZID.class);
+
+    public manageEZID() {
         super();
     }
 
@@ -42,7 +48,7 @@ public class manageEZID extends elementMinter {
     /**
      *  Update EZID dataset metadata for this particular ID
      */
-    public void updateDatasetsEZID(EZIDService ezid, int datasets_id) throws Exception {
+    public void updateDatasetsEZID(EZIDService ezid, int datasets_id) throws EZIDException{
         Statement stmt = null;
         ResultSet rs = null;
         try {
@@ -75,16 +81,16 @@ public class manageEZID extends elementMinter {
 
             try {
                 ezid.setMetadata(myIdentifier, map);
-                System.out.println("  Updated Metadata for " + myIdentifier);
+                logger.info("  Updated Metadata for " + myIdentifier);
             } catch (EZIDException e1) {
                 // After attempting to set the Metadata, if another exception is thrown then who knows,
                 // probably just a permissions issue.
-                throw new Exception("  Exception thrown in attempting to create EZID " + myIdentifier + ", likely a permission issue");
+                throw new EZIDException("  Exception thrown in attempting to create EZID " + myIdentifier + ", likely a permission issue", e1);
             }
 
 
         } catch (SQLException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            throw new ServerErrorException(e);
         }
     }
 
@@ -97,7 +103,7 @@ public class manageEZID extends elementMinter {
      * @param ezid
      * @throws java.net.URISyntaxException
      */
-    public void createDatasetsEZIDs(EZIDService ezid) throws URISyntaxException {
+    public void createDatasetsEZIDs(EZIDService ezid) throws EZIDException{
         // Grab a row where ezid is false
         Statement stmt = null;
         ResultSet rs = null;
@@ -133,30 +139,32 @@ public class manageEZID extends elementMinter {
                 try {
                     identifier = new URI(ezid.createIdentifier(myIdentifier, map));
                     idSuccessList.add(rs.getString("datasets_id"));
-                    System.out.println("  " + identifier.toString());
+                    logger.info("{}", identifier.toString());
                 } catch (EZIDException e) {
                     // Attempt to set Metadata if this is an Exception
                     try {
                         ezid.setMetadata(myIdentifier,map);
                         idSuccessList.add(rs.getString("datasets_id"));
                     } catch (EZIDException e1) {
-                        e1.printStackTrace();
-                        System.out.println("  Exception thrown in attempting to create OR update EZID " + myIdentifier + ", a permission issue?");
+                        //TODO should we silence this exception?
+                        logger.warn("Exception thrown in attempting to create OR update EZID {}, a permission issue?", myIdentifier, e1);
                     }
 
+                } catch (URISyntaxException e) {
+                    throw new EZIDException("Bad uri syntax for " + myIdentifier + ", " + map, e);
                 }
 
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServerErrorException("Server Error", "SQLException when creating EZID", e);
         }
 
         // Update the Identifiers Table and let it know that we've created the EZID
         try {
             updateEZIDMadeField(idSuccessList, "datasets");
         } catch (SQLException e) {
-            System.out.println("It appears we have created " + idSuccessList.size() + " EZIDs but not able to update the identifiers table");
-            e.printStackTrace();
+            throw new ServerErrorException("Server Error", "It appears we have created " + idSuccessList.size() +
+                    " EZIDs but not able to update the identifiers table", e);
         }
 
     }
@@ -209,9 +217,10 @@ public class manageEZID extends elementMinter {
                 if (rs.getBoolean("suffixPassthrough")) {
                     try {
                         myIdentifier = this.createUUIDARK(rs.getString("localID"));
-                    } catch (Exception e) {
+                    } catch (BCIDException e) {
                         // TODO: special exception to handle for unable to create this identifier
-                        e.printStackTrace();
+                        //TODO should we silence this exception?
+                        logger.warn("BCIDException thrown.", e);
                     }
                     // If this is not tagged as a uuid
                 } else {
@@ -231,16 +240,15 @@ public class manageEZID extends elementMinter {
 
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new ServerErrorException(e);
         } catch (EZIDException e) {
-            e.printStackTrace();
             throw new URISyntaxException("trouble minting identifier with EZID service", null);
         } finally {
             try {
                 updateEZIDMadeField(idSuccessList, "identifiers");
             } catch (SQLException e) {
-                System.out.println("It appears we have created " + idSuccessList.size() + " EZIDs but not able to update the identifiers table");
-                e.printStackTrace();
+                throw new ServerErrorException("Server Error", "It appears we have created " + idSuccessList.size() +
+                        " EZIDs but not able to update the identifiers table");
             }
         }
     }
