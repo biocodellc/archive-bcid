@@ -6,10 +6,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.errorInfo;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -58,7 +56,7 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
             }
         }
 
-        if (mediaType.equalsIgnoreCase( MediaType.APPLICATION_JSON )) {
+        if (mediaType.contains( MediaType.APPLICATION_JSON )) {
             return Response.status(errorInfo.getHttpStatusCode())
                     .entity(errorInfo.toJSON())
                     .type(MediaType.APPLICATION_JSON)
