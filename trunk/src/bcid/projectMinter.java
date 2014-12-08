@@ -1,5 +1,9 @@
 package bcid;
 
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 
 import java.sql.*;
@@ -14,25 +18,21 @@ public class projectMinter {
     public ArrayList<Integer> expeditionResources;
     private SettingsManager sm;
 
+    private static Logger logger = LoggerFactory.getLogger(projectMinter.class);
+
 
     /**
      * The constructor defines the class-level variables used when minting Expeditions.
      * It defines a generic set of entities (process, information content, objects, agents)
      * that can be used for any expedition.
-     *
-     * @throws Exception
      */
-    public projectMinter() throws Exception {
+    public projectMinter() {
         database db = new database();
         conn = db.getConn();
 
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
     }
 
     /**
@@ -41,7 +41,7 @@ public class projectMinter {
      * @param project_id defines the project_id to lookup
      * @return returns the BCID for this expedition and conceptURI combination
      */
-    public String getValidationXML(Integer project_id) throws Exception {
+    public String getValidationXML(Integer project_id) {
 
         try {
             Statement stmt = conn.createStatement();
@@ -56,12 +56,7 @@ public class projectMinter {
             rs.next();
             return rs.getString("biovalidator_validation_xml");
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new Exception("Trouble getting Validation XML", e);
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            throw new Exception("Trouble getting Validation XML", e);
+            throw new ServerErrorException("Server Error", "Trouble getting Validation XML", e);
         }
     }
 
@@ -70,7 +65,7 @@ public class projectMinter {
      *
      * @return returns the BCID for this expedition and conceptURI combination
      */
-    public String listProjects() throws Exception {
+    public String listProjects() {
         StringBuilder sb = new StringBuilder();
 
         try {
@@ -106,12 +101,7 @@ public class projectMinter {
             return sb.toString();
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            throw new Exception("Trouble getting Validation XML", e);
-        } catch (Exception e) {
-            e.printStackTrace();
-
-            throw new Exception("Trouble getting Validation XML", e);
+            throw new ServerErrorException("Server Error", "Trouble getting list of all projects.", e);
         }
     }
 
@@ -120,7 +110,7 @@ public class projectMinter {
         *
         * @return returns the BCID for this expedition and conceptURI combination
         */
-       public ArrayList<Integer> getAllProjects() throws Exception {
+       public ArrayList<Integer> getAllProjects() {
            ArrayList<Integer> projects = new ArrayList<Integer>();
 
            try {
@@ -130,9 +120,8 @@ public class projectMinter {
                    projects.add(rs.getInt("project_id"));
                }
                return projects;
-           } catch (Exception e) {
-               e.printStackTrace();
-               throw new Exception("Trouble getting project List", e);
+           } catch (SQLException e) {
+               throw new ServerErrorException("Trouble getting project List", e);
            }
        }
 
@@ -143,65 +132,64 @@ public class projectMinter {
      * @param project_id pass in an project identifier to limit the set of expeditions we are looking at
      * @return
      */
-    public String getLatestGraphs(int project_id) throws SQLException {
+    public String getLatestGraphs(int project_id) {
         StringBuilder sb = new StringBuilder();
 
-        // Construct the query
-        Statement stmt = conn.createStatement();
-        // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
-        // maximum timestamp (latest) loaded for a particular expedition.
-        // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
-        String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress, d1.prefix as ark, d1.datasets_id as id, p.project_id as project_id \n" +
-                "from datasets as d1, \n" +
-                "(select p.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress, d.prefix as ark, d.datasets_id as id, p.project_id as project_id \n" +
-                "    \tfrom datasets d,expeditions p, expeditionsBCIDs pB\n" +
-                "    \twhere pB.datasets_id=d.datasets_id\n" +
-                "    \tand pB.expedition_id=p.expedition_id\n" +
-                " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                "    and p.project_id = " + project_id + "\n" +
-                "    \tgroup by p.expedition_code) as  d2,\n" +
-                "expeditions p,  expeditionsBCIDs pB\n" +
-                "where p.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
-                " and pB.datasets_id=d1.datasets_id \n" +
-                " and pB.expedition_id=p.expedition_id\n" +
-                " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                "    and p.public = 1\n" +
-                "    and p.project_id =" + project_id;
+        try {
+            // Construct the query
+            Statement stmt = conn.createStatement();
+            // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
+            // maximum timestamp (latest) loaded for a particular expedition.
+            // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
+            String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress, d1.prefix as ark, d1.datasets_id as id, p.project_id as project_id \n" +
+                    "from datasets as d1, \n" +
+                    "(select p.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress, d.prefix as ark, d.datasets_id as id, p.project_id as project_id \n" +
+                    "    \tfrom datasets d,expeditions p, expeditionsBCIDs pB\n" +
+                    "    \twhere pB.datasets_id=d.datasets_id\n" +
+                    "    \tand pB.expedition_id=p.expedition_id\n" +
+                    " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                    "    and p.project_id = " + project_id + "\n" +
+                    "    \tgroup by p.expedition_code) as  d2,\n" +
+                    "expeditions p,  expeditionsBCIDs pB\n" +
+                    "where p.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
+                    " and pB.datasets_id=d1.datasets_id \n" +
+                    " and pB.expedition_id=p.expedition_id\n" +
+                    " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                    "    and p.public = 1\n" +
+                    "    and p.project_id =" + project_id;
 
-        //System.out.println(sql);
-        sb.append("{\n\t\"data\": [\n");
-        ResultSet rs = stmt.executeQuery(sql);
-        while (rs.next()) {
-            // Grap the prefixes and concepts associated with this
-            sb.append("\t\t{\n");
-            sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
-            sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\",\n");
-            sb.append("\t\t\t\"ts\":\"" + rs.getString("ts") + "\",\n");
-            sb.append("\t\t\t\"ark\":\"" + rs.getString("ark") + "\",\n");
-            sb.append("\t\t\t\"dataset_id\":\"" + rs.getString("id") + "\",\n");
-            sb.append("\t\t\t\"project_id\":\"" + rs.getString("project_id") + "\",\n");
-            sb.append("\t\t\t\"webaddress\":\"" + rs.getString("webaddress") + "\",\n");
-            sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
-            sb.append("\t\t}");
-            if (!rs.isLast())
-                sb.append(",");
+            //System.out.println(sql);
+            sb.append("{\n\t\"data\": [\n");
+            ResultSet rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                // Grap the prefixes and concepts associated with this
+                sb.append("\t\t{\n");
+                sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
+                sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\",\n");
+                sb.append("\t\t\t\"ts\":\"" + rs.getString("ts") + "\",\n");
+                sb.append("\t\t\t\"ark\":\"" + rs.getString("ark") + "\",\n");
+                sb.append("\t\t\t\"dataset_id\":\"" + rs.getString("id") + "\",\n");
+                sb.append("\t\t\t\"project_id\":\"" + rs.getString("project_id") + "\",\n");
+                sb.append("\t\t\t\"webaddress\":\"" + rs.getString("webaddress") + "\",\n");
+                sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
+                sb.append("\t\t}");
+                if (!rs.isLast())
+                    sb.append(",");
 
-            sb.append("\n");
+                sb.append("\n");
+            }
+            sb.append("\t]\n}\n");
+            return sb.toString();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "Trouble getting latest graphs.", e);
         }
-        sb.append("\t]\n}\n");
-        return sb.toString();
     }
 
-    public static void main(String args[]) throws Exception {
-        try {
-            // See if the user owns this expedition or no
-            projectMinter project = new projectMinter();
-            //System.out.println(project.listProjects());
-            System.out.println("results = \n" + project.getLatestGraphs(8));
-
-        } catch (Exception e) {
-            throw new Exception(e);
-        }
+    public static void main(String args[]) {
+        // See if the user owns this expedition or no
+        projectMinter project = new projectMinter();
+        //System.out.println(project.listProjects());
+        System.out.println("results = \n" + project.getLatestGraphs(8));
     }
 
     /**
@@ -238,11 +226,10 @@ public class projectMinter {
             }
             sb.append("\t]\n}");
 
-        } catch (Exception e) {
-            e.printStackTrace();
+            return sb.toString();
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
-
-        return sb.toString();
     }
 
     /**
@@ -278,8 +265,8 @@ public class projectMinter {
             }
             sb.append("\t]\n}");
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
 
         return sb.toString();
@@ -295,41 +282,37 @@ public class projectMinter {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getProjectConfig(project_id, username);
 
-        if (config.contains("error")) {
-            return "You must be this project's admin in order to view its configuration.";
-        } else {
-            sb.append("<table>\n");
-            sb.append("\t<tbody>\n");
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Title:</td>\n");
-            sb.append("\t\t\t<td>");
-            sb.append(config.get("title"));
-            sb.append("</td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("<table>\n");
+        sb.append("\t<tbody>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Title:</td>\n");
+        sb.append("\t\t\t<td>");
+        sb.append(config.get("title"));
+        sb.append("</td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Validation XML:</td>\n");
-            sb.append("\t\t\t<td>");
-            sb.append(config.get("validation_xml"));
-            sb.append("</td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Validation XML:</td>\n");
+        sb.append("\t\t\t<td>");
+        sb.append(config.get("validation_xml"));
+        sb.append("</td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Public Project</td>\n");
-            sb.append("\t\t\t<td>\n");
-            sb.append(config.get("public"));
-            sb.append("</td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Public Project</td>\n");
+        sb.append("\t\t\t<td>\n");
+        sb.append(config.get("public"));
+        sb.append("</td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td></td>\n");
-            sb.append("\t\t\t<td><a href=\"javascript:void()\" id=\"edit_config\">Edit Configuration</a></td>\n");
-            sb.append("\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td><a href=\"javascript:void()\" id=\"edit_config\">Edit Configuration</a></td>\n");
+        sb.append("\t\t</tr>\n");
 
-            sb.append("\t</tbody>\n</table>\n");
+        sb.append("\t</tbody>\n</table>\n");
 
-            return sb.toString();
-        }
+        return sb.toString();
     }
 
     /**
@@ -342,48 +325,43 @@ public class projectMinter {
         StringBuilder sb = new StringBuilder();
         Hashtable<String, String> config = getProjectConfig(projectId, username);
 
-        if (config.contains("error")) {
-            return "You must me this project's admin in order to edit its configuration.";
-        } else {
-            sb.append("<form id=\"submitForm\" method=\"POST\">\n");
-            sb.append("<table>\n");
-            sb.append("\t<tbody>\n");
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Title</td>\n");
-            sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"title\" value=\""));
-            sb.append(config.get("title"));
-            sb.append("\"></td>\n\t\t</tr>\n");
+        sb.append("<form id=\"submitForm\" method=\"POST\">\n");
+        sb.append("<table>\n");
+        sb.append("\t<tbody>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Title</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"title\" value=\""));
+        sb.append(config.get("title"));
+        sb.append("\"></td>\n\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Validation XML</td>\n");
-            sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"validation_xml\" value=\""));
-            sb.append(config.get("validation_xml"));
-            sb.append("\"></td>\n\t\t</tr>\n");
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Validation XML</td>\n");
+        sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"validation_xml\" value=\""));
+        sb.append(config.get("validation_xml"));
+        sb.append("\"></td>\n\t\t</tr>\n");
 
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td>Public Project</td>\n");
-            sb.append("\t\t\t<td><input type=\"checkbox\" name=\"public\"");
-            if (config.get("public").equalsIgnoreCase("true")) {
-                sb.append(" checked=\"checked\"");
-            }
-            sb.append("></td>\n\t\t</tr>\n");
-
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td></td>\n");
-            sb.append("\t\t\t<td class=\"error\" align=\"center\">");
-            sb.append("</td>\n\t\t</tr>\n");
-
-            sb.append("\t\t<tr>\n");
-            sb.append("\t\t\t<td></td>\n");
-            sb.append(("\t\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
-            sb.append("</td>\n\t\t</tr>\n");
-            sb.append("\t</tbody>\n");
-            sb.append("</table>\n");
-            sb.append("</form>\n");
-
-
-            return sb.toString();
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td>Public Project</td>\n");
+        sb.append("\t\t\t<td><input type=\"checkbox\" name=\"public\"");
+        if (config.get("public").equalsIgnoreCase("true")) {
+            sb.append(" checked=\"checked\"");
         }
+        sb.append("></td>\n\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append("\t\t\t<td class=\"error\" align=\"center\">");
+        sb.append("</td>\n\t\t</tr>\n");
+
+        sb.append("\t\t<tr>\n");
+        sb.append("\t\t\t<td></td>\n");
+        sb.append(("\t\t\t<td><input id=\"configSubmit\" type=\"button\" value=\"Submit\">"));
+        sb.append("</td>\n\t\t</tr>\n");
+        sb.append("\t</tbody>\n");
+        sb.append("</table>\n");
+        sb.append("</form>\n");
+
+        return sb.toString();
     }
 
     /**
@@ -393,23 +371,23 @@ public class projectMinter {
      * @return
      */
     public Boolean updateConfig(Hashtable<String, String> updateTable, Integer projectId) {
-        try {
-            database db = new database();
-            Connection conn = db.getConn();
+        database db = new database();
+        Connection conn = db.getConn();
 
-            String updateString = "UPDATE projects SET ";
+        String updateString = "UPDATE projects SET ";
 
-            // Dynamically create our UPDATE statement depending on which fields the user wants to update
-            for (Enumeration e = updateTable.keys(); e.hasMoreElements(); ) {
-                String key = e.nextElement().toString();
-                updateString += key + " = ?";
+        // Dynamically create our UPDATE statement depending on which fields the user wants to update
+        for (Enumeration e = updateTable.keys(); e.hasMoreElements(); ) {
+            String key = e.nextElement().toString();
+            updateString += key + " = ?";
 
-                if (e.hasMoreElements()) {
-                    updateString += ", ";
-                } else {
-                    updateString += " WHERE project_id =\"" + projectId + "\";";
-                }
+            if (e.hasMoreElements()) {
+                updateString += ", ";
+            } else {
+                updateString += " WHERE project_id =\"" + projectId + "\";";
             }
+        }
+        try {
 
             PreparedStatement stmt = conn.prepareStatement(updateString);
 
@@ -440,8 +418,8 @@ public class projectMinter {
             if (result == 1) {
                 return true;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
         return false;
     }
@@ -470,11 +448,11 @@ public class projectMinter {
                     config.put("validation_xml", rs.getString("validation_xml"));
                 }
             } else {
-                config.put("error", "true");
+                throw new BadRequestException("You must be this project's admin in order to view its configuration.");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            config.put("error", "true");
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "SQLException retrieving project configuration for projectID: " +
+                    projectId, e);
         }
         return config;
     }
@@ -496,9 +474,8 @@ public class projectMinter {
 
             // If the user belongs to this project then there will be a >=1 value and returns true, otherwise false.
             return rs.getInt("count") >= 1;
-        }  catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        }  catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
     }
 
@@ -517,10 +494,9 @@ public class projectMinter {
             rs.next();
 
             return rs.getInt("count") >= 1;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new ServerErrorException(e);
         }
-        return false;
     }
 
     /**
@@ -529,17 +505,15 @@ public class projectMinter {
      * @param projectId
      * @return
      */
-    public Boolean removeUser(Integer userId, Integer projectId) {
+    public void removeUser(Integer userId, Integer projectId) {
         try {
             String sql = "DELETE FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
             Statement stmt = conn.createStatement();
 
             stmt.executeUpdate(sql);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server error while removing user", e);
         }
-        return false;
     }
 
     /**
@@ -548,9 +522,8 @@ public class projectMinter {
      * @param projectId
      * @return
      */
-    public Boolean addUserToProject(Integer userId, Integer projectId) {
+    public void addUserToProject(Integer userId, Integer projectId) {
         PreparedStatement stmt;
-        Boolean success;
 
         try {
             String insertStatement = "INSERT INTO usersProjects (users_id, project_id) VALUES(?,?)";
@@ -560,13 +533,9 @@ public class projectMinter {
             stmt.setInt(2, projectId);
 
             stmt.execute();
-            success = true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            success = false;
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server error while adding user to project.", e);
         }
-
-        return success;
     }
 
     /**
@@ -634,17 +603,13 @@ public class projectMinter {
             sb.append("\t\t<td><input type=\"button\" value=\"Submit\" onclick=\"projectUserSubmit(\'" + project_title.replaceAll(" ", "_") + '_' + projectId + "\')\"></td>\n");
             sb.append("\t</tr>\n");
 
-        } catch (Exception e) {
-            e.printStackTrace();
-            sb.append("<table>\n");
+            sb.append("</table>\n");
             sb.append("\t</form>\n");
 
+            return sb.toString();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server error retrieving project users.", e);
         }
-
-        sb.append("</table>\n");
-        sb.append("\t</form>\n");
-
-        return sb.toString();
     }
 }
 

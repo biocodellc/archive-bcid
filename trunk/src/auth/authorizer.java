@@ -1,6 +1,9 @@
 package auth;
 
 import bcid.database;
+import bcidExceptions.ServerErrorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Calendar;
@@ -11,8 +14,9 @@ import java.util.Calendar;
 public class authorizer {
     protected Connection conn;
     private database db;
+    private static Logger logger = LoggerFactory.getLogger(authorizer.class);
 
-    public authorizer() throws Exception{
+    public authorizer() {
         db = new database();
         conn = db.getConn();
     }
@@ -36,8 +40,7 @@ public class authorizer {
             return rs.getInt("count") >= 1;
 
         } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
+            throw new ServerErrorException(e);
         }
     }
 
@@ -62,13 +65,18 @@ public class authorizer {
                     return true;
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error while validating reset token",
+                    "db error retrieving reset token expiration", e);
         }
         return false;
     }
 
-    public void close() throws SQLException {
-        conn.close();
+    public void close() {
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            logger.warn("SQLException while trying to close connection.", e);
+        }
     }
 }

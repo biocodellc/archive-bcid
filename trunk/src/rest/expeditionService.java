@@ -1,20 +1,18 @@
 package rest;
 
 import auth.oauth2.provider;
-import bcid.database;
-import bcid.projectMinter;
-import bcid.resolver;
-import bcid.expeditionMinter;
+import bcid.*;
 
 
+import bcidExceptions.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.errorInfo;
-import util.sendEmail;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -34,6 +32,8 @@ public class expeditionService {
     @Context
     HttpServletRequest request;
 
+    private static Logger logger = LoggerFactory.getLogger(expeditionService.class);
+
     @POST
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
@@ -41,18 +41,12 @@ public class expeditionService {
     public Response mint(@FormParam("expedition_code") String expedition_code,
                          @FormParam("bcid") String bcid,
                          @FormParam("project_id") Integer project_id) {
-        try {
-            expeditionMinter expedition = null;
-            expedition = new expeditionMinter();
-            expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
+        expeditionMinter expedition;
+        expedition = new expeditionMinter();
+        expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
 
-            return Response.ok("{\"success\": \"Succesfully associated dataset_code = " + expedition_code +
-                    " with bcid = " + bcid + "\"}").build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
-        }
-
+        return Response.ok("{\"success\": \"Succesfully associated dataset_code = " + expedition_code +
+                " with bcid = " + bcid + "\"}").build();
     }
 
     /**
@@ -87,63 +81,57 @@ public class expeditionService {
         try {
             expedition_code = URLDecoder.decode(expedition_code, "utf-8");
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.warn("UnsupportedEncodingException in expeditionService.mint method.", e);
         }
 
-        try {
-            // if accessToken != null, then OAuth client is accessing on behalf of a user
-            if (accessToken != null) {
-                provider p = new provider();
-                username = p.validateToken(accessToken);
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
+
+        if (username == null) {
+            throw new UnauthorizedRequestException("your session has expired or you have not yet logged in.<br>You may "
+                    + "have to logout and then re-login.");
+        }
+        // Get the user_id
+        database db = new database();
+        Integer user_id = db.getUserId(username);
+
+        // Create the expeditionMinter object so we can test and validate it
+        expeditionMinter expedition = new expeditionMinter();
+
+        //Check that the user exists in this project
+        if (!expedition.userExistsInProject(user_id, project_id)) {
+            // If the user isn't in the project, then we can't update or create a new expedition
+            throw new ForbiddenRequestException("User is not authorized to update/create expeditions in this project.");
+        }
+
+        // If specified, ignore the user.. simply figure out whether we're updating or inserting
+        if (lIgnore_user) {
+            if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
+                return Response.ok("{\"update\": \"update this expedition\"}").build();
             } else {
-                HttpSession session = request.getSession();
-                username = (String) session.getAttribute("user");
+                return Response.ok("{\"insert\": \"insert new expedition\"}").build();
             }
+        }
 
-            if (username == null) {
-                // status=401 means unauthorized user
-                return Response.status(401).entity("{\"error\": " +
-                        "\"Your session has expired or you have not yet logged in." +
-                        "<br>You may have to logout and then login again.\"}").build();
+        // Else, pay attention to what user owns the initial project
+        else {
+            if (expedition.userOwnsExpedition(user_id, expedition_code, project_id)) {
+                // If the user already owns the expedition, then great--- this is an update
+                return Response.ok("{\"update\": \"user owns this expedition\"}").build();
+                // If the expedition exists in the project but the user does not own the expedition then this means we can't
+            } else if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
+                throw new ForbiddenRequestException("The dataset code '" + expedition_code +
+                        "' exists in this project already and is owned by another user. " +
+                        "Please choose another dataset code.");
+            } else {
+                return Response.ok("{\"insert\": \"the dataset does not exist with project and nobody owns it\"}").build();
             }
-            // Get the user_id
-            database db = new database();
-            Integer user_id = db.getUserId(username);
-
-            // Create the expeditionMinter object so we can test and validate it
-            expeditionMinter expedition = new expeditionMinter();
-
-            //Check that the user exists in this project
-            if (!expedition.userExistsInProject(user_id, project_id)) {
-                // If the user isn't in the project, then we can't update or create a new expedition
-                return Response.status(401).entity("{\"error\": \"user is not authorized to update/create expeditions in this project\"}").build();
-            }
-
-            // If specified, ignore the user.. simply figure out whether we're updating or inserting
-            if (lIgnore_user) {
-                if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
-                    return Response.ok("{\"update\": \"update this expedition\"}").build();
-                } else {
-                    return Response.ok("{\"insert\": \"insert new expedition\"}").build();
-                }
-            }
-
-            // Else, pay attention to what user owns the initial project
-            else {
-                if (expedition.userOwnsExpedition(user_id, expedition_code, project_id)) {
-                    // If the user already owns the expedition, then great--- this is an update
-                    return Response.ok("{\"update\": \"user owns this expedition\"}").build();
-                    // If the expedition exists in the project but the user does not own the expedition then this means we can't
-                } else if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
-                    return Response.status(401).entity("{\"error\": \"The dataset code '" + expedition_code + "' exists in this project already and is owned by another user.  Please choose another dataset code.\"}").build();
-                } else {
-                    return Response.ok("{\"insert\": \"the dataset does not exist with project and nobody owns it\"}").build();
-                }
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
         }
     }
 
@@ -169,32 +157,31 @@ public class expeditionService {
                          @QueryParam("access_token") String accessToken) {
         String username;
 
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
+
+        if (username == null) {
+            throw new UnauthorizedRequestException("User is not authorized to create a new expedition.");
+        }
+
+        if (isPublic == null) {
+            isPublic = true;
+        }
+
+        // Get the user_id
+        database db = new database();
+        Integer user_id = db.getUserId(username);
+
+        Integer expedition_id = null;
+        expeditionMinter expedition = null;
+
         try {
-            // if accessToken != null, then OAuth client is accessing on behalf of a user
-            if (accessToken != null) {
-                provider p = new provider();
-                username = p.validateToken(accessToken);
-            } else {
-                HttpSession session = request.getSession();
-                username = (String) session.getAttribute("user");
-            }
-
-            if (username == null) {
-                // status=401 means unauthorized user
-                return Response.status(401).entity("\"error\": \"unauthorized user\"}").build();
-            }
-
-            if (isPublic == null) {
-                isPublic = true;
-            }
-
-            // Get the user_id
-            database db = new database();
-            Integer user_id = db.getUserId(username);
-
-            Integer expedition_id = null;
-            expeditionMinter expedition = null;
-
             // Mint a expedition
             expedition = new expeditionMinter();
             expedition_id = expedition.mint(
@@ -223,9 +210,8 @@ public class expeditionService {
 
             return Response.ok("{\"success\": \"Succesfully created dataset:<br>" +
                     expedition.printMetadataHTML(expedition_id) + "\"}").build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        } catch (BCIDException e) {
+            throw new BadRequestException(e.getMessage());
         }
     }
 
@@ -240,19 +226,8 @@ public class expeditionService {
     @Path("/graphMetadata/{graph}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getGraphMetadata(@PathParam("graph") String graph) {
-        try {
-            expeditionMinter e = new expeditionMinter();
-            String response = e.getGraphMetadata(graph);
-
-            if (response == null) {
-                return Response.status(500).entity("{\"error\": \"No graph found with that value\"}").build();
-            } else {
-                return Response.ok(response).build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
-        }
+        expeditionMinter e = new expeditionMinter();
+        return Response.ok(e.getGraphMetadata(graph)).build();
     }
 
     /**
@@ -271,19 +246,17 @@ public class expeditionService {
                                @PathParam("resourceAlias") String resourceAlias) {
         try {
             expedition = URLDecoder.decode(expedition, "utf-8");
+        } catch (UnsupportedEncodingException e) {
+            logger.warn("UnsupportedEncodingException in expeditionService.fetchAlias method.", e);
+        }
 
-            resolver r = new resolver(expedition, project_id, resourceAlias);
-            String response = r.getArk();
-            if (response == null) {
-                return Response.status(204).entity("{\"ark\": \"\"}").build();
-            } else {
-                //System.out.println("fetchAlias = " + response);
-                return Response.ok("{\"ark\": \"" + response + "\"}").build();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        resolver r = new resolver(expedition, project_id, resourceAlias);
+        String response = r.getArk();
+        if (response == null) {
+            return Response.status(Response.Status.NO_CONTENT).entity("{\"ark\": \"\"}").build();
+        } else {
+            //System.out.println("fetchAlias = " + response);
+            return Response.ok("{\"ark\": \"" + response + "\"}").build();
         }
     }
 
@@ -299,20 +272,11 @@ public class expeditionService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response fetchDeepRoots(@PathParam("expedition") String expedition,
                                    @PathParam("project_id") Integer project_id) {
-        try {
-            expeditionMinter expeditionMinter = new expeditionMinter();
+        expeditionMinter expeditionMinter = new expeditionMinter();
 
-            String response = expeditionMinter.getDeepRoots(expedition, project_id);
+        String response = expeditionMinter.getDeepRoots(expedition, project_id);
 
-            if (response == null) {
-                return Response.status(204).build();
-            } else {
-                return Response.ok(response).build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
-        }
+        return Response.ok(response).build();
     }
 
     /**
@@ -329,27 +293,22 @@ public class expeditionService {
                                     @QueryParam("access_token") String accessToken) {
         String username;
 
-        try {
-            // if accessToken != null, then OAuth client is accessing on behalf of a user
-            if (accessToken != null) {
-                provider p = new provider();
-                username = p.validateToken(accessToken);
-            } else {
-                HttpSession session = request.getSession();
-                username = (String) session.getAttribute("user");
-            }
-
-            if (username == null) {
-                return Response.status(401).entity("{\"error\": \"You must be logged in to view your datasets.\"}").build();
-            }
-
-            expeditionMinter e = new expeditionMinter();
-
-            return Response.ok(e.listExpeditions(projectId, username.toString())).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
         }
+
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must be logged in to view your datasets.");
+        }
+
+        expeditionMinter e = new expeditionMinter();
+
+        return Response.ok(e.listExpeditions(projectId, username.toString())).build();
     }
 
     /**
@@ -362,21 +321,16 @@ public class expeditionService {
     @GET
     @Path("resourcesAsTable/{expedition_id}")
     @Produces(MediaType.TEXT_HTML)
-    public String listResourcesAsTable(@PathParam("expedition_id") Integer expeditionId) {
+    public Response listResourcesAsTable(@PathParam("expedition_id") Integer expeditionId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
         if (username == null) {
-            return "You must be logged in to view this expeditions resources.";
+            throw new UnauthorizedRequestException("You must be logged in to view this expedition's resources.");
         }
 
-        try {
-            expeditionMinter e = new expeditionMinter();
-            return e.listExpeditionResourcesAsTable(expeditionId);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new errorInfo(e, request).toHTMLTable();
-        }
+        expeditionMinter e = new expeditionMinter();
+        return Response.ok(e.listExpeditionResourcesAsTable(expeditionId)).build();
     }
 
     /**
@@ -389,22 +343,17 @@ public class expeditionService {
     @GET
     @Path("datasetsAsTable/{expedition_id}")
     @Produces(MediaType.TEXT_HTML)
-    public String listDatasetsAsTable(@PathParam("expedition_id") Integer expeditionId) {
+    public Response listDatasetsAsTable(@PathParam("expedition_id") Integer expeditionId) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
         if (username == null) {
-            return "You must be logged in to view this expeditions datasets.";
+            throw new UnauthorizedRequestException("You must be logged in to view this expedition's datasets.");
         }
 
-        try {
-            expeditionMinter e = new expeditionMinter();
-            String results = e.listExpeditionDatasetsAsTable(expeditionId);
-            return results;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new errorInfo(e, request).toHTMLTable();
-        }
+        expeditionMinter e = new expeditionMinter();
+        String results = e.listExpeditionDatasetsAsTable(expeditionId);
+        return Response.ok(results).build();
     }
 
     /**
@@ -417,22 +366,20 @@ public class expeditionService {
     @GET
     @Path("/admin/listExpeditionsAsTable/{project_id}")
     @Produces(MediaType.TEXT_HTML)
-    public String listExpeditionAsTable(@PathParam("project_id") Integer projectId) {
+    public Response listExpeditionAsTable(@PathParam("project_id") Integer projectId) {
         HttpSession session = request.getSession();
         Object admin = session.getAttribute("projectAdmin");
-        String username = session.getAttribute("user").toString();
+        Object username = session.getAttribute("user");
 
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must be logged in to view this project's datasets.");
+        }
         if (admin == null) {
-            return "You must be this project's admin in order to view its datasets.";
+            throw new ForbiddenRequestException("You must be this project's admin in order to view its datasets.");
         }
 
-        try {
-            expeditionMinter e = new expeditionMinter();
-            return e.listExpeditionsAsTable(projectId, username);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new errorInfo(e, request).toHTMLTable();
-        }
+        expeditionMinter e = new expeditionMinter();
+        return Response.ok(e.listExpeditionsAsTable(projectId, username.toString())).build();
     }
 
 
@@ -449,33 +396,25 @@ public class expeditionService {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response publicExpeditions(MultivaluedMap<String, String> data) {
-        try {
-            HttpSession session = request.getSession();
-            Object username = session.getAttribute("user");
-            Integer projectId = new Integer(data.remove("project_id").get(0));
+        HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+        Integer projectId = new Integer(data.remove("project_id").get(0));
 
-            if (username == null) {
-                return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
-            }
-
-            database db = new database();
-            projectMinter p = new projectMinter();
-            Integer userId = db.getUserId(username.toString());
-
-            if (!p.userProjectAdmin(userId, projectId)) {
-                return Response.status(401).entity("{\"error\": \"You must be this project's admin in order to update a project dataset's public status.\"}").build();
-            }
-            expeditionMinter e = new expeditionMinter();
-
-            if (e.updateExpeditionsPublicStatus(data, projectId)) {
-                return Response.ok("{\"success\": \"successfully updated.\"}").build();
-            } else {
-                return Response.status(500).entity("{\"error\": \"Error updating dataset status.'\"}").build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must be logged in to update an datasets public status.");
         }
+
+        database db = new database();
+        projectMinter p = new projectMinter();
+        Integer userId = db.getUserId(username.toString());
+
+        if (!p.userProjectAdmin(userId, projectId)) {
+            throw new ForbiddenRequestException("You must be this project's admin in order to update a project dataset's public status.");
+        }
+        expeditionMinter e = new expeditionMinter();
+
+        e.updateExpeditionsPublicStatus(data, projectId);
+        return Response.ok("{\"success\": \"successfully updated.\"}").build();
     }
 
     /**
@@ -495,48 +434,43 @@ public class expeditionService {
             @PathParam("project_id") Integer projectId,
             @PathParam("expedition_code") String expeditionCode,
             @PathParam("public_status") Boolean publicStatus) {
-        try {
-          // TODO: get validate user to work, currently disabling the check here is that the keeps getting set to NULL
-          /*  HttpSession session = request.getSession();
-            Object username = session.getAttribute("user");
 
-            // Check that this is a valid user
-            if (username == null) {
-                return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
-            }
+      // TODO: get validate user to work, currently disabling the check here is that the keeps getting set to NULL
+      /*  HttpSession session = request.getSession();
+        Object username = session.getAttribute("user");
+
+        // Check that this is a valid user
+        if (username == null) {
+            return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
+        }
 
 
-            // Check to see that this user belongs to this project
-            database db = new database();
+        // Check to see that this user belongs to this project
+        database db = new database();
 
-            projectMinter p = new projectMinter();
+        projectMinter p = new projectMinter();
 
-            Integer userId = db.getUserId(username.toString());
+        Integer userId = db.getUserId(username.toString());
 
-            if (!p.userProject(userId, projectId)) {
-                return Response.status(401).entity("{\"error\": \"You must be a member of this Project to update a dataset's public status.\"}").build();
-            }
-              */
+        if (!p.userProject(userId, projectId)) {
+            return Response.status(401).entity("{\"error\": \"You must be a member of this Project to update a dataset's public status.\"}").build();
+        }
+          */
 
-            // Update the expedition public status for what was just passed in
-            expeditionMinter e = new expeditionMinter();
-            //System.out.println("calling updateExpeditionPublicStatus");
+        // Update the expedition public status for what was just passed in
+        expeditionMinter e = new expeditionMinter();
+        //System.out.println("calling updateExpeditionPublicStatus");
 
-            System.out.println("expeditionCode = " + expeditionCode);
-            System.out.println("projectId = " + projectId);
-            System.out.println("publicStatus = " + publicStatus);
+//            System.out.println("expeditionCode = " + expeditionCode);
+//            System.out.println("projectId = " + projectId);
+//            System.out.println("publicStatus = " + publicStatus);
 
-            if (e.updateExpeditionPublicStatus(expeditionCode, projectId, publicStatus)) {
-                //System.out.println("successs!");
-                return Response.ok("{\"success\": \"successfully updated.\"}").build();
-            } else {
-                //System.out.println("not successs!");
-                return Response.status(500).entity("{\"error\": \"Error updating dataset status.'\"}").build();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        if (e.updateExpeditionPublicStatus(expeditionCode, projectId, publicStatus)) {
+            //System.out.println("successs!");
+            return Response.ok("{\"success\": \"successfully updated.\"}").build();
+        } else {
+            //System.out.println("not successs!");
+            return Response.ok("{\"success\": \"nothing to update.\"}").build();
         }
     }
 

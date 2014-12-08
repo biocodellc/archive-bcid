@@ -3,6 +3,11 @@ package rest;
 import auth.authenticator;
 import auth.authorizer;
 import auth.oauth2.provider;
+import bcidExceptions.OAUTHException;
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.errorInfo;
 import util.queryParams;
@@ -15,10 +20,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import java.sql.SQLException;
+import java.net.URISyntaxException;
 
 /**
  * REST interface for handling user authentication
@@ -28,6 +33,7 @@ public class authenticationService {
 
     @Context
     static HttpServletRequest request;
+    private static Logger logger = LoggerFactory.getLogger(authenticationService.class);
 
     static SettingsManager sm;
     @Context
@@ -39,11 +45,7 @@ public class authenticationService {
     static {
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
     }
 
     /**
@@ -57,49 +59,32 @@ public class authenticationService {
      */
     @POST
     @Path("/login")
-    @Produces(MediaType.TEXT_HTML)
-    public void login(@FormParam("username") String usr,
-                      @FormParam("password") String pass,
-                      @QueryParam("return_to") String return_to,
-                      @Context HttpServletResponse res)
-            throws IOException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response login(@FormParam("username") String usr,
+                          @FormParam("password") String pass,
+                          @QueryParam("return_to") String return_to,
+                          @Context HttpServletResponse res) {
 
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
-            Boolean isAuthenticated = false;
+            Boolean isAuthenticated;
 
             // Verify that the entered and stored passwords match
-            try {
-                isAuthenticated = authenticator.login(usr, pass);
-            } catch (Exception e) {
-                res.sendRedirect("/bcid/login.jsp?error=server_error " + e.getMessage());
-                return;
-            }
+            isAuthenticated = authenticator.login(usr, pass);
             HttpSession session = request.getSession();
 
-            System.out.println("BCID SESS_DEBUG login: sessionid=" + session.getId());
+            logger.debug("BCID SESS_DEBUG login: sessionid=" + session.getId());
 
             if (isAuthenticated) {
                 // Place the user in the session
                 session.setAttribute("user", usr);
                 authorizer myAuthorizer = null;
 
-                try {
-                    myAuthorizer = new auth.authorizer();
+                myAuthorizer = new auth.authorizer();
 
-                    // Check if the user is an admin for any projects
-                    if (myAuthorizer.userProjectAdmin(usr)) {
-                        session.setAttribute("projectAdmin", true);
-                    }
-
-                } catch (Exception e) {
-                    authenticator.close();
-                    try {
-                        myAuthorizer.close();
-                    } catch (SQLException e1) {
-                        e1.printStackTrace();
-                    }
-                    e.printStackTrace();
+                // Check if the user is an admin for any projects
+                if (myAuthorizer.userProjectAdmin(usr)) {
+                    session.setAttribute("projectAdmin", true);
                 }
 
                 // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
@@ -107,13 +92,9 @@ public class authenticationService {
                     // don't need authenticator anymore
                     authenticator.close();
 
-                    if (return_to != null) {
-                        res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password" + new queryParams().getQueryParams(request.getParameterMap(), false));
-                        return;
-                    } else {
-                        res.sendRedirect("/bcid/secure/profile.jsp?error=Update Your Password");
-                        return;
-                    }
+                    return Response.ok("{\"url\": \"/bcid/secure/profile.jsp?error=Update Your Password" +
+                                    new queryParams().getQueryParams(request.getParameterMap(), false) + "\"}")
+                                    .build();
                 } else {
                     // don't need authenticator anymore
                     authenticator.close();
@@ -122,11 +103,11 @@ public class authenticationService {
 
                 // Redirect to return_to uri if provided
                 if (return_to != null) {
-                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
-                    return;
+                    return Response.ok("{\"url\": \"" + return_to +
+                                new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
+                            .build();
                 } else {
-                    res.sendRedirect("/bcid/index.jsp");
-                    return;
+                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
                 }
             }
             // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
@@ -135,11 +116,9 @@ public class authenticationService {
             }
         }
 
-        if (return_to != null) {
-            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
-            return;
-        }
-        res.sendRedirect("/bcid/login.jsp?error");
+        return Response.status(400)
+                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .build();
     }
 
     /**
@@ -153,76 +132,71 @@ public class authenticationService {
      */
     @POST
     @Path("/loginLDAP")
-    @Produces(MediaType.TEXT_HTML)
-    public void loginLDAP(@FormParam("username") String usr,
-                          @FormParam("password") String pass,
-                          @QueryParam("return_to") String return_to,
-                          @Context HttpServletResponse res)
-            throws IOException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response loginLDAP(@FormParam("username") String usr,
+                              @FormParam("password") String pass,
+                              @QueryParam("return_to") String return_to,
+                              @Context HttpServletResponse res) {
 
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
             Boolean isAuthenticated = false;
+
             // Verify that the entered and stored passwords match
-            try {
-                isAuthenticated = authenticator.loginLDAP(usr, pass, true);
-            } catch (Exception e) {
-                res.sendRedirect("/bcid/login.jsp?error=server_error " + e.getMessage());
-                return;
-            }
+            isAuthenticated = authenticator.loginLDAP(usr, pass, true);
             HttpSession session = request.getSession();
 
             if (isAuthenticated) {
                 // Place the user in the session
                 session.setAttribute("user", usr);
                 authorizer myAuthorizer = null;
-                try {
-                    myAuthorizer = new auth.authorizer();
-                    // Check if the user is an admin for any projects
-                    if (myAuthorizer.userProjectAdmin(usr)) {
-                        session.setAttribute("projectAdmin", true);
-                    }
-                } catch (Exception e) {
-                    authenticator.close();
-                    try {
-                        myAuthorizer.close();
-                    } catch (SQLException e1) {
-                        e1.printStackTrace();
-                    }
-                    e.printStackTrace();
+
+                myAuthorizer = new auth.authorizer();
+                // Check if the user is an admin for any projects
+                if (myAuthorizer.userProjectAdmin(usr)) {
+                    session.setAttribute("projectAdmin", true);
                 }
 
-
                 // Redirect to return_to uri if provided
+//                if (return_to != null) {
+//                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
+//                    return;
+//                } else {
+//                    res.sendRedirect("/bcid/index.jsp");
+//                    return;
+//                }
                 if (return_to != null) {
-                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
-                    return;
+                    return Response.ok("{\"url\": \"" + return_to +
+                            new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
+                            .build();
                 } else {
-                    res.sendRedirect("/bcid/index.jsp");
-                    return;
+                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
                 }
             }
             // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
             else {
                 session.invalidate();
             }
+            // Shouldn't need this anymore due to new error handling
             // Check for error message on LDAP
-            if (authenticator.getLdapAuthentication() != null) {
-                System.out.println("start6");
-                if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
-                    res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
-                    System.out.println("start8");
-                    return;
-                }
-            }
+//            if (authenticator.getLdapAuthentication() != null) {
+//                System.out.println("start6");
+//                if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
+//                    res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
+//                    System.out.println("start8");
+//                    return;
+//                }
+//            }
         }
 
-
-        if (return_to != null) {
-            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
-            return;
-        }
-        res.sendRedirect("/bcid/login.jsp?error");
+//        if (return_to != null) {
+//            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
+//            return;
+//        }
+//        res.sendRedirect("/bcid/login.jsp?error");
+        return Response.status(400)
+                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .build();
     }
 
     /**
@@ -233,20 +207,30 @@ public class authenticationService {
     @GET
     @Path("/logout")
     @Produces(MediaType.TEXT_HTML)
-    public void logout(@QueryParam("redirect_uri") String redirect_uri,
-                       @Context HttpServletResponse res)
-            throws IOException {
+    public Response logout(@QueryParam("redirect_uri") String redirect_uri,
+                           @Context HttpServletResponse res) {
 
         HttpSession session = request.getSession();
 
         session.invalidate();
 
         if (redirect_uri != null && !redirect_uri.equals("")) {
-            res.sendRedirect(redirect_uri);
+            try {
+                return Response.status(307)
+                        .location(new URI(redirect_uri))
+                        .build();
+            } catch (URISyntaxException e) {
+                throw new BadRequestException("invalid redirect_uri");
+            }
         } else {
-            res.sendRedirect("/bcid/index.jsp");
+            try {
+                return Response.status(307)
+                        .location(new URI("../bcid/index.jsp"))
+                        .build();
+            } catch (URISyntaxException e) {
+                throw new ServerErrorException(e);
+            }
         }
-        return;
     }
 
     /**
@@ -260,60 +244,67 @@ public class authenticationService {
     @GET
     @Path("/oauth/authorize")
     @Produces(MediaType.TEXT_HTML)
-    public void authorize(@QueryParam("client_id") String clientId,
-                          @QueryParam("redirect_uri") String redirectURL,
-                          @QueryParam("state") String state,
-                          @Context HttpServletResponse response)
-            throws IOException {
+    public Response authorize(@QueryParam("client_id") String clientId,
+                              @QueryParam("redirect_uri") String redirectURL,
+                              @QueryParam("state") String state,
+                              @Context HttpServletResponse response) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
-        try {
-            provider p = new provider();
+        provider p = new provider();
 
-            if (redirectURL == null) {
-                String callback = p.getCallback(clientId);
-
-                if (callback != null) {
-                    response.sendRedirect(callback + "?error=invalid_request");
-                    return;
-                }
-                response.sendError(400, "invalid_request");
-                return;
-            }
-
-            if (clientId == null || !p.validClientId(clientId)) {
-                redirectURL += "?error=unauthorized_client";
-                response.sendRedirect(redirectURL);
-                return;
-            }
-
-            if (username == null) {
-                // need the user to login
-                response.sendRedirect("/bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
-                        + request.getQueryString());
-                return;
-            }
-            //TODO ask user if they want to share profile information with requesting party
-            String code = "";
+        if (redirectURL == null) {
+            String callback = null;
             try {
-                code = p.generateCode(clientId, redirectURL, username.toString());
-            } catch (Exception e) {
-                e.printStackTrace();
-                response.sendError(400, e.getMessage());
-                return;
+                callback = p.getCallback(clientId);
+            } catch (OAUTHException e) {
+                logger.warn("OAUTHException retrieving callback for OAUTH clientID {}", clientId, e);
             }
-            redirectURL += "?code=" + code;
 
-            if (state != null) {
-                redirectURL += "&state=" + state;
+            if (callback != null) {
+                try {
+                    return Response.status(302).location(new URI(callback + "?error=invalid_request")).build();
+                } catch (URISyntaxException e) {
+                    logger.warn("Malformed callback URI for oauth client {} and callback {}", clientId, callback);
+                }
             }
-            System.out.println("in oauth/authorize, redirect: " + redirectURL);
-            response.sendRedirect(redirectURL);
-            return;
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.sendError(500, "server error");
+            throw new BadRequestException("invalid_request");
+        }
+
+        if (clientId == null || !p.validClientId(clientId)) {
+            redirectURL += "?error=unauthorized_client";
+            try {
+                return Response.status(302).location(new URI(redirectURL)).build();
+            } catch (URISyntaxException e) {
+                throw new BadRequestException("invalid_request", "invalid redirect_uri provided");
+            }
+        }
+
+        if (username == null) {
+            // need the user to login
+            try {
+                return Response.status(Response.Status.TEMPORARY_REDIRECT)
+                        .location(new URI("../bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
+                                    + request.getQueryString()))
+                        .build();
+            } catch (URISyntaxException e) {
+                throw new ServerErrorException(e);
+            }
+        }
+        //TODO ask user if they want to share profile information with requesting party
+        String code = p.generateCode(clientId, redirectURL, username.toString());
+
+        redirectURL += "?code=" + code;
+
+        if (state != null) {
+            redirectURL += "&state=" + state;
+        }
+        try {
+            return Response.status(302)
+                    .location(new URI(redirectURL))
+                    .build();
+        } catch (URISyntaxException e) {
+            throw new BadRequestException("invalid_request", "invalid redirect_uri provided");
         }
     }
 
@@ -337,32 +328,31 @@ public class authenticationService {
                                  @FormParam("redirect_uri") String redirectURL,
                                  @FormParam("state") String state) {
         provider p = null;
+        p = new provider();
+        if (redirectURL == null) {
+            throw new BadRequestException("invalid_request", "redirect_uri is null");
+        }
+        URI url = null;
         try {
-            p = new provider();
-            if (redirectURL == null) {
-                return Response.status(400).entity("{\"error\": \"invalid_request\"}").build();
-            }
-            URI url = new URI(redirectURL);
-
-            if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
-                return Response.status(400).entity("{\"error\": \"invalid_client\"}").location(url).build();
-            }
-
-            if (code == null || !p.validateCode(clientId, code, redirectURL)) {
-                return Response.status(400).entity("{\"error\": \"invalid_grant\"}").location(url).build();
-            }
-
-            return Response.ok(p.generateToken(clientId, state, code))
-                    .header("Cache-Control", "no-store")
-                    .header("Pragma", "no-cache")
-                    .location(url)
-                    .build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
-        } finally {
+            url = new URI(redirectURL);
+        } catch (URISyntaxException e) {
+            logger.warn("URISyntaxException for the following url: {}", redirectURL, e);
+            throw new BadRequestException("invalid_request", "URISyntaxException thrown with the following redirect_uri: " + redirectURL);
         }
 
+        if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
+            throw new BadRequestException("invalid_client");
+        }
+
+        if (code == null || !p.validateCode(clientId, code, redirectURL)) {
+            throw new BadRequestException("invalid_grant", "Either code was null or the code doesn't match the clientId");
+        }
+
+        return Response.ok(p.generateToken(clientId, state, code))
+                .header("Cache-Control", "no-store")
+                .header("Pragma", "no-cache")
+                .location(url)
+                .build();
     }
 
     /**
@@ -380,31 +370,25 @@ public class authenticationService {
     public Response refresh(@FormParam("client_id") String clientId,
                             @FormParam("client_secret") String clientSecret,
                             @FormParam("refresh_token") String refreshToken) {
-        try {
-            provider p = new provider();
+        provider p = new provider();
 
-            if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
-                return Response.status(400).entity("{\"error\": \"invalid_client\"}").build();
-            }
-
-            if (refreshToken == null || !p.validateRefreshToken(refreshToken)) {
-                return Response.status(400).entity("{\"error\": \"invalid_grant\"}").build();
-            }
-
-            String accessToken = p.generateToken(refreshToken);
-
-            // refresh tokens are only good once, so delete the old access token so the refresh token can no longer be used
-            p.deleteAccessToken(refreshToken);
-
-            return Response.ok(accessToken)
-                    .header("Cache-Control", "no-store")
-                    .header("Pragma", "no-cache")
-                    .build();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
+            throw new BadRequestException("invalid_client");
         }
+
+        if (refreshToken == null || !p.validateRefreshToken(refreshToken)) {
+            throw new BadRequestException("invalid_grant", "refresh_token is invalid");
+        }
+
+        String accessToken = p.generateToken(refreshToken);
+
+        // refresh tokens are only good once, so delete the old access token so the refresh token can no longer be used
+        p.deleteAccessToken(refreshToken);
+
+        return Response.ok(accessToken)
+                .header("Cache-Control", "no-store")
+                .header("Pragma", "no-cache")
+                .build();
     }
 
     /**
@@ -423,7 +407,7 @@ public class authenticationService {
     public void resetPassword(@FormParam("password") String password,
                               @FormParam("token") String token,
                               @Context HttpServletResponse response)
-            throws Exception {
+        throws IOException {
         if (token == null) {
             response.sendRedirect("/bcid/resetPass.jsp?error=Invalid Reset Token");
             return;
@@ -468,20 +452,15 @@ public class authenticationService {
     public Response sendResetToken(@FormParam("username") String username) {
 
         if (username.isEmpty()) {
-            return Response.status(400).entity("{\"error\": \"User not found\"}").build();
+            throw new BadRequestException("User not found.", "username is null");
         }
-        try {
-            authenticator a = new authenticator();
-            String email = a.sendResetToken(username);
-            a.close();
-            if (email != null) {
-                return Response.ok("{\"success\": \"" + email + "\"}").build();
-            } else {
-                return Response.status(400).entity("{\"error\": \"User not found\"}").build();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        authenticator a = new authenticator();
+        String email = a.sendResetToken(username);
+        a.close();
+        if (email != null) {
+            return Response.ok("{\"success\": \"" + email + "\"}").build();
+        } else {
+            throw new BadRequestException("User not found.");
         }
     }
 }

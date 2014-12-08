@@ -3,6 +3,8 @@ package bcid;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import net.sf.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import util.timer;
 
@@ -32,6 +34,8 @@ public class run {
     // a testData file to use for various tests in this class
     ArrayList testDatafile;
 
+    private static Logger logger = LoggerFactory.getLogger(run.class);
+
     public run() {
 
     }
@@ -51,9 +55,11 @@ public class run {
         try {
             testDatafile = new inputFileParser(readFile(path), dataset).elementArrayList;
         } catch (IOException e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("IOException thrown", e);
         } catch (URISyntaxException e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("URISyntaxException thrown", e);
         }
         System.out.println("  Successfully created test dataset");
     }
@@ -184,13 +190,9 @@ public class run {
     }
 
     private static void resolverResults(EZIDService ezidService, String identifier) {
-        try {
-            resolver r = new resolver(identifier);
-            System.out.println("Attempting to resolve " + identifier);
-            System.out.println(r.resolveAllAsJSON(ezidService));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        resolver r = new resolver(identifier);
+        System.out.println("Attempting to resolve " + identifier);
+        System.out.println(r.resolveAllAsJSON(ezidService));
     }
 
     /**
@@ -227,15 +229,8 @@ public class run {
 
         // Create a new dataset
         System.out.println("\nCreating a new dataset");
-        try {
-            dataset = new dataGroupMinter(true, true);
-            dataset.mint(NAAN, user_id, new ResourceTypes().get(ResourceType).uri, doi, webaddress, null,title);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new WebApplicationException(Response.Status.BAD_REQUEST);
-        }  finally {
-            dataset.close();
-        }
+        dataset = new dataGroupMinter(true, true);
+        dataset.mint(NAAN, user_id, new ResourceTypes().get(ResourceType).uri, doi, webaddress, null,title);
 
         /*
          // Create test data by using input file
@@ -300,8 +295,6 @@ public class run {
             // Create EZID metadata for all Outstanding Identifiers.
             manageEZID creator = new manageEZID();
             creator.createDatasetsEZIDs(ezidAccount);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }

@@ -1,13 +1,15 @@
 package rest;
 
 import bcid.*;
-import bcid.Renderer.TextRenderer;
+import bcidExceptions.BadRequestException;
+import bcidExceptions.ServerErrorException;
 import net.sf.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 import ezid.EZIDException;
 import ezid.EZIDService;
 import util.errorInfo;
-import util.sendEmail;
 
 
 import javax.servlet.ServletContext;
@@ -18,7 +20,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.lang.Exception;
 import java.lang.String;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class elementService {
     static String bcidShoulder;
     static String doiShoulder;
     static SettingsManager sm;
+    private static Logger logger = LoggerFactory.getLogger(elementService.class);
 
     /**
      * Load settings manager, set ontModelSpec. 
@@ -41,22 +43,16 @@ public class elementService {
     static {
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
 
         // Initialize ezid account
         EZIDService ezidAccount = new EZIDService();
         try {
             // Setup EZID account/login information
             ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-
         } catch (EZIDException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+            //TODO should we silence this exception?
+            logger.warn("EZIDException trying to login.", e);
         }
     }
 
@@ -70,16 +66,16 @@ public class elementService {
     @GET
     @Path("/select/{select}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String jsonSelectOptions(@PathParam("select") String select) {
+    public Response jsonSelectOptions(@PathParam("select") String select) {
 
         if (select.equalsIgnoreCase("resourceTypes")) {
             ResourceTypes rts = new ResourceTypes();
-            return rts.getAllAsJSON();
+            return Response.ok(rts.getAllAsJSON()).build();
         } else if (select.equalsIgnoreCase("resourceTypesMinusDataset")) {
             ResourceTypes rts = new ResourceTypes();
-            return rts.getAllButDatasetAsJSON();
+            return Response.ok(rts.getAllButDatasetAsJSON()).build();
         } else {
-            return "{}";
+            throw new BadRequestException("Invalid value. Must be either resourceTypes or resourceTypesMinusDataset");
         }
     }
 
@@ -91,10 +87,9 @@ public class elementService {
     @GET
     @Path("/resourceTypes")
     @Produces(MediaType.TEXT_HTML)
-    public String htmlResourceTypes() {
+    public Response htmlResourceTypes() {
         ResourceTypes rts = new ResourceTypes();
-        return rts.getResourceTypesAsTable();
-
+        return Response.ok(rts.getResourceTypesAsTable()).build();
     }
 
 
@@ -123,67 +118,63 @@ public class elementService {
                             @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                             @Context HttpServletRequest request) {
 
-        try {
-            dataGroupMinter dataset = null;
-            database db = null;
-            Boolean suffixPassthrough = false;
-            HttpSession session = request.getSession();
-            String username = session.getAttribute("user").toString();
+        dataGroupMinter dataset = null;
+        database db = null;
+        Boolean suffixPassthrough = false;
+        HttpSession session = request.getSession();
+        String username = session.getAttribute("user").toString();
 
 
-            // Initialize database
-            db = new database();
+        // Initialize database
+        db = new database();
 
-            // Get the user_id
-            Integer user_id = db.getUserId(username);
+        // Get the user_id
+        Integer user_id = db.getUserId(username);
 
-            // Request creation of new dataset
-            if (dataset_id == 0) {
+        // Request creation of new dataset
+        if (dataset_id == 0) {
 
-                // Format Input variables
-                try {
-                    if (stringSuffixPassThrough.equalsIgnoreCase("true") || stringSuffixPassThrough.equalsIgnoreCase("on")) {
-                        suffixPassthrough = true;
-                    }
-                } catch (NullPointerException e) {
-                    suffixPassthrough = false;
-                }
-
-                // Some input form validation
-                // TODO: create a generic way of validating this input form content
-                if (dataset_id != 0 &&
-                        (resourceType == 0 ||
-                                resourceType == ResourceTypes.SPACER1 ||
-                                resourceType == ResourceTypes.SPACER2 ||
-                                resourceType == ResourceTypes.SPACER3 ||
-                                resourceType == ResourceTypes.SPACER4 ||
-                                resourceType == ResourceTypes.SPACER5 ||
-                                resourceType == ResourceTypes.SPACER6 ||
-                                resourceType == ResourceTypes.SPACER7)
-                        ) {
-                    return Response.status(400).entity("{\"error: Must choose a valid concept!\"}").build();
-                }
-                // TODO: check for valid local ID's, no reserved characters
-
-                // Create a new dataset
-                dataset = new dataGroupMinter(true, suffixPassthrough);
-                // we don't know DOI or webaddress from this call, so we set them to NULL
-                dataset.mint(
-                        new Integer(sm.retrieveValue("bcidNAAN")),
-                        user_id,
-                        new ResourceTypes().get(resourceType).uri,
-                        doi,
-                        webaddress,
-                        graph,
-                        title);
-                // Load an existing dataset we've made already
-            } else {
-                dataset = new dataGroupMinter(dataset_id);
-
-                // TODO: check that dataset.users_id matches the user that is logged in!
-
+            // Format Input variables
+            if (!stringSuffixPassThrough.isEmpty() &&
+                    (stringSuffixPassThrough.equalsIgnoreCase("true") || stringSuffixPassThrough.equalsIgnoreCase("on"))) {
+                suffixPassthrough = true;
             }
 
+            // Some input form validation
+            // TODO: create a generic way of validating this input form content
+            if (resourceType == 0 ||
+                            resourceType == ResourceTypes.SPACER1 ||
+                            resourceType == ResourceTypes.SPACER2 ||
+                            resourceType == ResourceTypes.SPACER3 ||
+                            resourceType == ResourceTypes.SPACER4 ||
+                            resourceType == ResourceTypes.SPACER5 ||
+                            resourceType == ResourceTypes.SPACER6 ||
+                            resourceType == ResourceTypes.SPACER7
+                    ) {
+                throw new BadRequestException("Must choose a valid concept!");
+            }
+            // TODO: check for valid local ID's, no reserved characters
+
+            // Create a new dataset
+            dataset = new dataGroupMinter(true, suffixPassthrough);
+            // we don't know DOI or webaddress from this call, so we set them to NULL
+            dataset.mint(
+                    new Integer(sm.retrieveValue("bcidNAAN")),
+                    user_id,
+                    new ResourceTypes().get(resourceType).uri,
+                    doi,
+                    webaddress,
+                    graph,
+                    title);
+            // Load an existing dataset we've made already
+        } else {
+            dataset = new dataGroupMinter(dataset_id);
+
+            // TODO: check that dataset.users_id matches the user that is logged in!
+
+        }
+
+        try {
             // Parse input file
             ArrayList elements = null;
             elements = new inputFileParser(data, dataset).elementArrayList;
@@ -211,9 +202,10 @@ public class elementService {
             */
             dataset.close();
             return Response.ok(returnVal).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Response.status(500).entity(new errorInfo(e, request).toJSON()).build();
+        } catch (URISyntaxException e) {
+            throw new ServerErrorException("Server Error", "URISyntaxException while parsing input file: " + data, e);
+        } catch (IOException e) {
+            throw new ServerErrorException("Server Error", "IOException while parsing input file: " + data, e);
         }
     }
 }

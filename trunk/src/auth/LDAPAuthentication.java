@@ -1,14 +1,18 @@
 package auth;
 
+import bcidExceptions.ServerErrorException;
 import com.unboundid.ldap.sdk.*;
 import com.unboundid.util.ssl.SSLUtil;
 import com.unboundid.util.ssl.TrustAllTrustManager;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import util.SettingsManager;
 
 import javax.net.ssl.SSLSocketFactory;
 import javax.servlet.ServletContext;
 import javax.ws.rs.core.Context;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 
 
@@ -22,8 +26,9 @@ public class LDAPAuthentication {
     public static int INVALID_CREDENTIALS = 2;
 
     private BindResult bindResult = null;
-    private String message = null;
     private int status;
+
+    private static Logger logger = LoggerFactory.getLogger(LDAPAuthentication.class);
 
     static SettingsManager sm;
     @Context
@@ -40,11 +45,7 @@ public class LDAPAuthentication {
     static {
         // Initialize settings manager
         sm = SettingsManager.getInstance();
-        try {
-            sm.loadProperties();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        sm.loadProperties();
         // Get the LDAP servers from property file
         // Property file format looks like "ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636"
         ldapURI = sm.retrieveValue("ldapServers");
@@ -99,7 +100,7 @@ public class LDAPAuthentication {
             // Failoverset lets us query multiple servers looking for connection
             FailoverServerSet failoverSet = new FailoverServerSet(serverAddresses, serverPorts, socketFactory);
             // TODO: time this out quicker... Takes a LONG time if answer is no
-            System.out.println("initiating connection for "+longUsername);
+            logger.info("initiating connection for " + longUsername);
             connection = failoverSet.getConnection();
             BindRequest bindRequest = new SimpleBindRequest(longUsername, password);
 
@@ -107,21 +108,16 @@ public class LDAPAuthentication {
                 bindResult = connection.bind(bindRequest);
             } catch (LDAPException e2) {
                 // don't throw any exception if we fail here, this is just a non-passed attempt.
-                e2.printStackTrace();
+                logger.info("Failed LDAPAuthentication attempt", e2);
                 connection.close();
                 status = INVALID_CREDENTIALS;
             }
-        } catch (Exception e) {
-            status = ERROR;
-            e.printStackTrace();
-            message = "Problem with LDAP connection.  It is likely we cannot connect to LDAP server";
+        } catch (LDAPException e) {
+            throw new ServerErrorException("Problem with LDAP connection.  It is likely we cannot connect to LDAP server", e);
+        } catch (GeneralSecurityException e) {
+            throw new ServerErrorException(e);
         } finally {
-            try {
-                if (connection != null) connection.close();
-            } catch (Exception e) {
-                status = ERROR;
-                message = "Problem closing LDAP connection";
-            }
+            if (connection != null) connection.close();
         }
         if (bindResult != null && bindResult.getResultCode() == ResultCode.SUCCESS) {
             status = SUCCESS;
@@ -136,16 +132,6 @@ public class LDAPAuthentication {
     public int getStatus() {
         return status;
     }
-
-    /**
-     * Return an information message.  Should only be associated with an error condition, otherwise null
-     *
-     * @return
-     */
-    public String getMessage() {
-        return message;
-    }
-
 
     public static void main(String[] args) throws Exception {
 
@@ -184,7 +170,7 @@ public class LDAPAuthentication {
         } else if (t.getStatus() == t.INVALID_CREDENTIALS) {
             System.out.println("Invalid username or password, or expired account");
         } else {
-            System.out.println("LDAP Error: " + t.getMessage());
+            System.out.println("LDAP Error: ");
         }
     }
 
