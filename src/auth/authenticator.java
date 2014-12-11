@@ -417,7 +417,6 @@ public class authenticator {
         try {
             stmt = conn.prepareStatement(sql);
 
-
             stmt.setString(1, username);
             rs = stmt.executeQuery();
 
@@ -439,7 +438,7 @@ public class authenticator {
 
                 stmt2.setString(1, username);
 
-                stmt2.executeUpdate(updateSql);
+                stmt2.executeUpdate();
 
                 // Reset token path
                 String resetToken = sm.retrieveValue("resetToken") + token;

@@ -59,7 +59,7 @@ public class projectMinter {
             stmt = conn.prepareStatement(query);
             stmt.setInt(1, project_id);
 
-            rs = stmt.executeQuery(query);
+            rs = stmt.executeQuery();
             rs.next();
             return rs.getString("biovalidator_validation_xml");
         } catch (SQLException e) {
@@ -90,7 +90,7 @@ public class projectMinter {
                     " WHERE \n" +
                     "\tpublic = true\n";
             stmt = conn.prepareStatement(query);
-            rs = stmt.executeQuery(query);
+            rs = stmt.executeQuery();
 
             sb.append("{\n");
             sb.append("\t\"projects\": [\n");
@@ -181,7 +181,7 @@ public class projectMinter {
 
             //System.out.println(sql);
             sb.append("{\n\t\"data\": [\n");
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             while (rs.next()) {
                 // Grap the prefixes and concepts associated with this
                 sb.append("\t\t{\n");
@@ -230,10 +230,10 @@ public class projectMinter {
         try {
             Integer user_id = db.getUserId(username);
 
-            String sql = "SELECT project_id, project_code, project_title, project_title, biovalidator_validation_xml FROM projects WHERE users_id = ?\"" + user_id + "\"";
+            String sql = "SELECT project_id, project_code, project_title, project_title, biovalidator_validation_xml FROM projects WHERE users_id = \"" + user_id + "\"";
             stmt = conn.prepareStatement(sql);
 
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
 
             sb.append("{\n");
             sb.append("\t\"projects\": [\n");
@@ -275,7 +275,7 @@ public class projectMinter {
             String sql = "SELECT p.project_id, p.project_code, p.project_title, p.biovalidator_validation_xml FROM projects p, usersProjects u WHERE p.project_id = u.project_id && u.users_id = \"" + userId + "\"";
             stmt = conn.prepareStatement(sql);
 
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
 
             sb.append("{\n");
             sb.append("\t\"projects\": [\n");
@@ -472,7 +472,7 @@ public class projectMinter {
             stmt.setInt(1, projectId);
             stmt.setInt(2, user_id);
 
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             if (rs.next()) {
                 config.put("title", rs.getString("title"));
                 config.put("public", String.valueOf(rs.getBoolean("public")));
@@ -532,7 +532,7 @@ public class projectMinter {
             stmt.setInt(1, userId);
             stmt.setInt(2, projectId);
 
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             rs.next();
 
             return rs.getInt("count") >= 1;
@@ -557,7 +557,7 @@ public class projectMinter {
             stmt.setInt(1, userId);
             stmt.setInt(2, projectId);
 
-            stmt.executeUpdate(sql);
+            stmt.executeUpdate();
         } catch (SQLException e) {
             throw new ServerErrorException("Server error while removing user", e);
         } finally {
