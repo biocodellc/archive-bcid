@@ -65,11 +65,12 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
             try {
 //              send the user to error.jsp to display info about the exception/error
                 URI url = new URI("error.jsp");
-                HttpSession session = request.getSession();
-                session.setAttribute("errorInfo", errorInfo);
+//                HttpSession session = request.getSession();
+//                session.setAttribute("errorInfo", errorInfo);
 
                 return Response.status(errorInfo.getHttpStatusCode())
-                        .location(url)
+                        .entity(errorInfo.toHTMLTable())
+                        .type(MediaType.TEXT_HTML)
                         .build();
             } catch (URISyntaxException ex) {
                 logger.warn("URISyntaxException forming url for bcid error page.", ex);
