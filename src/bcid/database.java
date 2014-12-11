@@ -44,6 +44,33 @@ public class database {
         return conn;
     }
 
+    public void close(PreparedStatement ps, ResultSet rs) {
+        if (ps != null) {
+            try {
+                ps.close();
+            } catch (SQLException e) {
+                logger.warn("SQLException while attempting to close PreparedStatement.", e);
+            }
+        }
+        if (rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                logger.warn("SQLException while attempting to close ResultSet.", e);
+            }
+        }
+        return;
+    }
+
+    public void close() {
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            logger.warn("SQLException while attempting to close connection.", e);
+        }
+        return;
+    }
+
     /**
      * Return the userID given a username
      * @param username
