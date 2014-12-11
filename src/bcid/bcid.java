@@ -38,7 +38,6 @@ public class bcid extends GenericIdentifier {
     protected Boolean datasetsSuffixPassthrough;
     protected String identifiersTs;
     //protected String ark;
-    protected dataGroupMinter dataset;
     protected String doi;
     protected Integer dataset_id;
 
@@ -66,7 +65,8 @@ public class bcid extends GenericIdentifier {
      * @param datasets_id
      */
     public bcid(Integer datasets_id) {
-        setDatasets_id(datasets_id);
+        dataGroupMinter dataset = setDatasets_id(datasets_id);
+        dataset.close();
     }
 
 
@@ -77,7 +77,7 @@ public class bcid extends GenericIdentifier {
      * @param dataset_id
      */
     public bcid(String sourceID, Integer dataset_id) {
-        setDatasets_id(dataset_id);
+        dataGroupMinter dataset = setDatasets_id(dataset_id);
         try {
             if (sourceID != null && !sourceID.equals("")) {
                 identifier = new URI(dataset.identifier + sm.retrieveValue("divider") + sourceID);
@@ -88,6 +88,7 @@ public class bcid extends GenericIdentifier {
             //TODO should we silence this exception?
             logger.warn("{URISyntaxException thrown", e);
         }
+        dataset.close();
     }
 
     /**
@@ -99,7 +100,7 @@ public class bcid extends GenericIdentifier {
      * @param dataset_id
      */
     public bcid(String sourceID, URI webAddress, Integer dataset_id) {
-        setDatasets_id(dataset_id);
+        dataGroupMinter dataset = setDatasets_id(dataset_id);
         this.webAddress = webAddress;
         try {
             if (sourceID != null && !sourceID.equals("")) {
@@ -122,6 +123,7 @@ public class bcid extends GenericIdentifier {
                 logger.warn("URISyntaxException for uri: {}", webAddress + sourceID, e);
             }
         }
+        dataset.close();
     }
 
 
@@ -189,7 +191,7 @@ public class bcid extends GenericIdentifier {
      *
      * @param sourceID
      */
-    private void setSourceID(String sourceID) {
+    private void setSourceID(String sourceID, dataGroupMinter dataset) {
         try {
             if (sourceID != null && !sourceID.equals("")) {
                 identifier = new URI(dataset.identifier + sm.retrieveValue("divider") + sourceID);
@@ -218,7 +220,7 @@ public class bcid extends GenericIdentifier {
      *
      * @param pDatasets_id
      */
-    private void setDatasets_id(Integer pDatasets_id) {
+    private dataGroupMinter setDatasets_id(Integer pDatasets_id) {
         /*  try {
           database db = new database();
           Statement stmt = db.conn.createStatement();
@@ -266,7 +268,7 @@ public class bcid extends GenericIdentifier {
 
 
         // Create a dataset representation based on the dataset_id
-        dataset = new dataGroupMinter(pDatasets_id);
+        dataGroupMinter dataset = new dataGroupMinter(pDatasets_id);
         //when =  new dates().now();
         when = dataset.ts;
 
@@ -285,6 +287,8 @@ public class bcid extends GenericIdentifier {
         datasetsEzidMade = dataset.ezidMade;
         datasetsEzidRequest = dataset.ezidRequest;
         datasetsSuffixPassthrough = dataset.getSuffixPassThrough();
+
+        return dataset;
 
     }
 

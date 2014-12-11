@@ -268,19 +268,23 @@ public class authenticationService {
 
             if (callback != null) {
                 try {
+                    p.close();
                     return Response.status(302).location(new URI(callback + "?error=invalid_request")).build();
                 } catch (URISyntaxException e) {
                     logger.warn("Malformed callback URI for oauth client {} and callback {}", clientId, callback);
                 }
             }
+            p.close();
             throw new BadRequestException("invalid_request");
         }
 
         if (clientId == null || !p.validClientId(clientId)) {
             redirectURL += "?error=unauthorized_client";
             try {
+                p.close();
                 return Response.status(302).location(new URI(redirectURL)).build();
             } catch (URISyntaxException e) {
+                p.close();
                 throw new BadRequestException("invalid_request", "invalid redirect_uri provided");
             }
         }
@@ -288,16 +292,19 @@ public class authenticationService {
         if (username == null) {
             // need the user to login
             try {
+                p.close();
                 return Response.status(Response.Status.TEMPORARY_REDIRECT)
                         .location(new URI("../bcid/login.jsp?return_to=/id/authenticationService/oauth/authorize?"
                                     + request.getQueryString()))
                         .build();
             } catch (URISyntaxException e) {
+                p.close();
                 throw new ServerErrorException(e);
             }
         }
         //TODO ask user if they want to share profile information with requesting party
         String code = p.generateCode(clientId, redirectURL, username.toString());
+        p.close();
 
         redirectURL += "?code=" + code;
 
@@ -342,18 +349,23 @@ public class authenticationService {
             url = new URI(redirectURL);
         } catch (URISyntaxException e) {
             logger.warn("URISyntaxException for the following url: {}", redirectURL, e);
+            p.close();
             throw new BadRequestException("invalid_request", "URISyntaxException thrown with the following redirect_uri: " + redirectURL);
         }
 
         if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
+            p.close();
             throw new BadRequestException("invalid_client");
         }
 
         if (code == null || !p.validateCode(clientId, code, redirectURL)) {
+            p.close();
             throw new BadRequestException("invalid_grant", "Either code was null or the code doesn't match the clientId");
         }
+        String response = p.generateToken(clientId, state, code);
+        p.close();
 
-        return Response.ok(p.generateToken(clientId, state, code))
+        return Response.ok(response)
                 .header("Cache-Control", "no-store")
                 .header("Pragma", "no-cache")
                 .location(url)
@@ -378,10 +390,12 @@ public class authenticationService {
         provider p = new provider();
 
         if (clientId == null || clientSecret == null || !p.validateClient(clientId, clientSecret)) {
+            p.close();
             throw new BadRequestException("invalid_client");
         }
 
         if (refreshToken == null || !p.validateRefreshToken(refreshToken)) {
+            p.close();
             throw new BadRequestException("invalid_grant", "refresh_token is invalid");
         }
 
@@ -389,6 +403,7 @@ public class authenticationService {
 
         // refresh tokens are only good once, so delete the old access token so the refresh token can no longer be used
         p.deleteAccessToken(refreshToken);
+        p.close();
 
         return Response.ok(accessToken)
                 .header("Cache-Control", "no-store")

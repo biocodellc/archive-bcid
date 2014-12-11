@@ -88,6 +88,7 @@ public class groupService {
         if (accessToken != null) {
             provider p = new provider();
             username = p.validateToken(accessToken);
+            p.close();
         } else {
             HttpSession session = request.getSession();
             username = (String) session.getAttribute("user");
@@ -188,8 +189,10 @@ public class groupService {
         }
 
         dataGroupMinter d = new dataGroupMinter();
+        String response = d.datasetList(username);
+        d.close();
 
-        return Response.ok(d.datasetList(username)).build();
+        return Response.ok(response).build();
     }
 
     /**
@@ -209,8 +212,10 @@ public class groupService {
         }
 
         dataGroupMinter d = new dataGroupMinter();
+        String response = d.datasetTable(username);
+        d.close();
 
-        return Response.ok(d.datasetTable(username)).build();
+        return Response.ok(response).build();
     }
 
     /**
@@ -259,7 +264,9 @@ public class groupService {
         }
 
         dataGroupMinter d = new dataGroupMinter();
-        return Response.ok(d.bcidEditorAsTable(username, prefix)).build();
+        String response = d.bcidEditorAsTable(username, prefix);
+        d.close();
+        return Response.ok(response).build();
     }
 
     /**
@@ -328,11 +335,14 @@ public class groupService {
         }
 
         if (update.isEmpty()) {
+            d.close();
             return Response.ok("{\"success\": \"Nothing needed to be updated.\"}").build();
         // try to update the config by calling d.updateDataGroupConfig
         } else if (d.updateDataGroupConfig(update, prefix, username.toString())) {
+            d.close();
             return Response.ok("{\"success\": \"BCID successfully updated.\"}").build();
         } else {
+            d.close();
             // if we are here, the dataset wasn't found
             throw new BadRequestException("Dataset wasn't found");
         }

@@ -203,8 +203,10 @@ public class elementService {
             dataset.close();
             return Response.ok(returnVal).build();
         } catch (URISyntaxException e) {
+            dataset.close();
             throw new ServerErrorException("Server Error", "URISyntaxException while parsing input file: " + data, e);
         } catch (IOException e) {
+            dataset.close();
             throw new ServerErrorException("Server Error", "IOException while parsing input file: " + data, e);
         }
     }
