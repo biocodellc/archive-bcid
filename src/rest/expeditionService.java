@@ -432,8 +432,10 @@ public class expeditionService {
         database db = new database();
         projectMinter p = new projectMinter();
         Integer userId = db.getUserId(username.toString());
+        Boolean projectAdmin = p.userProjectAdmin(userId, projectId);
+        p.close();
 
-        if (!p.userProjectAdmin(userId, projectId)) {
+        if (!projectAdmin) {
             throw new ForbiddenRequestException("You must be this project's admin in order to update a project dataset's public status.");
         }
         expeditionMinter e = new expeditionMinter();

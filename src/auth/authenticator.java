@@ -86,6 +86,7 @@ public class authenticator {
                     p.addUserToProject(user_id, (Integer) projectsIt.next());
                 }
                 // D. return true because we got this far and already authenticated
+                p.close();
                 return true;
             } else {
                 return false;

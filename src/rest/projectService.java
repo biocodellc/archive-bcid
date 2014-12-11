@@ -6,7 +6,6 @@ import bcid.projectMinter;
 import bcidExceptions.BadRequestException;
 import bcidExceptions.ForbiddenRequestException;
 import bcidExceptions.UnauthorizedRequestException;
-import util.errorInfo;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -14,7 +13,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.Hashtable;
 
 /**
@@ -42,6 +40,7 @@ public class projectService {
 
         projectMinter project = new projectMinter();
         String response = project.getValidationXML(project_id);
+        project.close();
 
         if (response == null) {
             return Response.status(Response.Status.NO_CONTENT)
@@ -62,6 +61,7 @@ public class projectService {
     public Response fetchList() {
         projectMinter project = new projectMinter();
         String response = project.listProjects();
+        project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
     }
@@ -79,6 +79,7 @@ public class projectService {
         projectMinter project= new projectMinter();
 
         String response = project.getLatestGraphs(project_id);
+        project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
     }
@@ -99,7 +100,10 @@ public class projectService {
         String username = session.getAttribute("user").toString();
 
         projectMinter project= new projectMinter();
-        return Response.ok(project.listUserAdminProjects(username)).build();
+        String response = project.listUserAdminProjects(username);
+        project.close();
+
+        return Response.ok(response).build();
     }
 
     /**
@@ -118,7 +122,9 @@ public class projectService {
             throw new UnauthorizedRequestException("You must be this project's admin in order to view its configuration");
         }
         projectMinter project = new projectMinter();
-        return Response.ok(project.getProjectConfigAsTable(project_id, username.toString())).build();
+        String response = project.getProjectConfigAsTable(project_id, username.toString());
+        project.close();
+        return Response.ok(response).build();
     }
 
     /**
@@ -138,7 +144,8 @@ public class projectService {
         }
 
         projectMinter project = new projectMinter();
-        return project.getProjectConfigEditorAsTable(projectId, username.toString());
+        String response = project.getProjectConfigEditorAsTable(projectId, username.toString());
+        return response;
     }
 
     /**
@@ -159,43 +166,48 @@ public class projectService {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
-        if (username == null){
+        if (username == null) {
             throw new UnauthorizedRequestException("You must be logged in to edit a project's config.");
         }
         projectMinter p = new projectMinter();
         database db = new database();
 
-        if (!p.userProjectAdmin(db.getUserId(username.toString()), projectID)) {
-            throw new ForbiddenRequestException("You must be this project's admin in order to edit the config");
-        }
-
-        Hashtable config = p.getProjectConfig(projectID, username.toString());
-        Hashtable<String, String> update = new Hashtable<String, String>();
-
-        if (title != null &&
-                !config.get("title").equals(title)) {
-            update.put("title", title);
-        }
-        if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {
-            update.put("bioValidator_validation_xml", validationXML);
-        }
-        if ((publicProject != null && (publicProject.equals("on") || publicProject.equals("true")) && config.get("public").equals("false")) ||
-            (publicProject == null && config.get("public").equals("true"))) {
-            if (publicProject != null && (publicProject.equals("on") || publicProject.equals("true"))) {
-                update.put("public", "true");
-            } else {
-                update.put("public", "false");
+        try {
+            if (!p.userProjectAdmin(db.getUserId(username.toString()), projectID)) {
+                p.close();
+                throw new ForbiddenRequestException("You must be this project's admin in order to edit the config");
             }
-        }
 
-        if (!update.isEmpty()) {
-            if (p.updateConfig(update, projectID)) {
-                return Response.ok("{\"success\": \"Successfully update project config.\"}").build();
-            } else {
-                throw new BadRequestException("Project wasn't found");
+            Hashtable config = p.getProjectConfig(projectID, username.toString());
+            Hashtable<String, String> update = new Hashtable<String, String>();
+
+            if (title != null &&
+                    !config.get("title").equals(title)) {
+                update.put("title", title);
             }
-        } else {
-            return Response.ok("{\"success\": \"nothing needed to be updated\"}").build();
+            if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {
+                update.put("bioValidator_validation_xml", validationXML);
+            }
+            if ((publicProject != null && (publicProject.equals("on") || publicProject.equals("true")) && config.get("public").equals("false")) ||
+                    (publicProject == null && config.get("public").equals("true"))) {
+                if (publicProject != null && (publicProject.equals("on") || publicProject.equals("true"))) {
+                    update.put("public", "true");
+                } else {
+                    update.put("public", "false");
+                }
+            }
+
+            if (!update.isEmpty()) {
+                if (p.updateConfig(update, projectID)) {
+                    return Response.ok("{\"success\": \"Successfully update project config.\"}").build();
+                } else {
+                    throw new BadRequestException("Project wasn't found");
+                }
+            } else {
+                return Response.ok("{\"success\": \"nothing needed to be updated\"}").build();
+            }
+        } finally {
+            p.close();
         }
     }
 
@@ -220,10 +232,12 @@ public class projectService {
             throw new UnauthorizedRequestException("You must login.");
         }
         if (!p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
+            p.close();
             throw new ForbiddenRequestException("You are not this project's admin.");
         }
 
         p.removeUser(userId, projectId);
+        p.close();
 
         return Response.ok("{\"success\": \"User has been successfully removed\"}").build();
     }
@@ -247,16 +261,18 @@ public class projectService {
             throw new BadRequestException("invalid userId");
         }
 
-        projectMinter p = new projectMinter();
         database db = new database();
 
         if (username == null) {
             throw new UnauthorizedRequestException("You must login to access this service.");
         }
+        projectMinter p = new projectMinter();
         if (!p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
+            p.close();
             throw new ForbiddenRequestException("You are not this project's admin");
         }
-         p.addUserToProject(userId, projectId);
+        p.addUserToProject(userId, projectId);
+        p.close();
 
         return Response.ok("{\"success\": \"User has been successfully added to this project\"}").build();
     }
@@ -278,7 +294,9 @@ public class projectService {
         }
 
         projectMinter p = new projectMinter();
-        return p.listProjectUsersAsTable(projectId);
+        String response = p.listProjectUsersAsTable(projectId);
+        p.close();
+        return response;
     }
 
     /**
@@ -307,6 +325,8 @@ public class projectService {
         }
 
         projectMinter p = new projectMinter();
-        return Response.ok(p.listUsersProjects(username)).build();
+        String response = p.listUsersProjects(username);
+        p.close();
+        return Response.ok(response).build();
     }
 }

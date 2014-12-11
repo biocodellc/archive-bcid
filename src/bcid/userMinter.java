@@ -48,6 +48,7 @@ public class userMinter {
         projectMinter p = new projectMinter();
 
         p.addUserToProject(userId, projectId);
+        p.close();
         return "{\"success\": \"successfully created new user\"}";
     }
 
