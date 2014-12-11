@@ -145,6 +145,7 @@ public class projectService {
 
         projectMinter project = new projectMinter();
         String response = project.getProjectConfigEditorAsTable(projectId, username.toString());
+        project.close();
         return response;
     }
 
@@ -176,7 +177,6 @@ public class projectService {
 
         try {
             if (!p.userProjectAdmin(userId, projectID)) {
-                p.close();
                 throw new ForbiddenRequestException("You must be this project's admin in order to edit the config");
             }
 
@@ -185,7 +185,7 @@ public class projectService {
 
             if (title != null &&
                     !config.get("title").equals(title)) {
-                update.put("title", title);
+                update.put("project_title", title);
             }
             if (!config.containsKey("validation_xml") || !config.get("validation_xml").equals(validationXML)) {
                 update.put("bioValidator_validation_xml", validationXML);
@@ -227,11 +227,12 @@ public class projectService {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
 
-        projectMinter p = new projectMinter();
-
         if (username == null) {
             throw new UnauthorizedRequestException("You must login.");
         }
+
+        projectMinter p = new projectMinter();
+
         database db = new database();
         Integer loggedInUserId = db.getUserId(username.toString());
         db.close();

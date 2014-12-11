@@ -90,10 +90,10 @@ public class resolver extends database {
             stmt = conn.prepareStatement(query);
 
             stmt.setString(1, expedition_code);
-            stmt.setString(2, uri);
-            stmt.setString(3, conceptAlias);
+            stmt.setInt(2, project_id);
+            stmt.setString(3, uri);
+            stmt.setString(4, conceptAlias);
 
-            stmt.setInt(1, project_id);
 
             //System.out.println("resolver query = " + query);
             rs = stmt.executeQuery();
