@@ -3,14 +3,10 @@ package bcid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
-import util.dates;
 
 import java.lang.String;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.HashMap;
 
 /**

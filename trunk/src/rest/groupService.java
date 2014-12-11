@@ -142,14 +142,16 @@ public class groupService {
         // a separate mechanism on the server side to check creation of EZIDs.  This is easy enough to do
         // in the database.
         if (ezidRequest) {
+            manageEZID creator = new manageEZID();
             try {
                 ezidAccount = new EZIDService();
                 // Setup EZID account/login information
                 ezidAccount.login(sm.retrieveValue("eziduser"), sm.retrieveValue("ezidpass"));
-                manageEZID creator = new manageEZID();
                 creator.createDatasetsEZIDs(ezidAccount);
             } catch (EZIDException e) {
                 logger.warn("EZID NOT CREATED FOR DATASET = " + minterDataset.getPrefix(), e);
+            } finally {
+                creator.close();
             }
         }
 

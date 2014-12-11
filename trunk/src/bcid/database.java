@@ -77,11 +77,14 @@ public class database {
      * @return
      */
     public Integer getUserId(String username) {
-        Statement stmt = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
-            stmt = conn.createStatement();
+            String sql = "Select user_id from users where username=?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, username);
 
-            ResultSet rs = stmt.executeQuery("Select user_id from users where username=\"" + username + "\"");
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return rs.getInt("user_id");
@@ -89,6 +92,8 @@ public class database {
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error",
                     "SQLException attempting to getUserId when given the username: {}", e);
+        } finally {
+            close(stmt, rs);
         }
         return null;
     }
@@ -98,11 +103,14 @@ public class database {
      * @return
      */
     public String getUserName(Integer userId) {
-        Statement stmt = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
-            stmt = conn.createStatement();
+            String sql = "SELECT username FROM users WHERE user_id = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
 
-            ResultSet rs = stmt.executeQuery("Select username from users where user_id=" + userId + "");
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return rs.getString("username");
@@ -110,6 +118,8 @@ public class database {
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error",
                     "SQLException attempting to getUserName when given the userId: {}", e);
+        } finally {
+            close(stmt, rs);
         }
         return null;
     }

@@ -49,13 +49,11 @@ public class manageEZID extends elementMinter {
      *  Update EZID dataset metadata for this particular ID
      */
     public void updateDatasetsEZID(EZIDService ezid, int datasets_id) throws EZIDException{
-        Statement stmt = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            stmt = conn.createStatement();
 
-            rs = stmt.executeQuery("" +
-                    "SELECT " +
+            String sql = "SELECT " +
                     "d.datasets_id as datasets_id," +
                     "d.prefix as prefix," +
                     "d.ts as ts," +
@@ -63,8 +61,12 @@ public class manageEZID extends elementMinter {
                     "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as who " +
                     "FROM datasets d,users u " +
                     "WHERE ezidMade && d.users_id=u.USER_ID " +
-                    "AND d.datasets_id =" + datasets_id + " " +
-                    "LIMIT 1000");
+                    "AND d.datasets_id = ? " +
+                    "LIMIT 1000";
+
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, datasets_id);
+            rs = stmt.executeQuery();
 
             rs.next();
 
@@ -91,6 +93,8 @@ public class manageEZID extends elementMinter {
 
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -105,20 +109,20 @@ public class manageEZID extends elementMinter {
      */
     public void createDatasetsEZIDs(EZIDService ezid) throws EZIDException{
         // Grab a row where ezid is false
-        Statement stmt = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
         ArrayList<String> idSuccessList = new ArrayList();
         try {
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery("" +
-                    "SELECT d.datasets_id as datasets_id," +
+            String sql = "SELECT d.datasets_id as datasets_id," +
                     "d.prefix as prefix," +
                     "d.ts as ts," +
                     "d.resourceType as what," +
                     "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as who " +
                     "FROM datasets d,users u " +
                     "WHERE !ezidMade && ezidRequest && d.users_id=u.USER_ID && u.username != 'demo'" +
-                    "LIMIT 1000");
+                    "LIMIT 1000";
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
 
             // Attempt to create an EZID for this row
             while (rs.next()) {
@@ -157,6 +161,8 @@ public class manageEZID extends elementMinter {
             }
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "SQLException when creating EZID", e);
+        } finally {
+            db.close(stmt, rs);
         }
 
         // Update the Identifiers Table and let it know that we've created the EZID
@@ -182,16 +188,17 @@ public class manageEZID extends elementMinter {
      */
     public void createIdentifiersEZIDs(EZIDService ezid) throws URISyntaxException {
         // Grab a row where ezid is false
-        Statement stmt = null;
+        PreparedStatement stmt = null;
         ResultSet rs = null;
         ArrayList<String> idSuccessList = new ArrayList();
         try {
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery("" +
-                    "SELECT identifiers_id,webaddress,localid,what,suffixPassthrough " +
+            String sql = "SELECT identifiers_id,webaddress,localid,what,suffixPassthrough " +
                     "FROM identifiers " +
                     "WHERE !ezidMade && ezidRequest " +
-                    "LIMIT 1000");
+                    "LIMIT 1000";
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+
             // Attempt to create an EZID for this row
             while (rs.next()) {
                 URI identifier = null;
@@ -244,6 +251,7 @@ public class manageEZID extends elementMinter {
         } catch (EZIDException e) {
             throw new URISyntaxException("trouble minting identifier with EZID service", null);
         } finally {
+            db.close(stmt, rs);
             try {
                 updateEZIDMadeField(idSuccessList, "identifiers");
             } catch (SQLException e) {
@@ -290,6 +298,7 @@ public class manageEZID extends elementMinter {
             conn.commit();
 
         } finally {
+            db.close(updateStatement, null);
             conn.setAutoCommit(true);
         }
     }

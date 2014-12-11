@@ -108,6 +108,8 @@ public class elementMinter extends dataGroupMinter {
         } catch (SQLException e) {
             //TODO should we silence this exception?
             logger.warn("SQLException trying to set AUTO_INCREMENT for identifiers table.", e);
+        } finally {
+            db.close(alterStatement, null);
         }
     }
 
@@ -129,13 +131,18 @@ public class elementMinter extends dataGroupMinter {
      *         of items deleted.
      */
     public int deleteLoadedSetUUID(String uuid) {
+        PreparedStatement stmt = null;
         try {
-            Statement stmt = conn.createStatement();
-            String sql = "DELETE FROM identifiers WHERE loadedSetUUID='" + uuid + "'";
-            return stmt.executeUpdate(sql);
+            String sql = "DELETE FROM identifiers WHERE loadedSetUUID=?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, uuid);
+
+            return stmt.executeUpdate();
         } catch (SQLException e) {
             //TODO should we silence this exception?
             logger.warn("SQLException trying to delete loadedSetUUID: {} from identifiers table.", uuid, e);
+        } finally {
+            db.close(stmt, null);
         }
         return 0;
     }
@@ -228,17 +235,10 @@ public class elementMinter extends dataGroupMinter {
                 insertStatement.execute();
             }
 
-            insertStatement.close();
-
         } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
-            // Finish up
-            try {
-                insertStatement.close();
-            } catch (SQLException e) {
-                logger.warn("SQLException while trying to close db connection.", e);
-            }
+            db.close(insertStatement, null);
         }
         t.lap("end mintList");
         return loadedSetUUID.toString();
@@ -269,16 +269,19 @@ public class elementMinter extends dataGroupMinter {
 
     public ArrayList getIdentifiers(String datasetUUID) {
         ArrayList results = new ArrayList();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
-            Statement stmt = conn.createStatement();
             String sql = "SELECT " +
                     "i.identifiers_id as id," +
                     "d.prefix as prefix," +
                     "i.localid as localid" +
                     " FROM identifiers as i, datasets as d " +
-                    " WHERE i.loadedSetUUID = '" + datasetUUID + "'" +
+                    " WHERE i.loadedSetUUID = ?" +
                     " AND i.datasets_id=d.datasets_id";
-            ResultSet rs = stmt.executeQuery(sql);
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, datasetUUID);
+            rs = stmt.executeQuery();
 
             while (rs.next()) {
                 // If this is suffixPassthrough then use prefix + localid
@@ -292,6 +295,8 @@ public class elementMinter extends dataGroupMinter {
 
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
         return results;
     }
@@ -305,9 +310,12 @@ public class elementMinter extends dataGroupMinter {
      */
     private BigInteger start() throws BCIDException {
         BigInteger big = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("select max(identifiers_id) as maxid from identifiers");
+            String sql = "SELECT max(identifiers_id) as maxid from identifiers";
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
 
@@ -328,6 +336,8 @@ public class elementMinter extends dataGroupMinter {
 
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "Unable to find start", e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -376,11 +386,11 @@ public class elementMinter extends dataGroupMinter {
         } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
+            db.close(insertStatement, null);
             try {
-                insertStatement.close();
                 conn.setAutoCommit(true);
             } catch (SQLException e) {
-                logger.warn("SQLException thrown while trying to close db connection or setAutoCommit(true).", e);
+                logger.warn("SQLException thrown while trying to setAutoCommit(true).", e);
             }
         }
 
