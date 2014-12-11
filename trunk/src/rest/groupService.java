@@ -229,8 +229,9 @@ public class groupService {
             throw new UnauthorizedRequestException("You must be logged in to view your expeditions.");
         }
 
-        expeditionMinter p = new expeditionMinter();
-        String tablename = p.expeditionTable(username);
+        expeditionMinter e = new expeditionMinter();
+        String tablename = e.expeditionTable(username);
+        e.close();
         return Response.ok(tablename).build();
     }
 

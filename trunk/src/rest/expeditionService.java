@@ -44,6 +44,7 @@ public class expeditionService {
         expeditionMinter expedition;
         expedition = new expeditionMinter();
         expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
+        expedition.close();
 
         return Response.ok("{\"success\": \"Succesfully associated dataset_code = " + expedition_code +
                 " with bcid = " + bcid + "\"}").build();
@@ -107,14 +108,17 @@ public class expeditionService {
         //Check that the user exists in this project
         if (!expedition.userExistsInProject(user_id, project_id)) {
             // If the user isn't in the project, then we can't update or create a new expedition
+            expedition.close();
             throw new ForbiddenRequestException("User is not authorized to update/create expeditions in this project.");
         }
 
         // If specified, ignore the user.. simply figure out whether we're updating or inserting
         if (lIgnore_user) {
             if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
+                expedition.close();
                 return Response.ok("{\"update\": \"update this expedition\"}").build();
             } else {
+                expedition.close();
                 return Response.ok("{\"insert\": \"insert new expedition\"}").build();
             }
         }
@@ -123,13 +127,16 @@ public class expeditionService {
         else {
             if (expedition.userOwnsExpedition(user_id, expedition_code, project_id)) {
                 // If the user already owns the expedition, then great--- this is an update
+                expedition.close();
                 return Response.ok("{\"update\": \"user owns this expedition\"}").build();
                 // If the expedition exists in the project but the user does not own the expedition then this means we can't
             } else if (expedition.expeditionExistsInProject(expedition_code, project_id)) {
+                expedition.close();
                 throw new ForbiddenRequestException("The dataset code '" + expedition_code +
                         "' exists in this project already and is owned by another user. " +
                         "Please choose another dataset code.");
             } else {
+                expedition.close();
                 return Response.ok("{\"insert\": \"the dataset does not exist with project and nobody owns it\"}").build();
             }
         }
@@ -212,6 +219,8 @@ public class expeditionService {
                     expedition.printMetadataHTML(expedition_id) + "\"}").build();
         } catch (BCIDException e) {
             throw new BadRequestException(e.getMessage());
+        } finally {
+            expedition.close();
         }
     }
 
@@ -227,7 +236,9 @@ public class expeditionService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getGraphMetadata(@PathParam("graph") String graph) {
         expeditionMinter e = new expeditionMinter();
-        return Response.ok(e.getGraphMetadata(graph)).build();
+        String response = e.getGraphMetadata(graph);
+        e.close();
+        return Response.ok(response).build();
     }
 
     /**
@@ -276,6 +287,8 @@ public class expeditionService {
 
         String response = expeditionMinter.getDeepRoots(expedition, project_id);
 
+        expeditionMinter.close();
+
         return Response.ok(response).build();
     }
 
@@ -308,7 +321,10 @@ public class expeditionService {
 
         expeditionMinter e = new expeditionMinter();
 
-        return Response.ok(e.listExpeditions(projectId, username.toString())).build();
+        String response = e.listExpeditions(projectId, username.toString());
+
+        e.close();
+        return Response.ok(response).build();
     }
 
     /**
@@ -330,7 +346,11 @@ public class expeditionService {
         }
 
         expeditionMinter e = new expeditionMinter();
-        return Response.ok(e.listExpeditionResourcesAsTable(expeditionId)).build();
+
+        String response = e.listExpeditionResourcesAsTable(expeditionId);
+
+        e.close();
+        return Response.ok(response).build();
     }
 
     /**
@@ -353,6 +373,7 @@ public class expeditionService {
 
         expeditionMinter e = new expeditionMinter();
         String results = e.listExpeditionDatasetsAsTable(expeditionId);
+        e.close();
         return Response.ok(results).build();
     }
 
@@ -379,7 +400,9 @@ public class expeditionService {
         }
 
         expeditionMinter e = new expeditionMinter();
-        return Response.ok(e.listExpeditionsAsTable(projectId, username.toString())).build();
+        String response = e.listExpeditionsAsTable(projectId, username.toString());
+        e.close();
+        return Response.ok(response).build();
     }
 
 
@@ -414,6 +437,7 @@ public class expeditionService {
         expeditionMinter e = new expeditionMinter();
 
         e.updateExpeditionsPublicStatus(data, projectId);
+        e.close();
         return Response.ok("{\"success\": \"successfully updated.\"}").build();
     }
 
@@ -467,8 +491,10 @@ public class expeditionService {
 
         if (e.updateExpeditionPublicStatus(expeditionCode, projectId, publicStatus)) {
             //System.out.println("successs!");
+            e.close();
             return Response.ok("{\"success\": \"successfully updated.\"}").build();
         } else {
+            e.close();
             //System.out.println("not successs!");
             return Response.ok("{\"success\": \"nothing to update.\"}").build();
         }
