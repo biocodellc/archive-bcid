@@ -86,6 +86,8 @@ public class authenticationService {
                     session.setAttribute("projectAdmin", true);
                 }
 
+                myAuthorizer.close();
+
                 // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
                 if (!authenticator.userSetPass(usr)) {
                     // don't need authenticator anymore
@@ -156,6 +158,7 @@ public class authenticationService {
                 if (myAuthorizer.userProjectAdmin(usr)) {
                     session.setAttribute("projectAdmin", true);
                 }
+                myAuthorizer.close();
 
                 // Redirect to return_to uri if provided
 //                if (return_to != null) {
@@ -429,14 +432,13 @@ public class authenticationService {
             authorizer.close();
             return;
         }
+        authorizer.close();
 
         if (authenticator.resetPass(token, password)) {
             response.sendRedirect("/bcid/login.jsp");
             authenticator.close();
-            authorizer.close();
             return;
         }
-        authorizer.close();
         authenticator.close();
     }
 

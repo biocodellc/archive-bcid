@@ -27,7 +27,8 @@ public class authorizer {
      * @return
      */
     public Boolean userProjectAdmin(String username) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             Integer users_id = db.getUserId(username);
             String selectString = "SELECT count(*) as count FROM projects WHERE users_id = ?";
@@ -35,12 +36,14 @@ public class authorizer {
             stmt = conn.prepareStatement(selectString);
             stmt.setInt(1, users_id);
 
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             rs.next();
             return rs.getInt("count") >= 1;
 
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -50,14 +53,15 @@ public class authorizer {
      * @return
      */
     public Boolean validResetToken(String token) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String sql = "SELECT pass_reset_expiration as ts FROM users WHERE pass_reset_token = ?";
 
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, token);
 
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             if (rs.next()) {
                 Timestamp expirationTs = rs.getTimestamp("ts");
                 Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime());
@@ -68,15 +72,13 @@ public class authorizer {
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error while validating reset token",
                     "db error retrieving reset token expiration", e);
+        } finally {
+            db.close(stmt, rs);
         }
         return false;
     }
 
     public void close() {
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            logger.warn("SQLException while trying to close connection.", e);
-        }
+        db.close();
     }
 }
