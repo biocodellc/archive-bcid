@@ -178,7 +178,7 @@ public class expeditionMinter {
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, expedition_code);
-            stmt.setInt(1, project_id);
+            stmt.setInt(2, project_id);
 
             rs = stmt.executeQuery();
             rs.next();
@@ -208,7 +208,7 @@ public class expeditionMinter {
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, expedition_code);
-            stmt.setInt(1, ProjectId);
+            stmt.setInt(2, ProjectId);
 
             rs = stmt.executeQuery();
             if (rs.next()) return true;
@@ -313,8 +313,8 @@ public class expeditionMinter {
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, expedition_code);
-            stmt.setInt(1, users_id);
-            stmt.setInt(2, project_id);
+            stmt.setInt(2, users_id);
+            stmt.setInt(3, project_id);
 
             rs = stmt.executeQuery();
             rs.next();
@@ -394,7 +394,7 @@ public class expeditionMinter {
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, expedition_code);
-            stmt.setInt(1, project_id);
+            stmt.setInt(2, project_id);
 
             // Write the concept/prefix elements section
             sb.append("[\n{\n\t\"data\": [\n");
@@ -711,7 +711,7 @@ public class expeditionMinter {
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, expedition_code);
-            stmt.setInt(1, project_id);
+            stmt.setInt(2, project_id);
 
             rs = stmt.executeQuery();
             rs.next();
@@ -936,12 +936,11 @@ public class expeditionMinter {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
+        projectMinter p = new projectMinter();
         try {
             Integer userId = db.getUserId(username);
-            projectMinter p = new projectMinter();
 
             if (!p.userProjectAdmin(userId, projectId)) {
-                p.close();
                 throw new ForbiddenRequestException("You must be this project's admin to view its datasets.");
             }
 
@@ -992,6 +991,7 @@ public class expeditionMinter {
         } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
+            p.close();
             db.close(stmt, rs);
         }
 

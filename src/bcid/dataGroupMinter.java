@@ -265,13 +265,13 @@ public class dataGroupMinter extends dataGroupEncoder {
             datasets_id = getDatasetIdentifier(internalID);
 
             // Update the shoulder, and hence prefix, now that we know the datasets_id
-            String updateString = "UPDATE datasets " +
-                    " SET prefix=?" +
+            String updateString = "UPDATE datasets" +
+                    " SET prefix = ?" +
                     " WHERE datasets_id = ?";
             updateStatement = conn.prepareStatement(updateString);
 
             updateStatement.setString(1, bow.toString() + encode(new BigInteger(datasets_id.toString())));
-            updateStatement.setInt(1, datasets_id);
+            updateStatement.setInt(2, datasets_id);
 
             updateStatement.executeUpdate();
 
