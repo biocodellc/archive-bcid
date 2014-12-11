@@ -193,6 +193,7 @@ public class run {
         resolver r = new resolver(identifier);
         System.out.println("Attempting to resolve " + identifier);
         System.out.println(r.resolveAllAsJSON(ezidService));
+        r.close();
     }
 
     /**

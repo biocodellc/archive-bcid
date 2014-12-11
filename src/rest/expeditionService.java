@@ -101,6 +101,7 @@ public class expeditionService {
         // Get the user_id
         database db = new database();
         Integer user_id = db.getUserId(username);
+        db.close();
 
         // Create the expeditionMinter object so we can test and validate it
         expeditionMinter expedition = new expeditionMinter();
@@ -185,6 +186,7 @@ public class expeditionService {
         // Get the user_id
         database db = new database();
         Integer user_id = db.getUserId(username);
+        db.close();
 
         Integer expedition_id = null;
         expeditionMinter expedition = null;
@@ -264,6 +266,7 @@ public class expeditionService {
 
         resolver r = new resolver(expedition, project_id, resourceAlias);
         String response = r.getArk();
+        r.close();
         if (response == null) {
             return Response.status(Response.Status.NO_CONTENT).entity("{\"ark\": \"\"}").build();
         } else {
@@ -433,6 +436,7 @@ public class expeditionService {
         projectMinter p = new projectMinter();
         Integer userId = db.getUserId(username.toString());
         Boolean projectAdmin = p.userProjectAdmin(userId, projectId);
+        db.close();
         p.close();
 
         if (!projectAdmin) {

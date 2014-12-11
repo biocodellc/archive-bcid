@@ -111,6 +111,7 @@ public class groupService {
         database db = new database();
         // Check for remote-user
         Integer user_id = db.getUserId(username);
+        db.close();
 
         // Detect if this is user=demo or not.  If this is "demo" then do not request EZIDs.
         // User account Demo can still create Data Groups, but they just don't get registered and will be purged periodically

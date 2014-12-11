@@ -40,7 +40,6 @@ public class resolver extends database {
         sm.loadProperties();
     }
 
-
     /**
      * Pass an ARK identifier to the resolver
      *
@@ -497,6 +496,8 @@ public class resolver extends database {
             //System.out.println(r.resolveARK().toString());
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            r.close();
         }
 
 

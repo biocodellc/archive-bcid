@@ -27,6 +27,7 @@ public class dataGroupMinterTest {
 
         // Check for remote-user
         Integer user_id = db.getUserId("demo");
+        db.close();
 
         // Mint the data group
         dataGroupMinter minter = null;
@@ -53,6 +54,7 @@ public class dataGroupMinterTest {
         // Test that some identifier was created and works with the resolution + suffixPassthrough Resolver
         resolver r = new resolver(datasetPrefix + "MBIO56");
         String actual = r.resolveARK().toString();
+        r.close();
         String expected = "http://biocode.berkeley.edu/specimens/MBIO56";
         if (actual.equals(expected))
             assertTrue(true);

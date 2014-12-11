@@ -55,6 +55,7 @@ public class resolverTest {
     public void run(String input, String expected, String message) throws Exception {
         resolver r = new resolver(input);
         String actual = r.resolveARK().toString();
+        r.close();
         if (actual.equals(expected))
             assertTrue(true);
         else

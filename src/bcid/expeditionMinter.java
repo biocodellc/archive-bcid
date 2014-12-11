@@ -122,7 +122,9 @@ public class expeditionMinter {
      */
     public void attachReferenceToExpedition(String expedition_code, String bcid, Integer project_id) {
         Integer expedition_id = getExpeditionIdentifier(expedition_code, project_id);
-        Integer datasetsId = new resolver(bcid).getDataGroupID();
+        resolver r = new resolver(bcid);
+        Integer datasetsId = r.getDataGroupID();
+        r.close();
 
         String insertString = "INSERT INTO expeditionsBCIDs " +
                 "(expedition_id, datasets_id) " +

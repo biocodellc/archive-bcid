@@ -118,8 +118,8 @@ public class elementService {
                             @FormParam("suffixPassThrough") String stringSuffixPassThrough,
                             @Context HttpServletRequest request) {
 
-        dataGroupMinter dataset = null;
-        database db = null;
+        dataGroupMinter dataset;
+        database db;
         Boolean suffixPassthrough = false;
         HttpSession session = request.getSession();
         String username = session.getAttribute("user").toString();
@@ -130,6 +130,8 @@ public class elementService {
 
         // Get the user_id
         Integer user_id = db.getUserId(username);
+
+        db.close();
 
         // Request creation of new dataset
         if (dataset_id == 0) {
