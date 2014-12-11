@@ -82,8 +82,6 @@ public class SettingsManager {
      * Attempt to load the properties file associated with this util.SettingsManager.
      * This method must be called to properly initialize the util.SettingsManager
      * before it can be used by Configurable classes.
-     *
-     * @throws java.io.FileNotFoundException
      */
     public void loadProperties() {
         try {

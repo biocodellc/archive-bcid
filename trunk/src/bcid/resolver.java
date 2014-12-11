@@ -12,9 +12,9 @@ import util.timer;
 import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
  * Resolves any incoming identifier to the BCID and/or EZID systems.
@@ -74,9 +74,9 @@ public class resolver extends database {
         ResourceTypes resourceTypes = new ResourceTypes();
         ResourceType rt = resourceTypes.getByShortName(conceptAlias);
         String uri = rt.uri;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
-            Statement stmt = conn.createStatement();
-
             String query = "select \n" +
                     "d.prefix as prefix \n" +
                     "from \n" +
@@ -84,15 +84,25 @@ public class resolver extends database {
                     "where \n" +
                     "d.datasets_id=pb.datasets_id && \n" +
                     "pb.expedition_id=p.expedition_id && \n" +
-                    "p.expedition_code='" + expedition_code + "' && \n" +
-                    "p.project_id =" + project_id + " && \n" +
-                    "(d.resourceType='" + uri + "' || d.resourceType='" + conceptAlias + "')";
+                    "p.expedition_code= ? && \n" +
+                    "p.project_id = ? && \n" +
+                    "(d.resourceType=? || d.resourceType= ?)";
+            stmt = conn.prepareStatement(query);
+
+            stmt.setString(1, expedition_code);
+            stmt.setString(2, uri);
+            stmt.setString(3, conceptAlias);
+
+            stmt.setInt(1, project_id);
+
             //System.out.println("resolver query = " + query);
-            ResultSet rs = stmt.executeQuery(query);
+            rs = stmt.executeQuery();
             rs.next();
             this.ark = rs.getString("prefix");
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            close(stmt, rs);
         }
     }
 
@@ -317,11 +327,13 @@ public class resolver extends database {
             return false;
         } else {
             // Now we need to figure out if this datasets_id exists or not in the database
-            String select = "SELECT count(*) as count FROM datasets where datasets_id = " + datagroup_id;
-            Statement stmt = null;
+            String select = "SELECT count(*) as count FROM datasets where datasets_id = ?";
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
             try {
-                stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(select);
+                stmt = conn.prepareStatement(select);
+                stmt.setInt(1, datagroup_id);
+                rs = stmt.executeQuery();
                 rs.next();
                 int count = rs.getInt("count");
                 if (count < 1) {
@@ -332,6 +344,8 @@ public class resolver extends database {
                 }
             } catch (SQLException e) {
                 throw new ServerErrorException(e);
+            } finally {
+                close(stmt, rs);
             }
         }
     }
@@ -346,14 +360,19 @@ public class resolver extends database {
         // Only attempt this method if the sourceID has some content, else we know there is no suffix
         if (sourceID != null && !sourceID.equals("")) {
             // Establish database connection so we can lookup suffixes here
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
             try {
-                String select = "SELECT identifiers_id FROM identifiers where datasets_id = " + d + " && localid = '" + sourceID + "'";
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(select);
+                String select = "SELECT identifiers_id FROM identifiers where datasets_id = " + d + " && localid = ?";
+                stmt = conn.prepareStatement(select);
+                stmt.setString(1, sourceID);
+                rs = stmt.executeQuery();
                 rs.next();
                 element_id = new BigInteger(rs.getString("identifiers_id"));
             } catch (SQLException e) {
                 throw new ServerErrorException(e);
+            } finally {
+                close(stmt, rs);
             }
         }
         if (element_id == null) {

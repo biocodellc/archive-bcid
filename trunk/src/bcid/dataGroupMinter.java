@@ -189,7 +189,7 @@ public class dataGroupMinter extends dataGroupEncoder {
         try {
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, datasets_id);
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             rs.next();
             return rs.getString("project_code");
         } catch (SQLException e) {
@@ -243,6 +243,7 @@ public class dataGroupMinter extends dataGroupEncoder {
 
         // Insert the values into the database
         PreparedStatement insertStatement = null;
+        PreparedStatement updateStatement = null;
         try {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
             String insertString = "INSERT INTO datasets (users_id, resourceType, doi, webaddress, graph, title, internalID, ezidRequest, suffixPassThrough) " +
@@ -265,15 +266,20 @@ public class dataGroupMinter extends dataGroupEncoder {
 
             // Update the shoulder, and hence prefix, now that we know the datasets_id
             String updateString = "UPDATE datasets " +
-                    " SET prefix='" + bow.toString() + encode(new BigInteger(datasets_id.toString())) + "'" +
-                    " WHERE datasets_id = " + datasets_id;
-            Statement u = conn.createStatement();
-            u.execute(updateString);
+                    " SET prefix=?" +
+                    " WHERE datasets_id = ?";
+            updateStatement = conn.prepareStatement(updateString);
+
+            updateStatement.setString(1, bow.toString() + encode(new BigInteger(datasets_id.toString())));
+            updateStatement.setInt(1, datasets_id);
+
+            updateStatement.executeUpdate();
 
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "SQLException while creating a dataset for user: " + who, e);
         } finally {
             db.close(insertStatement, null);
+            db.close(updateStatement, null);
         }
 
         // Create the shoulder identifier (String dataset identifier)
@@ -301,7 +307,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             String sql = "select datasets_id from datasets where internalID = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, datasetUUID.toString());
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             rs.next();
             return rs.getInt("datasets_id");
         } finally {
@@ -324,7 +330,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             String sql = "select datasets_id from datasets where prefix = ?";
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, prefix);
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             rs.next();
             datasetId = rs.getInt("datasets_id");
         } catch (SQLException e) {
@@ -360,7 +366,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, datasets_id);
 
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             rs.next();
             return rs.getString("resourceType");
         } catch (SQLException e) {
@@ -392,7 +398,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, username);
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             while (rs.next()) {
                 sb.append(",\"" + rs.getInt("datasets_id") + "\":\"" + rs.getString("prefix") + "\"");
             }
@@ -437,7 +443,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, username);
 
-            rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery();
             sb.append("<table>\n");
             sb.append("\t");
             sb.append("<tr>");

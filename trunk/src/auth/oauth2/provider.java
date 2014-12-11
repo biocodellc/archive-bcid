@@ -88,7 +88,6 @@ public class provider {
         stringGenerator sg = new stringGenerator();
         String code = sg.generateString(20);
 
-        database db = new database();
         Integer user_id = db.getUserId(username);
         if (user_id == null) {
             throw new OAUTHException("server_error", "null user_id returned for username: " + username, 500);

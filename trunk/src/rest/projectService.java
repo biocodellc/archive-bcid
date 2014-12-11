@@ -234,6 +234,7 @@ public class projectService {
         }
         database db = new database();
         Integer loggedInUserId = db.getUserId(username.toString());
+        db.close();
         if (!p.userProjectAdmin(loggedInUserId, projectId)) {
             p.close();
             throw new ForbiddenRequestException("You are not this project's admin.");
