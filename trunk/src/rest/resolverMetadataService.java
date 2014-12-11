@@ -77,15 +77,20 @@ public class resolverMetadataService {
 */
         // Return an appropriate response based on the Accepts header that was passed in.
         //
+        resolver r = new resolver(element);
         if (accept.equalsIgnoreCase("application/rdf+xml")) {
             // Return RDF when the Accepts header specifies rdf+xml
-            return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
+            String response = r.printMetadata(new RDFRenderer());
+            r.close();
+            return Response.ok(response).build();
         } else {
             // This next section uses the Jersey Viewable class, which is a type of Model, View, Controller
             // construct, enabling us to pass content JSP code to a JSP template.  We do this in this section
             // so we can have a REST style call and provide human readable content with BCID header/footer
             Map<String, Object> map = new HashMap<String, Object>();
-            map.put("response", new resolver(element).printMetadata(new HTMLTableRenderer()));
+            String response = r.printMetadata(new HTMLTableRenderer());
+            r.close();
+            map.put("response", response);
             return Response.ok(new Viewable("/index", map)).build();
         }
     }

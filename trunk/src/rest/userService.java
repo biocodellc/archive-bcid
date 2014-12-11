@@ -84,12 +84,14 @@ public class userService {
         try {
             String admin = session.getAttribute("user").toString();
             database db = new database();
+            Integer adminId = db.getUserId(admin);
+            db.close();
 
             if (u.checkUsernameExists(username)) {
                 throw new BadRequestException("username already exists");
             }
             // check if the user is this project's admin
-            if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
+            if (!p.userProjectAdmin(adminId, projectId)) {
                 throw new ForbiddenRequestException("You can't add a user to a project that you're not an admin.");
             }
             return Response.ok(u.createUser(userInfo, projectId)).build();

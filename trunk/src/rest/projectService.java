@@ -171,9 +171,11 @@ public class projectService {
         }
         projectMinter p = new projectMinter();
         database db = new database();
+        Integer userId = db.getUserId(username.toString());
+        db.close();
 
         try {
-            if (!p.userProjectAdmin(db.getUserId(username.toString()), projectID)) {
+            if (!p.userProjectAdmin(userId, projectID)) {
                 p.close();
                 throw new ForbiddenRequestException("You must be this project's admin in order to edit the config");
             }
@@ -226,12 +228,13 @@ public class projectService {
         Object username = session.getAttribute("user");
 
         projectMinter p = new projectMinter();
-        database db = new database();
 
         if (username == null) {
             throw new UnauthorizedRequestException("You must login.");
         }
-        if (!p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
+        database db = new database();
+        Integer loggedInUserId = db.getUserId(username.toString());
+        if (!p.userProjectAdmin(loggedInUserId, projectId)) {
             p.close();
             throw new ForbiddenRequestException("You are not this project's admin.");
         }
@@ -261,13 +264,16 @@ public class projectService {
             throw new BadRequestException("invalid userId");
         }
 
-        database db = new database();
 
         if (username == null) {
             throw new UnauthorizedRequestException("You must login to access this service.");
         }
+        database db = new database();
+        Integer lodedInUserId = db.getUserId(username.toString());
+        db.close();
+
         projectMinter p = new projectMinter();
-        if (!p.userProjectAdmin(db.getUserId(username.toString()), projectId)) {
+        if (!p.userProjectAdmin(lodedInUserId, projectId)) {
             p.close();
             throw new ForbiddenRequestException("You are not this project's admin");
         }

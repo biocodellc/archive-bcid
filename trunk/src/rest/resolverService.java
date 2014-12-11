@@ -55,31 +55,36 @@ public class resolverService {
         String element = scheme + "/" + naan + "/" + shoulderPlusIdentifier;
 
         // When the Accept Header = "application/rdf+xml" return Metadata as RDF
-        if (accept.equalsIgnoreCase("application/rdf+xml")) {
-            return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
-        // All other Accept Headers, or none specified, then attempt a redirect
-        } else {
-            URI seeOtherUri = null;
-            try {
-                seeOtherUri = new resolver(element).resolveARK();
-//                System.out.println(seeOtherUri);
-            } catch (URISyntaxException e) {
-                logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
-                throw new BadRequestException("Server error while trying to resolve ARK. Did you supply a valid naan?");
-            }
-            // if the URI is null just print metadata
-            /*System.out.println("value of seeOtherUri:" + seeOtherUri.toString() + "END");
-            if (seeOtherUri == null || seeOtherUri.toString().contains("null")) {
+        resolver r = new resolver(element);
+        try {
+            if (accept.equalsIgnoreCase("application/rdf+xml")) {
+                return Response.ok(r.printMetadata(new RDFRenderer())).build();
+                // All other Accept Headers, or none specified, then attempt a redirect
+            } else {
+                URI seeOtherUri = null;
                 try {
-                    return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return Response.serverError().entity(new errorInfo(e, request).toJSON()).build();
+                    seeOtherUri = r.resolveARK();
+                    //                System.out.println(seeOtherUri);
+                } catch (URISyntaxException e) {
+                    logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
+                    throw new BadRequestException("Server error while trying to resolve ARK. Did you supply a valid naan?");
                 }
-            } */
+                // if the URI is null just print metadata
+                /*System.out.println("value of seeOtherUri:" + seeOtherUri.toString() + "END");
+                if (seeOtherUri == null || seeOtherUri.toString().contains("null")) {
+                    try {
+                        return Response.ok(new resolver(element).printMetadata(new RDFRenderer())).build();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return Response.serverError().entity(new errorInfo(e, request).toJSON()).build();
+                    }
+                } */
 
-            // The expected response for IDentifiers without a URL
-            return Response.status(Response.Status.SEE_OTHER).location(seeOtherUri).build();
+                // The expected response for IDentifiers without a URL
+                return Response.status(Response.Status.SEE_OTHER).location(seeOtherUri).build();
+            }
+        } finally {
+            r.close();
         }
     }
 }
