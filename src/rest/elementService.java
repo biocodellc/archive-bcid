@@ -176,14 +176,14 @@ public class elementService {
 
         }
 
+        // Create a bcid Minter instance
+        elementMinter minter = null;
+        minter = new elementMinter(dataset.getDatasets_id());
+
         try {
             // Parse input file
             ArrayList elements = null;
             elements = new inputFileParser(data, dataset).elementArrayList;
-
-            // Create a bcid Minter instance
-            elementMinter minter = null;
-            minter = new elementMinter(dataset.getDatasets_id());
 
             // Mint the list of identifiers
             String datasetUUID = null;
@@ -203,12 +203,15 @@ public class elementService {
             sendEmail.start();
             */
             dataset.close();
+            minter.close();
             return Response.ok(returnVal).build();
         } catch (URISyntaxException e) {
             dataset.close();
+            minter.close();
             throw new ServerErrorException("Server Error", "URISyntaxException while parsing input file: " + data, e);
         } catch (IOException e) {
             dataset.close();
+            minter.close();
             throw new ServerErrorException("Server Error", "IOException while parsing input file: " + data, e);
         }
     }

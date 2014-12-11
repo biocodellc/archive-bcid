@@ -238,9 +238,10 @@ public class authenticator {
                 username = rs.getString("username");
             }
             if (username != null) {
+                db.close(stmt, null);
                 String updateSql = "UPDATE users SET pass_reset_token = null, pass_reset_expiration = null WHERE username = \"" + username + "\"";
-                Statement stmt2 = conn.createStatement();
-                stmt2.executeUpdate(updateSql);
+                stmt = conn.prepareStatement(updateSql);
+                stmt.executeUpdate();
 
                 return setHashedPass(username, password);
             }

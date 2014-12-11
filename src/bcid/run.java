@@ -187,6 +187,7 @@ public class run {
 
         // Close connection
         minter.close();
+        creator.close();
     }
 
     private static void resolverResults(EZIDService ezidService, String identifier) {
@@ -297,6 +298,7 @@ public class run {
             // Create EZID metadata for all Outstanding Identifiers.
             manageEZID creator = new manageEZID();
             creator.createDatasetsEZIDs(ezidAccount);
+            creator.close();
         } catch (Exception e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
