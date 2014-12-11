@@ -249,7 +249,7 @@ function listProjects(username, url, expedition) {
             }
         });
     }).fail(function(jqxhr) {
-        $(".sectioncontent").html($.parseJSON(jqxhr.responseText).usrMessage);
+        $(".sectioncontent").html(jqxhr.responseText);
     });
     return jqxhr;
 
@@ -462,7 +462,7 @@ function expeditionsPublicSubmit(divId) {
     ).done(function() {
         populateProjectSubsections(divId);
     }).fail(function(jqxhr) {
-        $(divId).html($.parseJSON(jqxhr.responseText).usrMessage);
+        $(divId).html(jqxhr.responseText);
     });
     loadingDialog(jqxhr);
 }
@@ -551,7 +551,7 @@ function populateExpeditionPage(username) {
             loadExpeditions(this.id)
         });
     }).fail(function(jqxhr) {
-        $("#sectioncontent").html($.parseJSON(jqxhr.responseText).usrMessage);
+        $("#sectioncontent").html(jqxhr.responseText);
     });
     loadingDialog(jqxhr);
 }
@@ -618,7 +618,7 @@ function listExpeditions(divId) {
                 loadExpeditions(this.id);
             });
         }).fail(function(jqxhr) {
-            $(divId).html($.parseJSON(jqxhr.responseText).usrMessage);
+            $(divId).html(jqxhr.responseText);
         });
     loadingDialog(jqxhr);
 }
@@ -677,7 +677,7 @@ function populateBCIDPage() {
             getBCIDEditor(this);
         });
     }).fail(function(jqxhr) {
-        $("#sectioncontent").html($.parseJSON(jqxhr.responseText).usrMessage);
+        $("#listUserBCIDsAsTable").html(jqxhr.responseText);
     });
     loadingDialog(jqxhr);
     return jqxhr;
