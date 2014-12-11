@@ -636,7 +636,7 @@ public class dataGroupMinter extends dataGroupEncoder {
 
             // update resourceTypeString to the correct uri
             if (config.containsKey("resourceTypeString")) {
-                config.put("resourceType", new ResourceTypes().getByShortName(config.get("resourceTypeString")).uri);
+                config.put("resourceType", new ResourceTypes().getByName(config.get("resourceTypeString")).uri);
                 config.remove("resourceTypeString");
             }
 

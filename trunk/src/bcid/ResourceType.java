@@ -54,13 +54,10 @@ public class ResourceType {
      * @return
      */
     public String getShortName() {
-        try {
-            return string.split(":")[1];
-        } catch (NullPointerException e) {
-            //TODO should we silence this exception?
-            logger.warn("ResourceType.string is null", e);
+        if (string.equals("spacer"))
             return "";
-        }
+        else
+            return string.split(":")[1];
     }
 
     public static void main(String args[]) {
