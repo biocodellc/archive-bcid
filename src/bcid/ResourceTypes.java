@@ -169,6 +169,22 @@ public class ResourceTypes {
     }
 
     /**
+     * Return a ResourceType object given the ResourceType string
+     * @param name
+     * @return
+     */
+    public ResourceType getByName(String name) {
+        Iterator iterator = list.iterator();
+        while (iterator.hasNext()) {
+            ResourceType rt = (ResourceType) iterator.next();
+            if (name.equals(rt.string)) {
+                return rt;
+            }
+        }
+        return null;
+    }
+
+    /**
      * shortName also equals "alias"
      * @param shortname
      * @return
