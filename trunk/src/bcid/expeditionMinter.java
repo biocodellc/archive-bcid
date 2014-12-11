@@ -939,6 +939,7 @@ public class expeditionMinter {
             projectMinter p = new projectMinter();
 
             if (!p.userProjectAdmin(userId, projectId)) {
+                p.close();
                 throw new ForbiddenRequestException("You must be this project's admin to view its datasets.");
             }
 

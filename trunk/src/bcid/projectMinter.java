@@ -15,6 +15,7 @@ import java.util.Hashtable;
  */
 public class projectMinter {
     protected Connection conn;
+    database db;
     public ArrayList<Integer> expeditionResources;
     private SettingsManager sm;
 
@@ -27,7 +28,7 @@ public class projectMinter {
      * that can be used for any expedition.
      */
     public projectMinter() {
-        database db = new database();
+        db = new database();
         conn = db.getConn();
 
         // Initialize settings manager
@@ -35,6 +36,9 @@ public class projectMinter {
         sm.loadProperties();
     }
 
+    public void close() {
+        db.close();
+    }
     /**
      * Find the BCID that denotes the validation file location for a particular expedition
      *
@@ -42,21 +46,26 @@ public class projectMinter {
      * @return returns the BCID for this expedition and conceptURI combination
      */
     public String getValidationXML(Integer project_id) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
         try {
-            Statement stmt = conn.createStatement();
-
             String query = "select \n" +
                     "biovalidator_validation_xml\n" +
                     "from \n" +
                     " projects\n" +
                     "where \n" +
-                    "project_id=" + project_id;
-            ResultSet rs = stmt.executeQuery(query);
+                    "project_id=?";
+            stmt = conn.prepareStatement(query);
+            stmt.setInt(1, project_id);
+
+            rs = stmt.executeQuery(query);
             rs.next();
             return rs.getString("biovalidator_validation_xml");
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "Trouble getting Validation XML", e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -67,10 +76,10 @@ public class projectMinter {
      */
     public String listProjects() {
         StringBuilder sb = new StringBuilder();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
         try {
-            Statement stmt = conn.createStatement();
-
             String query = "SELECT \n" +
                     "\tproject_id,\n" +
                     "\tproject_code,\n" +
@@ -80,7 +89,8 @@ public class projectMinter {
                     "\tprojects\n" +
                     " WHERE \n" +
                     "\tpublic = true\n";
-            ResultSet rs = stmt.executeQuery(query);
+            stmt = conn.prepareStatement(query);
+            rs = stmt.executeQuery(query);
 
             sb.append("{\n");
             sb.append("\t\"projects\": [\n");
@@ -102,6 +112,8 @@ public class projectMinter {
 
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "Trouble getting list of all projects.", e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -112,16 +124,21 @@ public class projectMinter {
         */
        public ArrayList<Integer> getAllProjects() {
            ArrayList<Integer> projects = new ArrayList<Integer>();
+           PreparedStatement stmt = null;
+           ResultSet rs = null;
 
            try {
-               Statement stmt = conn.createStatement();
-               ResultSet rs = stmt.executeQuery("SELECT project_id FROM projects");
+               String sql = "SELECT project_id FROM projects";
+               stmt = conn.prepareStatement(sql);
+               rs = stmt.executeQuery();
                while (rs.next()) {
                    projects.add(rs.getInt("project_id"));
                }
                return projects;
            } catch (SQLException e) {
                throw new ServerErrorException("Trouble getting project List", e);
+           } finally {
+               db.close(stmt, rs);
            }
        }
 
@@ -134,10 +151,11 @@ public class projectMinter {
      */
     public String getLatestGraphs(int project_id) {
         StringBuilder sb = new StringBuilder();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
         try {
             // Construct the query
-            Statement stmt = conn.createStatement();
             // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
             // maximum timestamp (latest) loaded for a particular expedition.
             // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
@@ -148,7 +166,7 @@ public class projectMinter {
                     "    \twhere pB.datasets_id=d.datasets_id\n" +
                     "    \tand pB.expedition_id=p.expedition_id\n" +
                     " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                    "    and p.project_id = " + project_id + "\n" +
+                    "    and p.project_id = ?\n" +
                     "    \tgroup by p.expedition_code) as  d2,\n" +
                     "expeditions p,  expeditionsBCIDs pB\n" +
                     "where p.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
@@ -156,11 +174,14 @@ public class projectMinter {
                     " and pB.expedition_id=p.expedition_id\n" +
                     " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
                     "    and p.public = 1\n" +
-                    "    and p.project_id =" + project_id;
+                    "    and p.project_id =?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, project_id);
+            stmt.setInt(2, project_id);
 
             //System.out.println(sql);
             sb.append("{\n\t\"data\": [\n");
-            ResultSet rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 // Grap the prefixes and concepts associated with this
                 sb.append("\t\t{\n");
@@ -182,6 +203,8 @@ public class projectMinter {
             return sb.toString();
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "Trouble getting latest graphs.", e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -190,6 +213,7 @@ public class projectMinter {
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
         System.out.println("results = \n" + project.getLatestGraphs(8));
+        project.close();
     }
 
     /**
@@ -200,15 +224,16 @@ public class projectMinter {
      */
     public String listUserAdminProjects(String username) {
         StringBuilder sb = new StringBuilder();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
         try {
-            database db = new database();
             Integer user_id = db.getUserId(username);
 
-            Statement stmt = conn.createStatement();
-            String sql = "SELECT project_id, project_code, project_title, project_title, biovalidator_validation_xml FROM projects WHERE users_id = \"" + user_id + "\"";
+            String sql = "SELECT project_id, project_code, project_title, project_title, biovalidator_validation_xml FROM projects WHERE users_id = ?\"" + user_id + "\"";
+            stmt = conn.prepareStatement(sql);
 
-            ResultSet rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery(sql);
 
             sb.append("{\n");
             sb.append("\t\"projects\": [\n");
@@ -229,6 +254,8 @@ public class projectMinter {
             return sb.toString();
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -239,15 +266,16 @@ public class projectMinter {
      */
     public String listUsersProjects(String username) {
         StringBuilder sb = new StringBuilder();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
         try {
-            database db = new database();
             Integer userId = db.getUserId(username);
 
-            Statement stmt = conn.createStatement();
             String sql = "SELECT p.project_id, p.project_code, p.project_title, p.biovalidator_validation_xml FROM projects p, usersProjects u WHERE p.project_id = u.project_id && u.users_id = \"" + userId + "\"";
+            stmt = conn.prepareStatement(sql);
 
-            ResultSet rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery(sql);
 
             sb.append("{\n");
             sb.append("\t\"projects\": [\n");
@@ -267,6 +295,8 @@ public class projectMinter {
 
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
 
         return sb.toString();
@@ -371,9 +401,6 @@ public class projectMinter {
      * @return
      */
     public Boolean updateConfig(Hashtable<String, String> updateTable, Integer projectId) {
-        database db = new database();
-        Connection conn = db.getConn();
-
         String updateString = "UPDATE projects SET ";
 
         // Dynamically create our UPDATE statement depending on which fields the user wants to update
@@ -387,9 +414,9 @@ public class projectMinter {
                 updateString += " WHERE project_id =\"" + projectId + "\";";
             }
         }
+        PreparedStatement stmt = null;
         try {
-
-            PreparedStatement stmt = conn.prepareStatement(updateString);
+            stmt = conn.prepareStatement(updateString);
 
             // place the parametrized values into the SQL statement
             {
@@ -413,13 +440,14 @@ public class projectMinter {
 
             Integer result = stmt.executeUpdate();
 
-            conn.close();
             // result should be '1', if not, an error occurred during the UPDATE statement
             if (result == 1) {
                 return true;
             }
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, null);
         }
         return false;
     }
@@ -432,15 +460,19 @@ public class projectMinter {
      */
     public Hashtable<String, String> getProjectConfig(Integer projectId, String username) {
         Hashtable<String, String> config = new Hashtable<String, String>();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
         try {
-            database db = new database();
             Integer user_id = db.getUserId(username);
 
-            Statement stmt = conn.createStatement();
-            String sql = "SELECT project_title as title, public, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=\""
-                    + projectId + "\" AND users_id=\"" + user_id + "\"";
+            String sql = "SELECT project_title as title, public, bioValidator_validation_xml as validation_xml FROM projects WHERE project_id=?"
+                    + " AND users_id= ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, projectId);
+            stmt.setInt(2, user_id);
 
-            ResultSet rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery(sql);
             if (rs.next()) {
                 config.put("title", rs.getString("title"));
                 config.put("public", String.valueOf(rs.getBoolean("public")));
@@ -453,6 +485,8 @@ public class projectMinter {
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "SQLException retrieving project configuration for projectID: " +
                     projectId, e);
+        } finally {
+            db.close(stmt, rs);
         }
         return config;
     }
@@ -461,21 +495,25 @@ public class projectMinter {
      * Check if a user belongs to a project
      */
     public Boolean userProject(Integer userId, Integer projectId) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String sql = "SELECT count(*) as count " +
                     "FROM users u, projects p, usersProjects uP " +
                     "WHERE u.user_id=uP.users_id and uP.project_id = p.project_id and u.user_id = ? and p.project_id=?";
-            PreparedStatement statement = conn.prepareStatement(sql);
-            statement.setInt(1,userId);
-            statement.setInt(2,projectId);
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            stmt.setInt(2, projectId);
 
-            ResultSet rs = statement.executeQuery();
+            rs = stmt.executeQuery();
             rs.next();
 
             // If the user belongs to this project then there will be a >=1 value and returns true, otherwise false.
             return rs.getInt("count") >= 1;
         }  catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -486,16 +524,22 @@ public class projectMinter {
      * @return
      */
     public Boolean userProjectAdmin(Integer userId, Integer projectId) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
-            String sql = "SELECT count(*) as count FROM projects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
-            Statement stmt = conn.createStatement();
+            String sql = "SELECT count(*) as count FROM projects WHERE users_id = ? AND project_id = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            stmt.setInt(2, projectId);
 
-            ResultSet rs = stmt.executeQuery(sql);
+            rs = stmt.executeQuery(sql);
             rs.next();
 
             return rs.getInt("count") >= 1;
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -506,13 +550,18 @@ public class projectMinter {
      * @return
      */
     public void removeUser(Integer userId, Integer projectId) {
+        PreparedStatement stmt = null;
         try {
-            String sql = "DELETE FROM usersProjects WHERE users_id = \"" + userId + "\" AND project_id = \"" + projectId + "\"";
-            Statement stmt = conn.createStatement();
+            String sql = "DELETE FROM usersProjects WHERE users_id = ? AND project_id = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            stmt.setInt(2, projectId);
 
             stmt.executeUpdate(sql);
         } catch (SQLException e) {
             throw new ServerErrorException("Server error while removing user", e);
+        } finally {
+            db.close(stmt, null);
         }
     }
 
@@ -523,7 +572,7 @@ public class projectMinter {
      * @return
      */
     public void addUserToProject(Integer userId, Integer projectId) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
 
         try {
             String insertStatement = "INSERT INTO usersProjects (users_id, project_id) VALUES(?,?)";
@@ -535,6 +584,8 @@ public class projectMinter {
             stmt.execute();
         } catch (SQLException e) {
             throw new ServerErrorException("Server error while adding user to project.", e);
+        } finally {
+            db.close(stmt, null);
         }
     }
 
@@ -545,24 +596,28 @@ public class projectMinter {
      */
     public String listProjectUsersAsTable(Integer projectId) {
         StringBuilder sb = new StringBuilder();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
         try {
             String userProjectSql = "SELECT users_id FROM usersProjects WHERE project_id = \"" + projectId + "\"";
             String userSql = "SELECT username, user_id FROM users";
             String projectSql = "SELECT project_title FROM projects WHERE project_id = \"" + projectId + "\"";
             List projectUsers = new ArrayList();
-            Statement stmt = conn.createStatement();
-            database db = new database();
+            stmt = conn.prepareStatement(projectSql);
 
-            ResultSet rs3 = stmt.executeQuery(projectSql);
-            rs3.next();
-            String project_title = rs3.getString("project_title");
+            rs = stmt.executeQuery();
+            rs.next();
+            String project_title = rs.getString("project_title");
+
+            db.close(stmt, rs);
 
             sb.append("\t<form method=\"POST\">\n");
 
             sb.append("<table data-project_id=\"" + projectId + "\" data-project_title=\"" + project_title + "\">\n");
             sb.append("\t<tr>\n");
-            ResultSet rs = stmt.executeQuery(userProjectSql);
+            stmt = conn.prepareStatement(userProjectSql);
+            rs = stmt.executeQuery();
 
             while (rs.next()) {
                 Integer userId = rs.getInt("users_id");
@@ -583,14 +638,18 @@ public class projectMinter {
             sb.append("<select name=user_id>\n");
             sb.append("\t\t\t<option value=\"0\">Create New User</option>\n");
 
-            ResultSet rs2 = stmt.executeQuery(userSql);
+            db.close(stmt, rs);
 
-            while (rs2.next()) {
-                Integer userId = rs2.getInt("user_id");
+            stmt = conn.prepareStatement(userSql);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Integer userId = rs.getInt("user_id");
                 if (!projectUsers.contains(userId)) {
                     sb.append("\t\t\t<option value=\"" + userId + "\">" + db.getUserName(userId) + "</option>\n");
                 }
             }
+            db.close(stmt, rs);
 
             sb.append("\t\t</select></td>\n");
             sb.append("\t</tr>\n");
@@ -609,6 +668,8 @@ public class projectMinter {
             return sb.toString();
         } catch (SQLException e) {
             throw new ServerErrorException("Server error retrieving project users.", e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 }
