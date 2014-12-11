@@ -7,8 +7,6 @@ import bcid.projectMinter;
 import bcid.userMinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.errorInfo;
-import util.queryParams;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,8 +15,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.net.URI;
 import java.util.Hashtable;
 
 /**
@@ -84,21 +80,23 @@ public class userService {
         userInfo.put("password", password);
 
         userMinter u = new userMinter();
-        String admin = session.getAttribute("user").toString();
-        database db = new database();
-
-        if (u.checkUsernameExists(username)) {
-            throw new BadRequestException("username already exists");
-        }
         projectMinter p = new projectMinter();
-        // check if the user is this project's admin
-        if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
-            p.close();
-            throw new ForbiddenRequestException("You can't add a user to a project that you're not an admin.");
-        }
-        p.close();
+        try {
+            String admin = session.getAttribute("user").toString();
+            database db = new database();
 
-        return Response.ok(u.createUser(userInfo, projectId)).build();
+            if (u.checkUsernameExists(username)) {
+                throw new BadRequestException("username already exists");
+            }
+            // check if the user is this project's admin
+            if (!p.userProjectAdmin(db.getUserId(admin), projectId)) {
+                throw new ForbiddenRequestException("You can't add a user to a project that you're not an admin.");
+            }
+            return Response.ok(u.createUser(userInfo, projectId)).build();
+        } finally {
+            u.close();
+            p.close();
+        }
     }
 
     /**
@@ -110,7 +108,9 @@ public class userService {
     @Produces(MediaType.TEXT_HTML)
     public String createFormAsTable() {
         userMinter u = new userMinter();
-        return u.getCreateForm();
+        String response = u.getCreateForm();
+        u.close();
+        return response;
     }
 
     /**
@@ -155,32 +155,36 @@ public class userService {
         // Check if any other fields should be updated
         userMinter u = new userMinter();
 
-        if (!firstName.equals(u.getFirstName(username))) {
-            update.put("firstName", firstName);
-        }
-        if (!lastName.equals(u.getLastName(username))) {
-            update.put("lastName", lastName);
-        }
-        if (!email.equals(u.getEmail(username))) {
-            // check that a valid email is given
-            if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
-                update.put("email", email);
-            } else {
-                throw new BadRequestException("Please enter a valid email.");
+        try {
+            if (!firstName.equals(u.getFirstName(username))) {
+                update.put("firstName", firstName);
             }
-        }
-        if (!institution.equals(u.getInstitution(username))) {
-            update.put("institution", institution);
-        }
+            if (!lastName.equals(u.getLastName(username))) {
+                update.put("lastName", lastName);
+            }
+            if (!email.equals(u.getEmail(username))) {
+                // check that a valid email is given
+                if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
+                    update.put("email", email);
+                } else {
+                    throw new BadRequestException("Please enter a valid email.");
+                }
+            }
+            if (!institution.equals(u.getInstitution(username))) {
+                update.put("institution", institution);
+            }
 
 
-        if (!update.isEmpty()) {
-            Boolean success = u.updateProfile(update, username);
-            if (!success) {
-                throw new BadRequestException("user: " + username + "not found");
+            if (!update.isEmpty()) {
+                Boolean success = u.updateProfile(update, username);
+                if (!success) {
+                    throw new BadRequestException("user: " + username + "not found");
+                }
             }
+            return Response.ok("{\"success\": \"true\"}").build();
+        } finally {
+            u.close();
         }
-        return Response.ok("{\"success\": \"true\"}").build();
     }
 
     /**
@@ -240,35 +244,39 @@ public class userService {
         // Check if any other fields should be updated
         userMinter u = new userMinter();
 
-        if (!firstName.equals(u.getFirstName(username))) {
-            update.put("firstName", firstName);
-        }
-        if (!lastName.equals(u.getLastName(username))) {
-            update.put("lastName", lastName);
-        }
-        if (!email.equals(u.getEmail(username))) {
-            // check that a valid email is given
-            if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
-                update.put("email", email);
+        try {
+            if (!firstName.equals(u.getFirstName(username))) {
+                update.put("firstName", firstName);
+            }
+            if (!lastName.equals(u.getLastName(username))) {
+                update.put("lastName", lastName);
+            }
+            if (!email.equals(u.getEmail(username))) {
+                // check that a valid email is given
+                if (email.toUpperCase().matches("[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4}")) {
+                    update.put("email", email);
+                } else {
+                    throw new BadRequestException("please enter a valid email");
+                }
+            }
+            if (!institution.equals(u.getInstitution(username))) {
+                update.put("institution", institution);
+            }
+
+            if (!update.isEmpty()) {
+                Boolean success = u.updateProfile(update, username);
+                if (!success) {
+                    throw new ServerErrorException("Server Error", "User not found");
+                }
+            }
+
+            if (return_to != null) {
+                return Response.ok("{\"success\": \"" + return_to + "\"}").build();
             } else {
-                throw new BadRequestException("please enter a valid email");
+                return Response.ok("{\"success\": \"/bcid/secure/profile.jsp\"}").build();
             }
-        }
-        if (!institution.equals(u.getInstitution(username))) {
-            update.put("institution", institution);
-        }
-
-        if (!update.isEmpty()) {
-            Boolean success = u.updateProfile(update, username);
-            if (!success) {
-                throw new ServerErrorException("Server Error", "User not found");
-            }
-        }
-
-        if (return_to != null) {
-            return Response.ok("{\"success\": \"" + return_to + "\"}").build();
-        } else {
-            return Response.ok("{\"success\": \"/bcid/secure/profile.jsp\"}").build();
+        } finally {
+            u.close();
         }
     }
 
@@ -288,7 +296,9 @@ public class userService {
         }
 
         userMinter u = new userMinter();
-        return u.getProfileEditorAsTable(username, true);
+        String response = u.getProfileEditorAsTable(username, true);
+        u.close();
+        return response;
     }
 
     /**
@@ -307,7 +317,9 @@ public class userService {
         }
 
         userMinter u = new userMinter();
-        return u.getProfileEditorAsTable(username.toString(), false);
+        String response = u.getProfileEditorAsTable(username.toString(), false);
+        u.close();
+        return response;
     }
 
     /**
@@ -321,14 +333,15 @@ public class userService {
     public String listUserProfile() {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
-        userMinter u;
 
         if (username == null) {
             throw new UnauthorizedRequestException("You must be logged in to view your profile.");
         }
 
-        u = new userMinter();
-        return u.getProfileHTML(username.toString());
+        userMinter u = new userMinter();
+        String response = u.getProfileHTML(username.toString());
+        u.close();
+        return response;
     }
 
     /**
@@ -342,7 +355,9 @@ public class userService {
     public Response getUserData(@QueryParam("access_token") String access_token) {
         if (access_token != null) {
             userMinter u = new userMinter();
-            return Response.ok(u.getOauthProfile(access_token)).build();
+            String response = u.getOauthProfile(access_token);
+            u.close();
+            return Response.ok(response).build();
         }
         throw new BadRequestException("invalid_grant", "access_token was null");
     }
