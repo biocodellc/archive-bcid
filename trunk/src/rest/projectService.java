@@ -296,6 +296,7 @@ public class projectService {
         if (accessToken != null) {
             provider p = new provider();
             username = p.validateToken(accessToken);
+            p.close();
         } else {
             HttpSession session = request.getSession();
             username = (String) session.getAttribute("user");

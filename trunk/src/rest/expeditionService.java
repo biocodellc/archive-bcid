@@ -8,7 +8,6 @@ import bcidExceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
-import util.errorInfo;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
@@ -89,6 +88,7 @@ public class expeditionService {
         if (accessToken != null) {
             provider p = new provider();
             username = p.validateToken(accessToken);
+            p.close();
         } else {
             HttpSession session = request.getSession();
             username = (String) session.getAttribute("user");
@@ -168,6 +168,7 @@ public class expeditionService {
         if (accessToken != null) {
             provider p = new provider();
             username = p.validateToken(accessToken);
+            p.close();
         } else {
             HttpSession session = request.getSession();
             username = (String) session.getAttribute("user");
@@ -310,6 +311,7 @@ public class expeditionService {
         if (accessToken != null) {
             provider p = new provider();
             username = p.validateToken(accessToken);
+            p.close();
         } else {
             HttpSession session = request.getSession();
             username = (String) session.getAttribute("user");

@@ -341,6 +341,7 @@ public class userMinter {
         database db = new database();
 
         String username = p.validateToken(token);
+        p.close();
         if (username != null) {
             Integer user_id = db.getUserId(username);
 

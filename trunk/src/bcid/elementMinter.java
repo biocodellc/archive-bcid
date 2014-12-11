@@ -432,26 +432,21 @@ public class elementMinter extends dataGroupMinter {
 
         // Create the shoulder
         dataGroupMinter minterDataset = null;
-        try {
 
-            /*
-   minterDataset = new dataset();
-   minterDataset.mint(
-            naan,
-            1,
-            new ResourceTypes().RESOURCE,
-            null,
-            null,
-            null);
-            */
-            minterDataset = new dataGroupMinter();
-            System.out.println("Using dataset  = " + minterDataset.prefix);
-            //} catch (URISyntaxException e) {
-            //    e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-
+        /*
+minterDataset = new dataset();
+minterDataset.mint(
+        naan,
+        1,
+        new ResourceTypes().RESOURCE,
+        null,
+        null,
+        null);
+        */
+        minterDataset = new dataGroupMinter();
+        System.out.println("Using dataset  = " + minterDataset.prefix);
+        //} catch (URISyntaxException e) {
+        //    e.printStackTrace();
 
         // Check to see if this exists
         System.out.println(minterDataset.getDatasetId(minterDataset.prefix));
