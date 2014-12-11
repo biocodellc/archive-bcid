@@ -20,7 +20,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -113,6 +112,7 @@ public class authenticationService {
             // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
             else {
                 session.invalidate();
+                authenticator.close();
             }
         }
 
@@ -165,6 +165,7 @@ public class authenticationService {
 //                    res.sendRedirect("/bcid/index.jsp");
 //                    return;
 //                }
+                authenticator.close();
                 if (return_to != null) {
                     return Response.ok("{\"url\": \"" + return_to +
                             new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
@@ -175,6 +176,7 @@ public class authenticationService {
             }
             // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
             else {
+                authenticator.close();
                 session.invalidate();
             }
             // Shouldn't need this anymore due to new error handling

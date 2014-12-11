@@ -131,19 +131,22 @@ public class authenticator {
      * @return
      */
     private String getHashedPass(String username) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectString = "SELECT password FROM users WHERE username = ?";
             stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getString("password");
             }
 
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
         return null;
     }
@@ -155,13 +158,14 @@ public class authenticator {
      */
     private boolean validUser(String username) {
         int count = 0;
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectString = "SELECT user_id id FROM users WHERE username = ?";
             stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             if (rs.next()) {
                 rs.getInt("id");
                 count++;
@@ -185,7 +189,7 @@ public class authenticator {
      * @return true upon successful update, false when nothing was updated (most likely due to user not being found)
      */
     public Boolean setHashedPass(String username, String password) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
 
         String hashedPass = createHash(password);
 
@@ -205,6 +209,8 @@ public class authenticator {
             }
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, null);
         }
     }
 
@@ -217,13 +223,15 @@ public class authenticator {
      * @return
      */
     public Boolean resetPass(String token, String password) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String username = null;
             String sql = "SELECT username FROM users where pass_reset_token = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, token);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 username = rs.getString("username");
@@ -237,6 +245,8 @@ public class authenticator {
             }
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error resetting password.", e);
+        } finally {
+            db.close(stmt, rs);
         }
         return false;
     }
@@ -290,11 +300,7 @@ public class authenticator {
         } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
-            if (stmt != null) try {
-                stmt.close();
-            } catch (SQLException e) {
-                logger.warn("SQLException while closing db connection.", e);
-            }
+            db.close(stmt, null);
         }
     }
 
@@ -308,19 +314,23 @@ public class authenticator {
      */
     private Integer getUserId(String username) {
         Integer user_id = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectString = "SELECT user_id FROM users WHERE username=?";
-            PreparedStatement stmt = conn.prepareStatement(selectString);
+            stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, LDAPAuthentication.showShortUserName(username));
 
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             if (rs.next()) {
                 user_id = rs.getInt("user_id");
             }
 
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
         return user_id;
     }
@@ -353,11 +363,7 @@ public class authenticator {
         } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
-            if (stmt != null) try {
-                stmt.close();
-            } catch (SQLException e) {
-                logger.warn("SQLException while closing db connection.", e);
-            }
+            db.close(stmt, null);
         }
     }
 
@@ -368,13 +374,14 @@ public class authenticator {
      */
     public Boolean userSetPass(String username) {
         PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectString = "SELECT set_password FROM users WHERE username = ?";
             stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, username);
 
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 Integer set_password = rs.getInt("set_password");
@@ -385,11 +392,7 @@ public class authenticator {
         } catch (SQLException e) {
             logger.warn("SQLException thrown", e);
         } finally {
-            if (stmt != null) try {
-                stmt.close();
-            } catch (SQLException e) {
-                logger.warn("SQLException thrown", e);
-            }
+            db.close(stmt, rs);
         }
         return false;
     }
@@ -407,12 +410,14 @@ public class authenticator {
         String sql = "SELECT email FROM users WHERE username = ?";
 
         PreparedStatement stmt = null;
+        PreparedStatement stmt2 = null;
+        ResultSet rs = null;
         try {
             stmt = conn.prepareStatement(sql);
 
 
             stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 email = rs.getString("email");
@@ -423,12 +428,14 @@ public class authenticator {
                 String token = sg.generateString(20);
                 // set for 24hrs in future
                 Timestamp ts = new Timestamp(Calendar.getInstance().getTime().getTime() + (1000 * 60 * 60 * 24));
-                Statement stmt2 = conn.createStatement();
 
                 String updateSql = "UPDATE users SET " +
                         "pass_reset_token = \"" + token + "\", " +
                         "pass_reset_expiration = \"" + ts + "\" " +
-                        "WHERE username = \"" + username + "\"";
+                        "WHERE username = ?";
+                stmt2 = conn.prepareStatement(updateSql);
+
+                stmt2.setString(1, username);
 
                 stmt2.executeUpdate(updateSql);
 
@@ -458,11 +465,8 @@ public class authenticator {
             throw new ServerErrorException("Server Error while sending reset token.", "db error retrieving email for user "
                     + username, e);
         } finally {
-            if (stmt != null) try {
-                stmt.close();
-            } catch (SQLException e) {
-                logger.warn("SQLException while attempting to close db connection.", e);
-            }
+            db.close(stmt, rs);
+            db.close(stmt2, null);
         }
         return email;
     }
@@ -545,11 +549,7 @@ public class authenticator {
     }
 
     public void close() {
-        if (conn != null) try {
-            conn.close();
-        } catch (SQLException e) {
-            logger.warn("SQLException while closing db connection.", e);
-        }
+        db.close();
     }
 }
 
