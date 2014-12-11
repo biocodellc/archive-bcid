@@ -17,20 +17,16 @@ import java.util.Hashtable;
  */
 public class userMinter {
     protected Connection conn;
+    private database db;
 
     private static Logger logger = LoggerFactory.getLogger(userMinter.class);
 
     public userMinter() {
-        database db = new database();
+        db = new database();
         conn = db.getConn();
     }
      public void close() {
-         try {
-             conn.close();
-         } catch (SQLException e) {
-             logger.warn("SQLException while closing db.", e);
-         }
-
+         db.close();
      }
     /**
      * create a new user given their profile information and add them to a project
@@ -43,7 +39,6 @@ public class userMinter {
         auth.createUser(userInfo);
         auth.close();
         // add user to project
-        database db = new database();
         Integer userId = db.getUserId(userInfo.get("username"));
         projectMinter p = new projectMinter();
 
@@ -244,20 +239,23 @@ public class userMinter {
      * @return
      */
     public String getInstitution(String username) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectStatement = "Select institution from users where username = ?";
             stmt = conn.prepareStatement(selectStatement);
 
             stmt.setString(1, username);
 
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return rs.getString("institution");
             }
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
         return null;
     }
@@ -268,20 +266,23 @@ public class userMinter {
      * @return
      */
     public String getEmail(String username) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectStatement = "Select email from users where username = ?";
             stmt = conn.prepareStatement(selectStatement);
 
             stmt.setString(1, username);
 
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return rs.getString("email");
             }
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
         return null;
     }
@@ -292,19 +293,22 @@ public class userMinter {
      * @return
      */
     public String getFirstName(String username) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectStatement = "Select firstName from users where username = ?";
             stmt = conn.prepareStatement(selectStatement);
 
             stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return rs.getString("firstName");
             }
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
         return null;
     }
@@ -315,19 +319,22 @@ public class userMinter {
      * @return
      */
     public String getLastName(String username) {
-        PreparedStatement stmt;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String selectStatement = "Select lastName from users where username = ?";
             stmt = conn.prepareStatement(selectStatement);
 
             stmt.setString(1, username);
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
 
             if (rs.next()) {
                 return rs.getString("lastName");
             }
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
         return null;
     }
@@ -339,7 +346,6 @@ public class userMinter {
      */
     public String getOauthProfile(String token) {
         provider  p = new provider();
-        database db = new database();
 
         String username = p.validateToken(token);
         p.close();
@@ -370,18 +376,22 @@ public class userMinter {
      * @return
      */
     public Boolean checkUsernameExists(String username) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
         try {
             String sql = "SELECT count(*) as count FROM users WHERE username = ?";
-            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
 
             stmt.setString(1, username);
 
-            ResultSet rs = stmt.executeQuery();
+            rs = stmt.executeQuery();
             rs.next();
             return rs.getInt("count") >= 1;
 
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
         }
     }
 
@@ -407,9 +417,10 @@ public class userMinter {
             }
         }
 
+        PreparedStatement stmt = null;
 
         try {
-            PreparedStatement stmt = conn.prepareStatement(updateString);
+            stmt = conn.prepareStatement(updateString);
 
             // place the parametrized values into the SQL statement
             {
@@ -431,6 +442,8 @@ public class userMinter {
             return result == 1;
         } catch (SQLException e) {
             throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, null);
         }
     }
 }
