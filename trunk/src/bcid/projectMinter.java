@@ -74,22 +74,42 @@ public class projectMinter {
      *
      * @return returns the BCID for this expedition and conceptURI combination
      */
-    public String listProjects() {
+    public String listProjects(Integer userId) {
         StringBuilder sb = new StringBuilder();
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
         try {
             String query = "SELECT \n" +
-                    "\tproject_id,\n" +
-                    "\tproject_code,\n" +
-                    "\tproject_title,\n" +
-                    "\tbiovalidator_validation_xml\n" +
+                    "\tp.project_id,\n" +
+                    "\tp.project_code,\n" +
+                    "\tp.project_title,\n" +
+                    "\tp.biovalidator_validation_xml\n" +
                     " FROM \n" +
-                    "\tprojects\n" +
+                    "\tprojects p\n" +
                     " WHERE \n" +
-                    "\tpublic = true\n";
+                    "\tp.public = true\n";
+
+
+            if (userId != null) {
+                query += " UNION \n" +
+                        " SELECT \n" +
+                        "\tp.project_id,\n" +
+                        "\tp.project_code,\n" +
+                        "\tp.project_title, \n" +
+                        "\tp.biovalidator_validation_xml\n" +
+                        " FROM \n" +
+                        "\tprojects p, usersProjects u\n" +
+                        " WHERE \n" +
+                        "\t(p.project_id = u.project_id AND u.users_id = ?)\n" +
+                        " ORDER BY \n" +
+                        "\tproject_id";
+            }
             stmt = conn.prepareStatement(query);
+
+            if (userId != null) {
+                stmt.setInt(1, userId);
+            }
             rs = stmt.executeQuery();
 
             sb.append("{\n");

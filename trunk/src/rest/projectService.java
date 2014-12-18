@@ -51,16 +51,27 @@ public class projectService {
     }
 
     /**
-     * Produce a list of all publically available projects
+     * Produce a list of all publically available projects and the private projects the logged in user is a memeber of
      *
      * @return  Generates a JSON listing containing project metadata as an array
      */
     @GET
     @Path("/list")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response fetchList() {
+    public Response fetchList(@QueryParam("access_token") String accessToken) {
+        Integer userId = null;
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            String username = p.validateToken(accessToken);
+            p.close();
+            database db = new database();
+            userId = db.getUserId(username);
+            db.close();
+        }
+        
         projectMinter project = new projectMinter();
-        String response = project.listProjects();
+        String response = project.listProjects(userId);
         project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
