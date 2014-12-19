@@ -461,41 +461,41 @@ public class expeditionService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    @Path("/admin/publicExpedition/{project_id}/{expedition_code}/{public_status}")
+    @Path("/publicExpedition/{project_id}/{expedition_code}/{public_status}")
     public Response publicExpedition(
             @PathParam("project_id") Integer projectId,
             @PathParam("expedition_code") String expeditionCode,
-            @PathParam("public_status") Boolean publicStatus) {
+            @PathParam("public_status") Boolean publicStatus,
+            @QueryParam("access_token") String accessToken) {
 
-      // TODO: get validate user to work, currently disabling the check here is that the keeps getting set to NULL
-      /*  HttpSession session = request.getSession();
-        Object username = session.getAttribute("user");
+        String username;
 
-        // Check that this is a valid user
-        if (username == null) {
-            return Response.status(401).entity("{\"error\": \"You must be logged in to update an dataset's public status.\"}").build();
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+            p.close();
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
         }
 
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must be logged in to view your datasets.");
+        }
 
         // Check to see that this user belongs to this project
         database db = new database();
 
-        projectMinter p = new projectMinter();
+        expeditionMinter e = new expeditionMinter();
 
         Integer userId = db.getUserId(username.toString());
 
-        if (!p.userProject(userId, projectId)) {
-            return Response.status(401).entity("{\"error\": \"You must be a member of this Project to update a dataset's public status.\"}").build();
+        if (!e.userOwnsExpedition(userId, expeditionCode, projectId)) {
+            throw new ForbiddenRequestException("You must be the owner of this expedition to update the public status.");
         }
-          */
 
         // Update the expedition public status for what was just passed in
-        expeditionMinter e = new expeditionMinter();
-        //System.out.println("calling updateExpeditionPublicStatus");
-
-//            System.out.println("expeditionCode = " + expeditionCode);
-//            System.out.println("projectId = " + projectId);
-//            System.out.println("publicStatus = " + publicStatus);
 
         if (e.updateExpeditionPublicStatus(expeditionCode, projectId, publicStatus)) {
             //System.out.println("successs!");
