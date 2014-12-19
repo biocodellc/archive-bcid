@@ -66,8 +66,6 @@ public class LDAPAuthentication {
      * @param password
      *
      * @return
-     *
-     * @throws Exception
      */
     public LDAPAuthentication(String username, String password, Boolean recognizeDemo) {
 

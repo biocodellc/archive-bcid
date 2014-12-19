@@ -82,8 +82,6 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param NAAN
      * @param shoulder
      * @param ezidRequest
-     *
-     * @throws Exception
      */
     public dataGroupMinter(Integer NAAN, String shoulder, boolean ezidRequest, Boolean suffixPassThrough) {
         db = new database();
@@ -227,8 +225,6 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param doi
      * @param webaddress
      * @param title
-     *
-     * @throws Exception
      */
     public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) {
 
