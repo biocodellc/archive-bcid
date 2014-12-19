@@ -9,5 +9,5 @@ public interface encoder {
     static char[] chars = null;
     static  byte[] codes = new byte[256];
     public String encode(BigInteger identifier);
-    public BigInteger decode(String identifier) throws Exception;
+    public BigInteger decode(String identifier);
 }

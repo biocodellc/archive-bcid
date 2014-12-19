@@ -418,7 +418,7 @@ public class authenticationService {
      * @param token
      * @param response
      *
-     * @throws Exception
+     * @throws IOException
      */
     @POST
     @Path("/reset")

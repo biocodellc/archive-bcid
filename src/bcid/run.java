@@ -211,10 +211,8 @@ public class run {
 
     /**
      * Test creating a bunch of BCIDs as if it were being called from a REST service
-     *
-     * @throws Exception
      */
-    private void runBCIDCreatorService() throws Exception {
+    private void runBCIDCreatorService(){
 
         // Initialize variables
         dataGroupMinter dataset = null;

@@ -44,7 +44,6 @@ public class resolver extends database {
      * Pass an ARK identifier to the resolver
      *
      * @param ark
-     * @throws Exception
      */
     public resolver(String ark) {
         super();

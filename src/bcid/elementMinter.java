@@ -75,8 +75,6 @@ public class elementMinter extends dataGroupMinter {
 
     /**
      * This constructor is used to prepare for minting BCID data elements when the dataset is known by its dataset_id
-     *
-     * @throws Exception
      */
     public elementMinter(Integer dataset_id) {
         super(dataset_id);
@@ -85,8 +83,6 @@ public class elementMinter extends dataGroupMinter {
 
     /**
      * Initialize stuff
-     *
-     * @throws Exception
      */
     private void init() {
         SettingsManager sm = SettingsManager.getInstance();
@@ -153,7 +149,6 @@ public class elementMinter extends dataGroupMinter {
      * Inserts element class members: DOI, webAddress, sourceID, resourceType
      *
      * @param b
-     * @throws Exception
      */
     public void mint(bcid b) {
         ArrayList<bcid> arrayList = new ArrayList<bcid>();
@@ -167,7 +162,6 @@ public class elementMinter extends dataGroupMinter {
      *
      * @param elementList
      * @return returns a DatasetIdentifier String
-     * @throws Exception
      */
     public String mintList(ArrayList elementList) {
         timer t = new timer();
@@ -306,7 +300,7 @@ public class elementMinter extends dataGroupMinter {
      * Note that this method is probably not needed with the Mysql Auto_Increment
      *
      * @return
-     * @throws Exception
+     * @throws BCIDException
      */
     private BigInteger start() throws BCIDException {
         BigInteger big = null;

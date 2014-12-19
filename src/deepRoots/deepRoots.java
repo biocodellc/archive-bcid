@@ -115,7 +115,7 @@ public class deepRoots {
      * @param conceptAlias defines the alias to narrow this,  a one-word reference denoting a BCID
      * @return returns the identifier for this conceptAlias in this DeepRoots file
      */
-    public String lookupPrefix(String conceptAlias) throws Exception {
+    public String lookupPrefix(String conceptAlias) {
         Iterator it = data.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pairs = (Map.Entry) it.next();

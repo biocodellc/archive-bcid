@@ -31,7 +31,6 @@ public class projectService {
      *
      * @param project_id
      * @return
-     * @throws Exception
      */
     @GET
     @Path("/validation/{project_id}")
