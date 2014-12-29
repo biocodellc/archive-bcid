@@ -944,14 +944,15 @@ public class expeditionMinter {
                 throw new ForbiddenRequestException("You must be this project's admin to view its datasets.");
             }
 
-            String sql = "SELECT e.expedition_title, e.expedition_id, e.public, u.username \n" +
+            String sql = "SELECT max(d.datasets_id) datasets_id, e.expedition_title, e.expedition_id, e.public, u.username \n" +
                     " FROM expeditions as e, users as u, datasets d, expeditionsBCIDs pB \n" +
                     " WHERE \n" +
-                    " \tpB.datasets_id = d.datasets_id \n" +
-                    " \tand pB.expedition_id = e.expedition_id \n" +
-                    " \tand u.user_id=e.users_id && project_id = ? \n" +
-                    " \tand d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
-
+                    " \te.project_id = ? \n" +
+                    " \tAND u.user_id = e.users_id \n" +
+                    " \tAND d.datasets_id = pB.datasets_id \n" +
+                    " \tAND pB.expedition_id = e.expedition_id \n" +
+                    " \tAND d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\" \n" +
+                    " GROUP BY pB.expedition_id";
             /*
               "    \tfrom datasets d,expeditions p, expeditionsBCIDs pB\n" +
                 "    \twhere pB.datasets_id=d.datasets_id\n" +
