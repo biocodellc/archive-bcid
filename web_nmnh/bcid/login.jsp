@@ -14,26 +14,15 @@
     <title>BiSciCol Identifiers</title>
     <link rel="stylesheet" href="/bcid/css/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
+    <script type="text/javascript" src="/bcid/js/bcid.js"></script>
 </head>
 
 <body>
 <div class="section">
     <div class="sectioncontent" id="login">
         <h2>Login</h2>
+        <form method="POST">
 
-        <c:if test="${pageContext.request.getQueryString() != null}">
-	    <c:choose>
-		<c:when test="${param['redirect_uri'] != null}">
-        		<form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=${param['return_to']}&client_id=${param['client_id']}&redirect_uri=${param['redirect_uri']}">
-        	</c:when>
-		<c:otherwise>
-        		<form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP?return_to=/id/authenticationService/oauth/authorize?client_id=GVK_t8pJrHsBhdgbKXNT">
-        	</c:otherwise>
-	    </c:choose>
-        </c:if>
-        <c:if test="${pageContext.request.getQueryString() == null}">
-        <form method="POST" autocomplete="off" action="/id/authenticationService/loginLDAP/">
-        </c:if>
             <table>
                 <tr>
                     <td align="right">Username</td>
@@ -43,16 +32,14 @@
                     <td align="right">Password</td>
                     <td><input type="password" name="password"></td>
                 </tr>
-                <c:if test="${param['error'] != null}">
                 <tr></tr>
                 <tr>
                     <td></td>
-                    <td class="error" align="center">Bad Credentials</td>
+                    <td class="error" align="center"></td>
                 </tr>
-                </c:if>
                 <tr>
                     <td></td>
-                    <td ><input type="submit" value="Submit"></td>
+                    <td ><input type="button" value="Submit" onclick="login();"></td>
                 </tr>
             </table>
         </form>
