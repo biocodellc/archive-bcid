@@ -14,6 +14,8 @@
     <title>BiSciCol Identifiers</title>
     <link rel="stylesheet" href="/bcid/css/jquery-ui.css" />
     <link rel="stylesheet" type="text/css" href="/bcid/css/biscicol.css"/>
+     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
     <script type="text/javascript" src="/bcid/js/bcid.js"></script>
 </head>
 
