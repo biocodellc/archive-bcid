@@ -85,10 +85,22 @@ public class projectService {
     @GET
     @Path("/graphs/{project_id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLatestGraphsByExpedition(@PathParam("project_id") Integer project_id) {
+    public Response getLatestGraphsByExpedition(@PathParam("project_id") Integer project_id,
+                                                @QueryParam("access_token") String accessToken) {
+        String username;
+
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+            p.close();
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
         projectMinter project= new projectMinter();
 
-        String response = project.getLatestGraphs(project_id);
+        String response = project.getLatestGraphs(project_id, username);
         project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();

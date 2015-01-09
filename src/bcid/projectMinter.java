@@ -169,7 +169,7 @@ public class projectMinter {
      * @param project_id pass in an project identifier to limit the set of expeditions we are looking at
      * @return
      */
-    public String getLatestGraphs(int project_id) {
+    public String getLatestGraphs(int project_id, String username) {
         StringBuilder sb = new StringBuilder();
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -193,11 +193,20 @@ public class projectMinter {
                     " and pB.datasets_id=d1.datasets_id \n" +
                     " and pB.expedition_id=p.expedition_id\n" +
                     " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                    "    and p.public = 1\n" +
                     "    and p.project_id =?";
+            if (username != null) {
+                sql += "    and (p.public = 1 or p.users_id = ?)";
+            } else {
+                sql += "    and p.public = 1";
+            }
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, project_id);
             stmt.setInt(2, project_id);
+
+            if (username != null) {
+                Integer userId = db.getUserId(username);
+                stmt.setInt(3, userId);
+            }
 
             //System.out.println(sql);
             sb.append("{\n\t\"data\": [\n");
@@ -232,7 +241,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("results = \n" + project.getLatestGraphs(8));
+        System.out.println("results = \n" + project.getLatestGraphs(8, null));
         project.close();
     }
 
