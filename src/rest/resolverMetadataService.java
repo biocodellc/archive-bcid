@@ -89,9 +89,10 @@ public class resolverMetadataService {
             // so we can have a REST style call and provide human readable content with BCID header/footer
             Map<String, Object> map = new HashMap<String, Object>();
             String response = r.printMetadata(new HTMLTableRenderer());
-            r.close();
-            map.put("response", response);
-            return Response.ok(new Viewable("/id/index", map)).build();
+            //r.close();
+            //map.put("response", response);
+            //return Response.ok(new Viewable("/id/index", map)).build();
+            return Response.ok(response).build();
         }
     }
 }
