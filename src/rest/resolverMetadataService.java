@@ -91,7 +91,7 @@ public class resolverMetadataService {
             String response = r.printMetadata(new HTMLTableRenderer());
             r.close();
             map.put("response", response);
-            return Response.ok(new Viewable("/index", map)).build();
+            return Response.ok(new Viewable("/id/index", map)).build();
         }
     }
 }
