@@ -63,7 +63,7 @@ public class projectMinter {
             rs.next();
             return rs.getString("biovalidator_validation_xml");
         } catch (SQLException e) {
-            throw new ServerErrorException("Server Error", "Trouble getting Validation XML", e);
+            throw new ServerErrorException("Server Error", "Trouble getting Configuration File", e);
         } finally {
             db.close(stmt, rs);
         }
@@ -241,7 +241,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("results = \n" + project.getLatestGraphs(8, null));
+        System.out.println("results = \n" + project.getLatestGraphs(22, "dbaxter"));
         project.close();
     }
 
@@ -351,7 +351,7 @@ public class projectMinter {
         sb.append("\t\t</tr>\n");
 
         sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td>Validation XML:</td>\n");
+        sb.append("\t\t\t<td>Configuration File:</td>\n");
         sb.append("\t\t\t<td>");
         sb.append(config.get("validation_xml"));
         sb.append("</td>\n");
@@ -394,7 +394,7 @@ public class projectMinter {
         sb.append("\"></td>\n\t\t</tr>\n");
 
         sb.append("\t\t<tr>\n");
-        sb.append("\t\t\t<td>Validation XML</td>\n");
+        sb.append("\t\t\t<td>Configuration File</td>\n");
         sb.append(("\t\t\t<td><input type=\"text\" class=\"project_config\" name=\"validation_xml\" value=\""));
         sb.append(config.get("validation_xml"));
         sb.append("\"></td>\n\t\t</tr>\n");
