@@ -20,7 +20,7 @@
         </init-param>
         <init-param>
             <param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
-            <param-value>/WEB-INF/jsp_template/</param-value>
+            <param-value>/WEB-INF/jsp_template</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
