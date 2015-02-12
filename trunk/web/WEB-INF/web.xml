@@ -15,10 +15,6 @@
             <param-value>true</param-value>
         </init-param>
         <init-param>
-            <param-name>com.sun.jersey.config.property.WebPageContentRegex</param-name>
-            <param-value>/((WEB-INF/jsp_template))/.*</param-value>
-        </init-param>
-        <init-param>
             <param-name>com.sun.jersey.config.property.JSPTemplatesBasePath</param-name>
             <param-value>/WEB-INF/jsp_template</param-value>
         </init-param>

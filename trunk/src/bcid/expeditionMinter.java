@@ -669,24 +669,22 @@ public class expeditionMinter {
     }
 
     /**
-     * Check that expedition code is between 4 and 6 characters
+     * Check that expedition code is between 4 and 50 characters
      *
      * @param expedition_code
      *
      * @return
      */
     private void checkExpeditionCodeValid(String expedition_code) throws BCIDException {
-//        System.out.println("checking expedition code valid");
-
         // Check expedition_code length
-        if (expedition_code.length() < 4 || expedition_code.length() > 20) {
-//            System.out.println("invalid length for dataset = " + expedition_code);
-            throw new BCIDException("Dataset code " + expedition_code + " must be between 4 and 20 characters long");
+        if (expedition_code.length() < 4 || expedition_code.length() > 50) {
+            // System.out.println("invalid length for dataset = " + expedition_code);
+            throw new BCIDException("Dataset code " + expedition_code + " must be between 4 and 50 characters long");
         }
 
         // Check to make sure characters are normal!
         if (!expedition_code.matches("[a-zA-Z0-9_-]*")) {
-//            System.out.println("invalid characters in dataset = " + expedition_code);
+            //System.out.println("invalid characters in dataset = " + expedition_code);
             throw new BCIDException("Dataset code " + expedition_code + " contains one or more invalid characters. " +
                     "Dataset code characters must be in one of the these ranges: [a-Z][0-9][-][_]");
         }

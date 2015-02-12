@@ -19,8 +19,8 @@ public class provider {
     private static Logger logger = LoggerFactory.getLogger(provider.class);
 
     public provider() {
-         db = new database();
-         conn = db.getConn();
+        db = new database();
+        conn = db.getConn();
     }
 
     public void close() {
@@ -116,7 +116,7 @@ public class provider {
      *
      * @return
      */
-    public String generateClientId() {
+    public static String generateClientId() {
         stringGenerator sg = new stringGenerator();
         return sg.generateString(20);
     }
@@ -126,7 +126,7 @@ public class provider {
      *
      * @return
      */
-    public String generateClientSecret() {
+    public static String generateClientSecret() {
         stringGenerator sg = new stringGenerator();
         return sg.generateString(75);
     }
@@ -472,6 +472,8 @@ public class provider {
      * @param args
      */
     public static void main(String args[]) {
+
+
         // Some classes to help us
         CommandLineParser clp = new GnuParser();
         CommandLine cl;
@@ -495,6 +497,19 @@ public class provider {
         }
 
         String host = cl.getOptionValue("c");
+        String clientId = generateClientId();
+        String clientSecret = generateClientSecret();
+
+
+        String insertString = "INSERT INTO oauthClients (client_id, client_secret, callback) VALUES (\""
+                + clientId + "\",\"" + clientSecret + "\",\"" + host + "\")";
+        System.out.println("Use the following insert string:");
+        System.out.println(insertString);
+        System.out.println("Once that is done the oauth2 client app at host: " + host
+                + ".\n will need the following information:\n\nclient_id: "
+                + clientId + "\nclient_secret: " + clientSecret);
+
+        /*
         provider p = null;
         PreparedStatement stmt = null;
         try {
@@ -526,6 +541,7 @@ public class provider {
             p.db.close(stmt, null);
             p.close();
         }
+        */
     }
 
 }

@@ -474,7 +474,7 @@ public class resolver extends database {
             System.out.println(r.resolveARK());
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
-            r = new resolver("ark:/21547/Aa2");
+            r = new resolver("ark:/21547/cH2");
             System.out.println(r.printMetadata(new RDFRenderer()));
             //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             //System.out.println(r.printMetadata(new RDFRenderer()));
