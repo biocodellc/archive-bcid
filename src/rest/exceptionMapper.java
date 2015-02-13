@@ -112,6 +112,7 @@ public class exceptionMapper implements ExceptionMapper<Exception> {
     }
 
     private void logException(Exception e) {
+        e.printStackTrace();
         // don't log BadRequestexceptions or UnauthorizedRequestExceptions or ForbiddenRequestExceptions
         if (!(e instanceof BadRequestException || e instanceof UnauthorizedRequestException ||
                 e instanceof ForbiddenRequestException)) {
