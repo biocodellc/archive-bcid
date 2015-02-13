@@ -119,21 +119,30 @@ public class authenticator {
         String radiusServerIp = sm.retrieveValue("radiusServerIp");
         String radiusSecret = sm.retrieveValue("radiusSecret");
 
+        System.out.println("Radius begin login function");
         RadiusClient rc = new RadiusClient(radiusServerIp, radiusSecret);
         AccessRequest ar = new AccessRequest(username, password);
         ar.setAuthProtocol(AccessRequest.AUTH_CHAP);
 
+        System.out.println("Radius try");
         try {
             RadiusPacket response = rc.authenticate(ar);
 
+            System.out.println("Packet type = " + response.getPacketType());
+
             if (response.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
+                System.out.println("Radius returning true");
                 return true;
             } else if (response.getPacketType() == RadiusPacket.ACCESS_CHALLENGE) {
                 System.out.println("access_challenge");
             }
         } catch (RadiusException e) {
-           throw new ServerErrorException(e);
+            System.out.println("RADIUS RadiusException Exception");
+            e.printStackTrace();
+            throw new ServerErrorException(e);
         } catch (IOException e) {
+            System.out.println("RADIUS IO Exception");
+            e.printStackTrace();
            throw new ServerErrorException(e);
         }
 
