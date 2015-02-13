@@ -122,7 +122,7 @@ public class authenticator {
         System.out.println("Radius begin login function");
         RadiusClient rc = new RadiusClient(radiusServerIp, radiusSecret);
         AccessRequest ar = new AccessRequest(username, password);
-        ar.setAuthProtocol(AccessRequest.AUTH_CHAP);
+//        ar.setAuthProtocol(AccessRequest.AUTH_PAP);
 
         System.out.println("Radius try");
         try {
