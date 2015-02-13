@@ -717,7 +717,7 @@ function loadingDialog(promise) {
 
 // function to login user
 function login() {
-    var url = "/id/authenticationService/loginLDAP";
+    var url = "/id/authenticationService/loginRadius";
     var return_to = getQueryParam("return_to");
     if (return_to != null) {
         url += "?return_to=" + return_to;

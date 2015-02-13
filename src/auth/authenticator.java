@@ -2,6 +2,7 @@ package auth;
 
 import bcid.database;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
@@ -15,6 +16,10 @@ import bcidExceptions.ServerErrorException;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinyradius.packet.AccessRequest;
+import org.tinyradius.packet.RadiusPacket;
+import org.tinyradius.util.RadiusClient;
+import org.tinyradius.util.RadiusException;
 import util.SettingsManager;
 import util.sendEmail;
 import util.stringGenerator;
@@ -102,6 +107,37 @@ public class authenticator {
                 return false;
             }
         }
+    }
+
+    /**
+     * Public method to verify a users password
+     *
+     * @return
+     */
+    public Boolean loginRadius(String username, String password) {
+
+        String radiusServerIp = sm.retrieveValue("radiusServerIp");
+        String radiusSecret = sm.retrieveValue("radiusSecret");
+
+        RadiusClient rc = new RadiusClient(radiusServerIp, radiusSecret);
+        AccessRequest ar = new AccessRequest(username, password);
+        ar.setAuthProtocol(AccessRequest.AUTH_CHAP);
+
+        try {
+            RadiusPacket response = rc.authenticate(ar);
+
+            if (response.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
+                return true;
+            } else if (response.getPacketType() == RadiusPacket.ACCESS_CHALLENGE) {
+                System.out.println("access_challenge");
+            }
+        } catch (RadiusException e) {
+           throw new ServerErrorException(e);
+        } catch (IOException e) {
+           throw new ServerErrorException(e);
+        }
+
+        return false;
     }
 
     /**

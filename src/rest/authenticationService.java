@@ -205,6 +205,82 @@ public class authenticationService {
     }
 
     /**
+     * Service to log a user into the bcid system using RADIUS server
+     *
+     * @param usr
+     * @param pass
+     * @param return_to the url to return to after login
+     *
+     * @throws IOException
+     */
+    @POST
+    @Path("/loginRadius")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response loginRadius(@FormParam("username") String usr,
+                                @FormParam("password") String pass,
+                                @QueryParam("return_to") String return_to,
+                                @Context HttpServletResponse res) {
+
+        if (!usr.isEmpty() && !pass.isEmpty()) {
+            authenticator authenticator = new auth.authenticator();
+            Boolean isAuthenticated;
+
+            // Verify that the entered and stored passwords match
+            isAuthenticated = authenticator.loginRadius(usr, pass);
+            HttpSession session = request.getSession();
+
+            logger.debug("BCID SESS_DEBUG login: sessionid=" + session.getId());
+
+            if (isAuthenticated) {
+                // Place the user in the session
+                session.setAttribute("user", usr);
+                authorizer myAuthorizer = null;
+
+                myAuthorizer = new auth.authorizer();
+
+                // Check if the user is an admin for any projects
+                if (myAuthorizer.userProjectAdmin(usr)) {
+                    session.setAttribute("projectAdmin", true);
+                }
+
+                myAuthorizer.close();
+
+                // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
+                if (!authenticator.userSetPass(usr)) {
+                    // don't need authenticator anymore
+                    authenticator.close();
+
+                    return Response.ok("{\"url\": \"/bcid/secure/profile.jsp?error=Update Your Password" +
+                            new queryParams().getQueryParams(request.getParameterMap(), false) + "\"}")
+                            .build();
+                } else {
+                    // don't need authenticator anymore
+                    authenticator.close();
+                }
+
+
+                // Redirect to return_to uri if provided
+                if (return_to != null) {
+                    return Response.ok("{\"url\": \"" + return_to +
+                            new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
+                            .build();
+                } else {
+                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
+                }
+            }
+            // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
+            else {
+                session.invalidate();
+                authenticator.close();
+            }
+        }
+
+        return Response.status(400)
+                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .build();
+    }
+
+    /**
      * Service to log a user out of the bcid system
      *
      * @throws IOException
