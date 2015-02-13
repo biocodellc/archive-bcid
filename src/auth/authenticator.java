@@ -122,13 +122,14 @@ public class authenticator {
         System.out.println("Radius begin login function");
         RadiusClient rc = new RadiusClient(radiusServerIp, radiusSecret);
         AccessRequest ar = new AccessRequest(username, password);
-        ar.setAuthProtocol(AccessRequest.AUTH_CHAP);
+        ar.setAuthProtocol(AccessRequest.AUTH_PAP);
 
         System.out.println("Radius try");
         try {
             RadiusPacket response = rc.authenticate(ar);
 
             System.out.println("Packet type = " + response.getPacketType());
+            System.out.println("Attribute List = " + response.getAttributes());
 
             if (response.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
                 System.out.println("Radius returning true");
