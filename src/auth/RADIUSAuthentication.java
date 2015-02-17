@@ -73,5 +73,6 @@ public class RADIUSAuthentication {
         } catch (IOException e) {
             throw new ServerErrorException(e);
         }
+        return null;
     }
 }
