@@ -95,7 +95,7 @@ public class EZIDService
 
     private static final String LOGIN_SERVICE = "https://ezid.cdlib.org/login";
     private static final String LOGOUT_SERVICE = "https://ezid.cdlib.org/logout";
-    private static final String ID_SERVICE = "https://ezid.cdlib.org/id";
+    private static final String ID_SERVICE = "http://ezid.cdlib.org/id";
     private static final String MINT_SERVICE = "https://ezid.cdlib.org/shoulder";
     
     private static final int GET = 1;
