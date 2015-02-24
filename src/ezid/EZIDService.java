@@ -162,6 +162,7 @@ public class EZIDService
             msg = parseIdentifierResponse(message);
 
             // DEBUGGING ONLY, CAN COMMENT OUT WHEN FULLY WORKING....
+//            httpclient.setCookieStore(cookieStore);
             org.apache.http.client.CookieStore cookieStore = httpclient.getCookieStore();
             System.out.println("\n\nCookies : ");
             List<Cookie> cookies = cookieStore.getCookies();
@@ -213,6 +214,9 @@ public class EZIDService
     public String createIdentifier(String identifier, HashMap<String, String> metadata) throws EZIDException {
         String newId = null;
         String ezidEndpoint = ID_SERVICE + "/" + identifier;
+
+        // JBD trying this ....
+        httpclient.setCookieStore(cookieStore);
 
         String anvl = serializeAsANVL(metadata);
 
