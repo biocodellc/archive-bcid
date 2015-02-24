@@ -146,7 +146,7 @@ public class manageEZID extends elementMinter {
                     logger.info("{}", identifier.toString());
                 } catch (EZIDException e) {
                     // Adding this for debugging
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     // Attempt to set Metadata if this is an Exception
                     try {
                         ezid.setMetadata(myIdentifier,map);

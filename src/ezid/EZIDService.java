@@ -162,23 +162,23 @@ public class EZIDService
             msg = parseIdentifierResponse(message);
 
             // DEBUGGING ONLY, CAN COMMENT OUT WHEN FULLY WORKING....
-//            httpclient.setCookieStore(cookieStore);
-            org.apache.http.client.CookieStore cookieStore = httpclient.getCookieStore();
+            /*
+                        org.apache.http.client.CookieStore cookieStore = httpclient.getCookieStore();
             System.out.println("\n\nCookies : ");
             List<Cookie> cookies = cookieStore.getCookies();
             for (int i = 0; i < cookies.size(); i++) {
                 System.out.println("Cookie: " + cookies.get(i));
-            }
+            } */
 
 
         } catch (URISyntaxException e) {
-            System.out.println("URI SyntaxError Exception in LOGIN");
+            //System.out.println("URI SyntaxError Exception in LOGIN");
             throw new EZIDException("Bad syntax for uri: " + LOGIN_SERVICE, e);
         } catch (ClientProtocolException e) {
-            System.out.println("ClientProtocol Exception in LOGIN");
+            //System.out.println("ClientProtocol Exception in LOGIN");
             throw new EZIDException(e);
         } catch (IOException e) {
-            System.out.println("IO Exception in LOGIN");
+            //System.out.println("IO Exception in LOGIN");
             throw new EZIDException(e);
         }
         System.out.println("Seems to be a successful LOGIN, msg= " + msg.toString());
@@ -215,20 +215,16 @@ public class EZIDService
         String newId = null;
         String ezidEndpoint = ID_SERVICE + "/" + identifier;
 
-        // JBD trying this ....
-        httpclient.setCookieStore(cookieStore);
-
         String anvl = serializeAsANVL(metadata);
 
-        System.out.println("EZID Create identifier: " + identifier + ":"+metadata.toString());
+        //System.out.println("EZID Create identifier: " + identifier + ":"+metadata.toString());
 
         byte[] response = sendRequest(PUT, ezidEndpoint, anvl);
         String responseMsg = new String(response);
 
-        System.out.println("ezidEndpoint = " + ezidEndpoint);
-        System.out.println("responseMsg = "  + responseMsg);
-
-        System.out.println("DO WE HAVE the SAME cookies?");
+        //System.out.println("ezidEndpoint = " + ezidEndpoint);
+        //System.out.println("responseMsg = "  + responseMsg);
+        /*System.out.println("DO WE HAVE the SAME cookies?");
           // DEBUGGING ONLY, CAN COMMENT OUT WHEN FULLY WORKING....
             org.apache.http.client.CookieStore cookieStore = httpclient.getCookieStore();
             System.out.println("\n\nCookies : ");
@@ -236,6 +232,7 @@ public class EZIDService
             for (int i = 0; i < cookies.size(); i++) {
                 System.out.println("Cookie: " + cookies.get(i));
             }
+        */
 
         log.debug(responseMsg);
 
@@ -377,8 +374,10 @@ public class EZIDService
             break;
         case POST:
             request = new HttpPost(uri);
+
             if (requestBody != null && requestBody.length() > 0) {
                 try {
+                    System.out.println("requestBody = " + requestBody);
                     StringEntity myEntity = new StringEntity(requestBody, "UTF-8");
                     ((HttpPost) request).setEntity(myEntity);
                 } catch (UnsupportedEncodingException e) {
@@ -415,7 +414,6 @@ public class EZIDService
             throw new EZIDException(e);
         }
 
-        System.out.println("body = " + body.toString());
         return body;
     }
     
