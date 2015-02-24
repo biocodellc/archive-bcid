@@ -142,7 +142,7 @@ public class EZIDService
             localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);        
 
             // DEBUGGING ONLY, CAN COMMENT OUT WHEN FULLY WORKING....
-            System.out.println("authCache: " + authCache.toString());
+            //System.out.println("authCache: " + authCache.toString());
 
             ResponseHandler<byte[]> handler = new ResponseHandler<byte[]>() {
                 public byte[] handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
@@ -223,6 +223,15 @@ public class EZIDService
 
         System.out.println("ezidEndpoint = " + ezidEndpoint);
         System.out.println("responseMsg = "  + responseMsg);
+
+        System.out.println("DO WE HAVE the SAME cookies?");
+          // DEBUGGING ONLY, CAN COMMENT OUT WHEN FULLY WORKING....
+            org.apache.http.client.CookieStore cookieStore = httpclient.getCookieStore();
+            System.out.println("\n\nCookies : ");
+            List<Cookie> cookies = cookieStore.getCookies();
+            for (int i = 0; i < cookies.size(); i++) {
+                System.out.println("Cookie: " + cookies.get(i));
+            }
 
         log.debug(responseMsg);
 
