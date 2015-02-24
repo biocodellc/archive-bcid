@@ -204,6 +204,10 @@ public class EZIDService
 
         byte[] response = sendRequest(PUT, ezidEndpoint, anvl);
         String responseMsg = new String(response);
+
+        System.out.println("ezidEndpoint = " + ezidEndpoint);
+        System.out.println("responseMsg = "  + responseMsg);
+
         log.debug(responseMsg);
 
         return parseIdentifierResponse(responseMsg);
@@ -325,7 +329,9 @@ public class EZIDService
     private byte[] sendRequest(int requestType, String uri, String requestBody) throws EZIDException {
         HttpUriRequest request = null;
         log.debug("Trying uri: " + uri);
+        System.out.println("uri = " + uri);
         switch (requestType) {
+
         case GET:
             request = new HttpGet(uri);
             break;
@@ -379,6 +385,8 @@ public class EZIDService
         } catch (IOException e) {
             throw new EZIDException(e);
         }
+
+        System.out.println("body = " + body.toString());
         return body;
     }
     
