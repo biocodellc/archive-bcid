@@ -52,6 +52,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.tools.java.SyntaxError;
 
 /**
  * EZIDService provides access to the EZID identifier service maintained by the
@@ -124,6 +125,7 @@ public class EZIDService
      * @throws EZIDException if authentication fails for any reason
      */
     public void login(String username, String password) throws EZIDException {
+        String msg;
         try {
             URI serviceUri = new URI(LOGIN_SERVICE);
             HttpHost targetHost = new HttpHost(serviceUri.getHost(), serviceUri.getPort(), serviceUri.getScheme()); 
@@ -151,14 +153,18 @@ public class EZIDService
             HttpGet httpget = new HttpGet(LOGIN_SERVICE);
             body = httpclient.execute(httpget, handler, localcontext);
             String message = new String(body);
-            String msg = parseIdentifierResponse(message);
+            msg = parseIdentifierResponse(message);
         } catch (URISyntaxException e) {
+            System.out.println("URI SyntaxError Exception in LOGIN");
             throw new EZIDException("Bad syntax for uri: " + LOGIN_SERVICE, e);
         } catch (ClientProtocolException e) {
+            System.out.println("ClientProtocol Exception in LOGIN");
             throw new EZIDException(e);
         } catch (IOException e) {
+            System.out.println("IO Exception in LOGIN");
             throw new EZIDException(e);
         }
+        System.out.println("Seems to be a successful LOGIN, msg= " + msg.toString());
     }
     
     /**
@@ -193,6 +199,8 @@ public class EZIDService
         String ezidEndpoint = ID_SERVICE + "/" + identifier;
 
         String anvl = serializeAsANVL(metadata);
+
+        System.out.println("EZID Create identifier: " + identifier + ":"+metadata.toString());
 
         byte[] response = sendRequest(PUT, ezidEndpoint, anvl);
         String responseMsg = new String(response);
