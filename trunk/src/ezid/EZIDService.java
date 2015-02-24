@@ -21,9 +21,11 @@ package ezid;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.CookieStore;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
@@ -41,6 +43,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -118,7 +121,7 @@ public class EZIDService
     /**
      * Log into the EZID service using account credentials provided by EZID. The cookie
      * returned by EZID is cached in a local CookieStore for the duration of the EZIDService,
-     * and so subsequent calls uning this instance of the service will function as
+     * and so subsequent calls using this instance of the service will function as
      * fully authenticated. An exception is thrown if authentication fails.
      * @param username to identify the user account from EZID
      * @param password the secret password for this account
@@ -137,7 +140,10 @@ public class EZIDService
             authCache.put(targetHost, basicAuth);
             BasicHttpContext localcontext = new BasicHttpContext();
             localcontext.setAttribute(ClientContext.AUTH_CACHE, authCache);        
-            
+
+            // DEBUGGING ONLY, CAN COMMENT OUT WHEN FULLY WORKING....
+            System.out.println("authCache: " + authCache.toString());
+
             ResponseHandler<byte[]> handler = new ResponseHandler<byte[]>() {
                 public byte[] handleResponse(HttpResponse response) throws ClientProtocolException, IOException {
                     HttpEntity entity = response.getEntity();
@@ -154,6 +160,16 @@ public class EZIDService
             body = httpclient.execute(httpget, handler, localcontext);
             String message = new String(body);
             msg = parseIdentifierResponse(message);
+
+            // DEBUGGING ONLY, CAN COMMENT OUT WHEN FULLY WORKING....
+            org.apache.http.client.CookieStore cookieStore = httpclient.getCookieStore();
+            System.out.println("\n\nCookies : ");
+            List<Cookie> cookies = cookieStore.getCookies();
+            for (int i = 0; i < cookies.size(); i++) {
+                System.out.println("Cookie: " + cookies.get(i));
+            }
+
+
         } catch (URISyntaxException e) {
             System.out.println("URI SyntaxError Exception in LOGIN");
             throw new EZIDException("Bad syntax for uri: " + LOGIN_SERVICE, e);
