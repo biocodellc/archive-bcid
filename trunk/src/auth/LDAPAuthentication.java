@@ -47,7 +47,7 @@ public class LDAPAuthentication {
         sm = SettingsManager.getInstance();
         sm.loadProperties();
         // Get the LDAP servers from property file
-        // Property file format looks like "ldapServers = mysecureLDAPserver.net:636,myfailoverLDAPServer.net:636"
+        // Property file format looks like "ldapServers = my    secureLDAPserver.net:636,myfailoverLDAPServer.net:636"
         ldapURI = sm.retrieveValue("ldapServers");
         defaultLdapDomain = sm.retrieveValue("defaultLdapDomain");
     }
