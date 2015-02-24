@@ -122,11 +122,13 @@ public class authenticator {
         System.out.println("Radius begin login function");
         RadiusClient rc = new RadiusClient(radiusServerIp, radiusSecret);
         AccessRequest ar = new AccessRequest(username, password);
+
         ar.setAuthProtocol(AccessRequest.AUTH_PAP);
         ar.setPacketType(RadiusPacket.ACCESS_CHALLENGE);
 
         System.out.println("Radius try");
         try {
+                // I think that we should be receiving an Access-Challenge response, but we aren't.
             RadiusPacket response = rc.authenticate(ar);
 
             System.out.println("Packet type = " + response.getPacketType());
@@ -526,6 +528,9 @@ public class authenticator {
      */
     public static void main(String args[]) {
 
+
+
+
         // Some classes to help us
         CommandLineParser clp = new GnuParser();
         CommandLine cl;
@@ -534,6 +539,8 @@ public class authenticator {
         options.addOption("U", "username", true, "Username you would like to set a password for");
         options.addOption("P", "password", true, "The temporary password you would like to set");
         options.addOption("ldap", false, "Use LDAP to set username");
+
+
 
 
         try {
@@ -594,6 +601,7 @@ public class authenticator {
         }
 
         System.out.println("Successfully set new password for " + username);
+
     }
 
     public void close() {

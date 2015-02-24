@@ -17,8 +17,8 @@ public class RADIUSAuthentication {
 
     private String username;
     private String password;
-    static String radiusServerIp;
-    static String radiusSecret;
+    private String radiusServerIp;
+    private String radiusSecret;
     
     /**
      * Load settings manager
@@ -27,28 +27,40 @@ public class RADIUSAuthentication {
         // Initialize settings manager
         sm = SettingsManager.getInstance();
         sm.loadProperties();
-        // Get the RADIUS server & secret from property file
-        radiusServerIp = sm.retrieveValue("radiusServerIp");
-        radiusSecret = sm.retrieveValue("radiusSecret");
+
     }
 
     public RADIUSAuthentication(String usr, String pass) {
         username = usr;
         password = pass;
+
+          // Get the RADIUS server & secret from property file
+        radiusServerIp = sm.retrieveValue("radiusServerIp");
+        radiusSecret = sm.retrieveValue("radiusSecret");
     }
     public Boolean authenticate() {
-        RadiusClient rc = new RadiusClient(radiusServerIp, radiusSecret);
+        RadiusClient rc = new RadiusClient(this.radiusServerIp, this.radiusSecret);
+
+        //rc.setSharedSecret(radiusSecret);
+        //rc.setAuthPort(1812);
+        //rc.setRetryCount(4);
+
         AccessRequest ar = new AccessRequest(username, password);
 
         // I believe AUTH_PAP is correct. When using AUTH_CHAP, the response atrribute had Reply-Message:
         // Radius password protection using CHAP does not support External authentication.
         ar.setAuthProtocol(AccessRequest.AUTH_PAP);
+        ar.setPacketType(RadiusPacket.ACCESS_REQUEST);
+        //ar.addAttribute("NAS-IP-Address",radiusServerIp);
 
         // Are there any specific attributes that I need to set for the Access-Request?
 
         try {
             // send the Access-Request
             RadiusPacket response = rc.authenticate(ar);
+
+             System.out.println("Packet type = " + response.getPacketType());
+            System.out.println("Attribute List = " + response.getAttributes());
 
             // The response is of packet type Access-Reject with the following Reply-Message:
             // Failed authentication for user XXX. Invalid response to a challenge. X EXTERNAL authentication attempt remaining.
@@ -74,5 +86,10 @@ public class RADIUSAuthentication {
             throw new ServerErrorException(e);
         }
         return null;
+    }
+
+    public static void main(String[] args) {
+        RADIUSAuthentication ra = new RADIUSAuthentication("username","password");
+        ra.authenticate();
     }
 }
