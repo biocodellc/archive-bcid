@@ -1,0 +1,14 @@
+# the URL of the Entrust IdentityGuard Auth Service
+igcertauth.identityguard.url=https://localhost:8443/IdentityGuardAuthService/services/AuthenticationServiceV9
+# the keystore file and password for the certificate keystore
+igcertauth.manager.file=test.epf
+igcertauth.manager.password=testpassword
+# if the keystore file is a Java keystore, the alias specifying the cert/key
+igcertauth.manager.alias=alias
+# the location of the LDAP directory used by Entrust Security Manager
+igcertauth.manager.ldap=ldap://manager:389
+# the host and port of the Entrust Security Manager CMP service
+igcertauth.manager.host=manager
+igcertauth.manager.port=829
+# specify the format of the keystore (epf, p12, keystore)
+igcertauth.manager.format=epf
