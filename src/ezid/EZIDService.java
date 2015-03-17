@@ -188,7 +188,7 @@ public class EZIDService {
             //System.out.println("IO Exception in LOGIN");
             throw new EZIDException(e);
         }
-        System.out.println("Seems to be a successful LOGIN, msg= " + msg.toString());
+        //System.out.println("Seems to be a successful LOGIN, msg= " + msg.toString());
     }
 
     /**
@@ -417,9 +417,9 @@ public class EZIDService {
         request.addHeader("Accept", "text/plain");
 
         /* HACK -- re-authorize on the fly as this was getting dropped on SI server*/
-        String auth = this.username + ":" + this.password;
+        /*String auth = this.username + ":" + this.password;
         String encodedAuth = org.apache.commons.codec.binary.Base64.encodeBase64String(auth.getBytes());
-        request.addHeader("Authorization", "Basic " + encodedAuth);
+        request.addHeader("Authorization", "Basic " + encodedAuth); */
 
         ResponseHandler<byte[]> handler = new ResponseHandler<byte[]>() {
             public byte[] handleResponse(

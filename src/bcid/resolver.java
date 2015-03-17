@@ -48,6 +48,8 @@ public class resolver extends database {
     public resolver(String ark) {
         super();
 
+
+
         this.ark = ark;
         // Pull off potential last piece of string which would represent the local Identifier
         // The piece to decode is ark:/NAAN/bcidIdentifer (anything else after a last trailing "/" not decoded)
@@ -171,9 +173,13 @@ public class resolver extends database {
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
             bcid = new bcid(sourceID, datagroup_id);
+            String resolutionTarget = "";
+            if (bcid.getResolutionTarget() != null) {
+                 resolutionTarget = bcid.getResolutionTarget().toString().trim();
+            }
 
             // Group has a specified resolution target
-            if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().toString().trim().equals("")) {
+            if (bcid.getResolutionTarget() != null && !resolutionTarget.equals("")) {
                 // A resolution target is specified AND there is a sourceID
                 if (sourceID != null && bcid.getResolutionTarget() != null && !sourceID.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
                     resolution = new URI(bcid.getResolutionTarget() + sourceID);
@@ -474,14 +480,16 @@ public class resolver extends database {
             System.out.println(r.resolveARK());
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
-            r = new resolver("ark:/21547/cH2");
+            r = new resolver("ark:/21547/eF2");
             System.out.println(r.printMetadata(new RDFRenderer()));
+            System.out.println(r.resolveARK());
             //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             //System.out.println(r.printMetadata(new RDFRenderer()));
 
-            r = new resolver("DEMO4",18,"Resource");
+           /* r = new resolver("DEMO4",18,"Resource");
             //System.out.println(r.resolveARK());
            System.out.println(r.getArk());
+           */
                  /*
             // suffixPassthrough = 1; webaddress specified; no SourceID
             r = new resolver("ark:/21547/R2");
