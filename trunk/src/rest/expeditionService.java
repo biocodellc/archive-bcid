@@ -45,8 +45,8 @@ public class expeditionService {
         expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
         expedition.close();
 
-        return Response.ok("{\"success\": \"Succesfully associated dataset_code = " + expedition_code +
-                " with bcid = " + bcid + "\"}").build();
+        return Response.ok("{\"success\": \"Succesfully associated all concepts associated with dataset code '" + expedition_code +
+                "' to the dataset instance = '" + bcid + "'\"}").build();
     }
 
     /**
