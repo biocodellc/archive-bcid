@@ -162,7 +162,8 @@ public class dataGroupMinter extends dataGroupEncoder {
                 logger.warn("URISyntaxException with uri: {} and datasetId: {}", rs.getString("webAddress"),
                         datasets_id, e);
             } finally {
-                this.webAddress = null;
+               // This was set to NULL-- very strange, should not be like this, i don't think
+               // this.webAddress = null;
             }
         } catch (SQLException e) {
             throw new ServerErrorException(e);
