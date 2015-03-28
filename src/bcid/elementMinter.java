@@ -35,6 +35,7 @@ public class elementMinter extends dataGroupMinter {
     // This could be 0 in most cases, but for testing and in cases where we already created a test encoded EZID
     // this can be set manually here to bypass existing EZIDS
     private Integer startingNumber;
+    private String publisher;
 
     private static Logger logger = LoggerFactory.getLogger(elementMinter.class);
 
@@ -58,6 +59,10 @@ public class elementMinter extends dataGroupMinter {
     public elementMinter() {
         super();
         init();
+    }
+
+    public String getPublisher() {
+        return publisher;
     }
 
     /**
@@ -88,6 +93,10 @@ public class elementMinter extends dataGroupMinter {
         SettingsManager sm = SettingsManager.getInstance();
         sm.loadProperties();
         startingNumber = Integer.parseInt(sm.retrieveValue("bcidStartingNumber"));
+        publisher = sm.retrieveValue("publisher");
+        if (publisher == null || publisher.trim().equalsIgnoreCase("")) {
+            publisher = "Biocode FIMS System";
+        }
     }
 
 
