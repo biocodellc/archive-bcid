@@ -480,9 +480,9 @@ public class resolver extends database {
             System.out.println(r.resolveARK());
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
-            r = new resolver("ark:/21547/eF2");
+            r = new resolver("ark:/21547/R2");
             System.out.println(r.printMetadata(new RDFRenderer()));
-            System.out.println(r.resolveARK());
+            //System.out.println(r.resolveARK());
             //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             //System.out.println(r.printMetadata(new RDFRenderer()));
 
