@@ -179,6 +179,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param datasets_id
      */
     public String getProject(Integer datasets_id) {
+        String project_code = "";
         String sql = "select p.project_code from projects p, expeditionsBCIDs eb, expeditions e, " +
                 "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
                 "and e.`project_id`=p.`project_id` and d.datasets_id= ?";
@@ -189,14 +190,17 @@ public class dataGroupMinter extends dataGroupEncoder {
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, datasets_id);
             rs = stmt.executeQuery();
-            rs.next();
-            return rs.getString("project_code");
+            if (rs.isLast())
+            if (rs.next()) {
+                project_code = rs.getString("project_code");
+            }
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error",
                     "Exception retrieving projectCode for dataset: " + datasets_id, e);
         } finally {
             db.close(stmt, rs);
         }
+        return project_code;
     }
 
     /**
