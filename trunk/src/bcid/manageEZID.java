@@ -45,10 +45,23 @@ public class manageEZID extends elementMinter {
         return map;
     }
 
+    public HashMap<String, String> dcMap(String target, String creator, String title, String publisher, String when, String type) {
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("_profile", "dc");
+        // _target needs to be resolved by biscicol for now
+        map.put("_target", target);
+        map.put("dc.creator", creator);
+        map.put("dc.title", title);
+        map.put("dc.publisher", publisher);
+        map.put("dc.date", when);
+        map.put("dc.type", type);
+        return map;
+    }
+
     /**
-     *  Update EZID dataset metadata for this particular ID
+     * Update EZID dataset metadata for this particular ID
      */
-    public void updateDatasetsEZID(EZIDService ezid, int datasets_id) throws EZIDException{
+    public void updateDatasetsEZID(EZIDService ezid, int datasets_id) throws EZIDException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
@@ -56,9 +69,10 @@ public class manageEZID extends elementMinter {
             String sql = "SELECT " +
                     "d.datasets_id as datasets_id," +
                     "d.prefix as prefix," +
+                    "d.title as title," +
                     "d.ts as ts," +
-                    "d.resourceType as what," +
-                    "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as who " +
+                    "d.resourceType as type," +
+                    "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as creator " +
                     "FROM datasets d,users u " +
                     "WHERE ezidMade && d.users_id=u.USER_ID " +
                     "AND d.datasets_id = ? " +
@@ -71,12 +85,21 @@ public class manageEZID extends elementMinter {
             rs.next();
 
             // Build the hashmap to pass to ezid
-            HashMap<String, String> map = ercMap(
+           /* HashMap<String, String> map = ercMap(
                     resolverTargetPrefix + rs.getString("prefix"),
                     //new ResourceTypes().get(ResourceTypes.DATASET).uri,
                     rs.getString("what"),
                     rs.getString("who"),
-                    rs.getString("ts"));
+                    rs.getString("ts")); */
+
+            HashMap<String, String> map = dcMap(
+                    resolverTargetPrefix + rs.getString("prefix"),
+                    rs.getString("creator"),
+                    rs.getString("title"),
+                    this.getPublisher(),
+                    rs.getString("ts"),
+                    rs.getString("type"));
+            map.put("_profile", "dc");
 
             // The ID string to register with EZID
             String myIdentifier = rs.getString("prefix");
@@ -102,12 +125,14 @@ public class manageEZID extends elementMinter {
      * Go through datasets table and create any ezid fields that have yet to be created.
      * This method is meant to be called via a cronjob on the backend.
      * <p/>
-     * TODO: throw a special exception on this method so we can follow up why EZIDs are not being made if that is the case
+     * TODO: throw a special exception on this method so we can follow up why EZIDs are not being made if that is the
+     * case
      *
      * @param ezid
+     *
      * @throws java.net.URISyntaxException
      */
-    public void createDatasetsEZIDs(EZIDService ezid) throws EZIDException{
+    public void createDatasetsEZIDs(EZIDService ezid) throws EZIDException {
         // Grab a row where ezid is false
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -116,8 +141,9 @@ public class manageEZID extends elementMinter {
             String sql = "SELECT d.datasets_id as datasets_id," +
                     "d.prefix as prefix," +
                     "d.ts as ts," +
-                    "d.resourceType as what," +
-                    "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as who " +
+                    "d.resourceType as type," +
+                    "d.title as title," +
+                    "concat_ws('',CONCAT_WS(' ',u.firstName, u.lastName),' <',u.email,'>') as creator " +
                     "FROM datasets d,users u " +
                     "WHERE !ezidMade && ezidRequest && d.users_id=u.USER_ID && u.username != 'demo'" +
                     "LIMIT 1000";
@@ -129,12 +155,23 @@ public class manageEZID extends elementMinter {
                 URI identifier = null;
 
                 // Create the hashmap to send to ezid functions
-                HashMap<String, String> map = ercMap(
+                /*HashMap<String, String> map = ercMap(
                         resolverTargetPrefix + rs.getString("prefix"),
                         rs.getString("what"),
                         rs.getString("who"),
                         rs.getString("ts"));
-                map.put("_profile", "erc");
+                map.put("_profile", "erc");*/
+
+
+                // Dublin Core metadata profile element
+                HashMap<String, String> map = dcMap(
+                        resolverTargetPrefix + rs.getString("prefix"),
+                        rs.getString("creator"),
+                        rs.getString("title"),
+                        this.getPublisher(),
+                        rs.getString("ts"),
+                        rs.getString("type"));
+                map.put("_profile", "dc");
 
                 // The ID string to register with ezid
                 String myIdentifier = rs.getString("prefix");
@@ -149,7 +186,7 @@ public class manageEZID extends elementMinter {
                     //e.printStackTrace();
                     // Attempt to set Metadata if this is an Exception
                     try {
-                        ezid.setMetadata(myIdentifier,map);
+                        ezid.setMetadata(myIdentifier, map);
                         idSuccessList.add(rs.getString("datasets_id"));
                     } catch (EZIDException e1) {
                         //TODO should we silence this exception?
@@ -183,9 +220,11 @@ public class manageEZID extends elementMinter {
      * <p/>
      * In cases where suffixPassthrough = false then use the "id" field of the table itself to generate the identifier
      * In cases where suffixPassthrough = true then just pass the uuid that is stored to generate the identifier
-     * TODO: throw a special exception on this method so we can follow up why EZIDs are not being made if that is the case
+     * TODO: throw a special exception on this method so we can follow up why EZIDs are not being made if that is the
+     * case
      *
      * @param ezid
+     *
      * @throws java.net.URISyntaxException
      */
     public void createIdentifiersEZIDs(EZIDService ezid) throws URISyntaxException {
@@ -268,6 +307,7 @@ public class manageEZID extends elementMinter {
      * This function works for both Datasets and Identifiers table
      *
      * @param idSuccessList
+     *
      * @throws java.sql.SQLException
      */
     private void updateEZIDMadeField(ArrayList idSuccessList, String table) throws SQLException {
