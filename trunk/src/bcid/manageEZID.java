@@ -84,17 +84,16 @@ public class manageEZID extends elementMinter {
 
             rs.next();
 
-            // Build the hashmap to pass to ezid
-           /* HashMap<String, String> map = ercMap(
-                    resolverTargetPrefix + rs.getString("prefix"),
-                    //new ResourceTypes().get(ResourceTypes.DATASET).uri,
-                    rs.getString("what"),
-                    rs.getString("who"),
-                    rs.getString("ts")); */
+            // Get creator, using any system defined creator to override the default which is based on user data
+            String creator = rs.getString("creator");
+            if (this.getCreator() != null) {
+                creator = this.getCreator();
+            }
 
+            // Build the hashmap to pass to ezid
             HashMap<String, String> map = dcMap(
                     resolverTargetPrefix + rs.getString("prefix"),
-                    rs.getString("creator"),
+                    creator,
                     rs.getString("title"),
                     this.getPublisher(),
                     rs.getString("ts"),
@@ -154,19 +153,16 @@ public class manageEZID extends elementMinter {
             while (rs.next()) {
                 URI identifier = null;
 
-                // Create the hashmap to send to ezid functions
-                /*HashMap<String, String> map = ercMap(
-                        resolverTargetPrefix + rs.getString("prefix"),
-                        rs.getString("what"),
-                        rs.getString("who"),
-                        rs.getString("ts"));
-                map.put("_profile", "erc");*/
-
+                // Get creator, using any system defined creator to override the default which is based on user data
+                String creator = rs.getString("creator");
+                if (this.getCreator() != null) {
+                    creator = this.getCreator();
+                }
 
                 // Dublin Core metadata profile element
                 HashMap<String, String> map = dcMap(
                         resolverTargetPrefix + rs.getString("prefix"),
-                        rs.getString("creator"),
+                        creator,
                         rs.getString("title"),
                         this.getPublisher(),
                         rs.getString("ts"),

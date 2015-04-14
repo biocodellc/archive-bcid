@@ -49,3 +49,9 @@ ezidRequests = true
 # when set to true, stack traces will be returned form the server when exceptions occur.
 # should be set to false for production use.
 debug = false
+
+# This is the publisher that shows up in Dublin Core metadata profile for EZIDs
+publisher = Biocode FIMS System
+
+# Set the following only if you want a default creator to override system settings (based on user name)
+# creator = SI-NMNH Field Information Management System

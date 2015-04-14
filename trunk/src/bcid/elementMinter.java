@@ -36,6 +36,7 @@ public class elementMinter extends dataGroupMinter {
     // this can be set manually here to bypass existing EZIDS
     private Integer startingNumber;
     private String publisher;
+    private String creator;
 
     private static Logger logger = LoggerFactory.getLogger(elementMinter.class);
 
@@ -65,6 +66,11 @@ public class elementMinter extends dataGroupMinter {
         return publisher;
     }
 
+    public String getCreator() {
+        return creator;
+    }
+
+
     /**
      * This constructor is used to prepare for minting BCID data elements when the dataset is known by
      * its NAAN + shoulder
@@ -93,9 +99,15 @@ public class elementMinter extends dataGroupMinter {
         SettingsManager sm = SettingsManager.getInstance();
         sm.loadProperties();
         startingNumber = Integer.parseInt(sm.retrieveValue("bcidStartingNumber"));
+
         publisher = sm.retrieveValue("publisher");
         if (publisher == null || publisher.trim().equalsIgnoreCase("")) {
             publisher = "Biocode FIMS System";
+        }
+
+        creator = sm.retrieveValue("creator");
+        if (creator.trim().equalsIgnoreCase("")) {
+            creator = null;
         }
     }
 
@@ -132,8 +144,9 @@ public class elementMinter extends dataGroupMinter {
      * Delete identifiers in table for a particular loadedSetuuid
      *
      * @param uuid
+     *
      * @return an int representing results from the executeUpdate command, i believe indicating the number
-     *         of items deleted.
+     * of items deleted.
      */
     public int deleteLoadedSetUUID(String uuid) {
         PreparedStatement stmt = null;
@@ -170,6 +183,7 @@ public class elementMinter extends dataGroupMinter {
      * Mint a group of elements (see single element for further explanation)
      *
      * @param elementList
+     *
      * @return returns a DatasetIdentifier String
      */
     public String mintList(ArrayList elementList) {
@@ -251,6 +265,7 @@ public class elementMinter extends dataGroupMinter {
      * Special function to prepare SQL statement
      *
      * @param rowcount
+     *
      * @return
      */
     private String formatSQL(Integer rowcount) {
@@ -267,6 +282,7 @@ public class elementMinter extends dataGroupMinter {
      * The dataset identifier indicates a batch of identifers added all at the same time
      *
      * @param datasetUUID
+     *
      * @return An ArrayList of identifiers
      */
 
@@ -309,6 +325,7 @@ public class elementMinter extends dataGroupMinter {
      * Note that this method is probably not needed with the Mysql Auto_Increment
      *
      * @return
+     *
      * @throws BCIDException
      */
     private BigInteger start() throws BCIDException {
@@ -352,7 +369,9 @@ public class elementMinter extends dataGroupMinter {
      * of a responsible party.
      *
      * @param numIdentifiers
+     *
      * @return An ArrayList of all the GUIDs
+     *
      * @throws java.net.URISyntaxException
      */
     public String createBCIDs(int numIdentifiers, URI what) throws URISyntaxException {
@@ -405,6 +424,7 @@ public class elementMinter extends dataGroupMinter {
      * validate uuid, to make sure it conforms to the generic structure expected of uuids
      *
      * @param uuid
+     *
      * @return
      */
     private boolean validateUUID(String uuid) {
@@ -418,7 +438,9 @@ public class elementMinter extends dataGroupMinter {
      * Generate an ARK version for this uuid, by appending the uuid onto the ARK prefix
      *
      * @param uuidAsString
+     *
      * @return A full ARK representation of this ID
+     *
      * @throws BCIDException
      */
     public String createUUIDARK(String uuidAsString) throws BCIDException {
