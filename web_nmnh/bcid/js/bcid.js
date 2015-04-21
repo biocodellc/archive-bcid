@@ -717,8 +717,23 @@ function loadingDialog(promise) {
 
 // function to login user
 function login() {
-    //var url = "/id/authenticationService/loginRadius";
-    var url = "/id/authenticationService/loginLDAP";
+    var url = "/id/authenticationService/loginEntrust";
+    var return_to = getQueryParam("return_to");
+    if (return_to != null) {
+        url += "?return_to=" + return_to;
+    }
+    var jqxhr = $.post(url, $('form').serialize())
+        .done(function(data) {
+            window.location.replace(data.url);
+        }).fail(function(jqxhr) {
+            $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
+        });
+    loadingDialog(jqxhr);
+}
+
+// function to respond to entrust challenge questions
+function challengeResponse() {
+    var url = "/id/authenticationService/entrustChallenge";
     var return_to = getQueryParam("return_to");
     if (return_to != null) {
         url += "?return_to=" + return_to;

@@ -1,5 +1,6 @@
 package rest;
 
+import auth.EntrustIGAuthentication;
 import auth.authenticator;
 import auth.authorizer;
 import auth.oauth2.provider;
@@ -19,10 +20,12 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.*;
 
 /**
  * REST interface for handling user authentication
@@ -160,14 +163,6 @@ public class authenticationService {
                 }
                 myAuthorizer.close();
 
-                // Redirect to return_to uri if provided
-//                if (return_to != null) {
-//                    res.sendRedirect(return_to + new queryParams().getQueryParams(request.getParameterMap(), true));
-//                    return;
-//                } else {
-//                    res.sendRedirect("/bcid/index.jsp");
-//                    return;
-//                }
                 authenticator.close();
                 if (return_to != null) {
                     return Response.ok("{\"url\": \"" + return_to +
@@ -194,70 +189,108 @@ public class authenticationService {
 //            }
         }
 
-//        if (return_to != null) {
-//            res.sendRedirect("/bcid/login.jsp?error=bad_credentials" + new queryParams().getQueryParams(request.getParameterMap(), false));
-//            return;
-//        }
-//        res.sendRedirect("/bcid/login.jsp?error");
         return Response.status(400)
                 .entity(new errorInfo("Bad Credentials", 400).toJSON())
                 .build();
     }
 
     /**
-     * Service to log a user into the bcid system using RADIUS server
+     * Service to log a user into the bcid system using Entrust Identity Guard
      *
      * @param usr
-     * @param pass
      * @param return_to the url to return to after login
      *
      * @throws IOException
      */
     @POST
-    @Path("/loginRadius")
+    @Path("/loginEntrust")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response loginRadius(@FormParam("username") String usr,
-                                @FormParam("password") String pass,
-                                @QueryParam("return_to") String return_to,
-                                @Context HttpServletResponse res) {
+    public Response loginEntrust(@FormParam("username") String usr,
+                                 @QueryParam("return_to") String return_to,
+                                 @Context HttpServletResponse res) {
 
-        if (!usr.isEmpty() && !pass.isEmpty()) {
+        if (!usr.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
-            Boolean isAuthenticated;
+            String[] challengeQuestions;
 
-            // Verify that the entered and stored passwords match
-            isAuthenticated = authenticator.loginRadius(usr, pass);
+            // Retrieve challenge questions from IG server
+            challengeQuestions = authenticator.loginEntrust(usr);
+
+            //Construct query params
+            String queryParams = "?userid=" + usr;
+            for (int i = 0; i < challengeQuestions.length; i++) {
+                queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
+            }
+            queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
+
+            return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
+                    .build();
+        }
+
+        return Response.status(400)
+                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .build();
+    }
+
+    /**
+     * Service to respond to Entrust IG challenge questions to complete authentication
+     * @param return_to
+     * @param question1
+     * @param question2
+     * @param userid
+     * @param challengeResponse
+     * @return
+     */
+    @POST
+    @Path("/entrustChallenge")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response entrustChallenge(@QueryParam("return_to") String return_to,
+                                     @FormParam("question_1") String question1,
+                                     @FormParam("question_2") String question2,
+                                     @FormParam("userid") String userid,
+                                     MultivaluedMap<String, String> challengeResponse) {
+        String[] respChallenge = {question1, question2};
+//        TODO: use MultivaluedMap to retrieve a non specified amount of challenge questions
+//        SortedMap<String, String> resp = (SortedMap) challengeResponse;
+//        Iterator<String> it = challengeResponse.keySet().iterator();
+
+        System.out.println(challengeResponse);
+//        while (it.hasNext()) {
+//            String key = it.next();
+//            if (key.startsWith("question")) {
+//                resp.put(key, challengeResponse.getFirst(key));
+//            }
+//        }
+
+        if (userid != null && question1 != null && question2 != null) {
+//        if (userid != null && resp.size() > 0) {
+            //convert list to array
+//            String[] respChallenge = new String[resp.size()];
+//            Iterator entries = resp.entrySet().iterator();
+//            int i = 0;
+//            while (entries.hasNext()) {
+//                Map.Entry thisEntry = (Map.Entry) entries.next();
+//                respChallenge[i] = (String) thisEntry.getValue();
+//                i++;
+//            }
+
+            authenticator authenticator = new authenticator();
             HttpSession session = request.getSession();
 
-            logger.debug("BCID SESS_DEBUG login: sessionid=" + session.getId());
-
-            if (isAuthenticated) {
+            if (authenticator.entrustChallenge(userid, respChallenge)) {
                 // Place the user in the session
-                session.setAttribute("user", usr);
+                session.setAttribute("user", userid);
                 authorizer myAuthorizer = null;
 
                 myAuthorizer = new auth.authorizer();
 
                 // Check if the user is an admin for any projects
-                if (myAuthorizer.userProjectAdmin(usr)) {
+                if (myAuthorizer.userProjectAdmin(userid)) {
                     session.setAttribute("projectAdmin", true);
                 }
 
                 myAuthorizer.close();
-
-                // Check if the user has created their own password, if they are just using the temporary password, inform the user to change their password
-                if (!authenticator.userSetPass(usr)) {
-                    // don't need authenticator anymore
-                    authenticator.close();
-
-                    return Response.ok("{\"url\": \"/bcid/secure/profile.jsp?error=Update Your Password" +
-                            new queryParams().getQueryParams(request.getParameterMap(), false) + "\"}")
-                            .build();
-                } else {
-                    // don't need authenticator anymore
-                    authenticator.close();
-                }
-
+                authenticator.close();
 
                 // Redirect to return_to uri if provided
                 if (return_to != null) {
@@ -268,15 +301,12 @@ public class authenticationService {
                     return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
                 }
             }
-            // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
-            else {
-                session.invalidate();
-                authenticator.close();
-            }
+            return Response.status(500)
+                    .entity(new errorInfo("Server Error", 500).toJSON())
+                    .build();
         }
-
         return Response.status(400)
-                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .entity(new errorInfo("Bad Request", 400).toJSON())
                 .build();
     }
 
