@@ -82,6 +82,9 @@ public class EntrustIGAuthentication {
         GenericChallengeParmsEx parms = new GenericChallengeParmsEx();
         // set the authtype to QA
         parms.setAuthenticationType(authtype);
+        // TODO: allow an unspecified amount of QA challenge questions
+        // limit the QA challenge size to 2 currently as that is all that we allow.
+        parms.setQAChallengeSize(2);
 
         try {
             GenericChallengeEx challengeSet =
