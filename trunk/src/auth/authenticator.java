@@ -110,44 +110,49 @@ public class authenticator {
     }
 
     /**
-     * Public method to verify a users password
+     * process to login via Entrust Identity Guard
      *
      * @return
      */
-    public Boolean loginRadius(String username, String password) {
+    public String[] loginEntrust(String username) {
+        EntrustIGAuthentication igAuthentication = new EntrustIGAuthentication();
+        String[] challengeQuestions = igAuthentication.getGenericChallenge(username);
 
-        String radiusServerIp = sm.retrieveValue("radiusServerIp");
-        String radiusSecret = sm.retrieveValue("radiusSecret");
+        if (challengeQuestions == null || challengeQuestions.length == 0) {
+            throw new ServerErrorException("No challenge questions provided");
+        }
 
-        System.out.println("Radius begin login function");
-        RadiusClient rc = new RadiusClient(radiusServerIp, radiusSecret);
-        AccessRequest ar = new AccessRequest(username, password);
+        return challengeQuestions;
+    }
 
-        ar.setAuthProtocol(AccessRequest.AUTH_PAP);
-        ar.setPacketType(RadiusPacket.ACCESS_CHALLENGE);
+    /**
+     * respond to a challenge from the Entrust Identity Guard Server
+     * @param userid
+     * @param challengeResponse
+     * @return
+     */
+    public boolean entrustChallenge(String userid, String[] challengeResponse) {
+        EntrustIGAuthentication igAuthentication = new EntrustIGAuthentication();
+        boolean isAuthenticated = igAuthentication.authenticateGenericChallange(userid, challengeResponse);
 
-        System.out.println("Radius try");
-        try {
-                // I think that we should be receiving an Access-Challenge response, but we aren't.
-            RadiusPacket response = rc.authenticate(ar);
+        if (isAuthenticated) {
+            if (!validUser(userid)) {
+                // If authentication is good and user doesn't exist in bcid db, then insert account into database
+                createLdapUser(userid);
 
-            System.out.println("Packet type = " + response.getPacketType());
-            System.out.println("Attribute List = " + response.getAttributes());
-
-            if (response.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
-                System.out.println("Radius returning true");
-                return true;
-            } else if (response.getPacketType() == RadiusPacket.ACCESS_CHALLENGE) {
-                System.out.println("access_challenge");
+                // enable this user for all projects
+                projectMinter p = new projectMinter();
+                // get the user_id for this username
+                int user_id = getUserId(userid);
+                // Loop projects and assign user to them
+                ArrayList<Integer> projects = p.getAllProjects();
+                Iterator projectsIt = projects.iterator();
+                while (projectsIt.hasNext()) {
+                    p.addUserToProject(user_id, (Integer) projectsIt.next());
+                }
+                p.close();
             }
-        } catch (RadiusException e) {
-            System.out.println("RADIUS RadiusException Exception");
-            e.printStackTrace();
-            throw new ServerErrorException(e);
-        } catch (IOException e) {
-            System.out.println("RADIUS IO Exception");
-            e.printStackTrace();
-           throw new ServerErrorException(e);
+            return true;
         }
 
         return false;

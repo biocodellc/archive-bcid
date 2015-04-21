@@ -11,12 +11,21 @@ public class ServerErrorException extends BCIDAbstractException {
     public ServerErrorException(String usrMessage, Throwable cause) {
         super(usrMessage, httpStatusCode, cause);
     }
+
+    public ServerErrorException(String usrMessage) {
+        super(usrMessage, httpStatusCode);
+    }
+
     public  ServerErrorException(String usrMessage, String developerMessage) {
         super(usrMessage, developerMessage, httpStatusCode);
     }
 
     public ServerErrorException(Throwable cause) {
         super("Server Error", httpStatusCode, cause);
+    }
+
+    public ServerErrorException() {
+        super("Server Error", httpStatusCode);
     }
 
     public ServerErrorException(String usrMessage, String developerMessage, Throwable cause) {
