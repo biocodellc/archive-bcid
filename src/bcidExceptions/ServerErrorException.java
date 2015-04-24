@@ -9,7 +9,7 @@ public class ServerErrorException extends BCIDAbstractException {
     private static Integer httpStatusCode = Response.Status.INTERNAL_SERVER_ERROR.getStatusCode();
 
     public ServerErrorException(String usrMessage, Throwable cause) {
-        super(usrMessage, httpStatusCode, cause);
+        super(usrMessage, null, httpStatusCode, cause);
     }
 
     public ServerErrorException(String usrMessage) {
@@ -21,7 +21,7 @@ public class ServerErrorException extends BCIDAbstractException {
     }
 
     public ServerErrorException(Throwable cause) {
-        super("Server Error", httpStatusCode, cause);
+        super("Server Error", null, httpStatusCode, cause);
     }
 
     public ServerErrorException() {

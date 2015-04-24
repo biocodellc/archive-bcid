@@ -98,6 +98,12 @@ public class EntrustIGAuthentication {
             } else {
                 throw new ServerErrorException();
             }
+        } catch (AuthenticationFault ex) {
+            if (ex.getErrorCode() == ErrorCode.USER_LOCKED) {
+                throw new BCIDRuntimeException("User account is locked. Please try again later", "user account is locked", 401, ex);
+            } else {
+                throw new ServerErrorException("Server Error","Either user doesn't exist or there was a problem connecting to the server", ex);
+            }
         } catch (RemoteException ex) {
             throw new ServerErrorException("Server Error","Either user doesn't exist or there was a problem connecting to the server", ex);
         }
@@ -126,8 +132,8 @@ public class EntrustIGAuthentication {
         } catch (AuthenticationFault ex) {
             if (ex.getErrorCode() == ErrorCode.USER_NO_CHALLENGE) {
                 throw new BCIDRuntimeException("Error while logging in. Please try again.", null, 400, ex);
-            } else if (ex.getErrorCode() == ErrorCode.USER_LOCKED || ex.getErrorCode() == ErrorCode.USER_LOCKED) {
-                throw new BCIDRuntimeException("User account is locked. Please try again later", "user account is locked", 401, ex);
+            } else if (ex.getErrorCode() == ErrorCode.USER_LOCKED || ex.getErrorCode() == ErrorCode.AUTH_FAILED_USER_LOCKED) {
+                throw new BCIDRuntimeException("User account is locked. Please try again later.", "user account is locked", 401, ex);
             } else if (ex.getErrorCode() == ErrorCode.INVALID_RESPONSE) {
                 // Parse remaining attempts from exception message
                 String remainingAttempts =  ex.getMessage().split("Invalid response to a challenge. ")[1].substring(0, 1);
