@@ -127,10 +127,9 @@ public class authenticationService {
     }
 
     /**
-     * Service to log a user into the bcid system using LDAP
+     * Service to log a user into the bcid system with 2-factor authentication using LDAP & Entrust Identity Guard
      *
      * @param usr
-     * @param pass
      * @param return_to the url to return to after login
      *
      * @throws IOException
@@ -145,86 +144,23 @@ public class authenticationService {
 
         if (!usr.isEmpty() && !pass.isEmpty()) {
             authenticator authenticator = new auth.authenticator();
-            Boolean isAuthenticated = false;
-
-            // Verify that the entered and stored passwords match
-            isAuthenticated = authenticator.loginLDAP(usr, pass, true);
-            HttpSession session = request.getSession();
-
-            if (isAuthenticated) {
-                // Place the user in the session
-                session.setAttribute("user", usr);
-                authorizer myAuthorizer = null;
-
-                myAuthorizer = new auth.authorizer();
-                // Check if the user is an admin for any projects
-                if (myAuthorizer.userProjectAdmin(usr)) {
-                    session.setAttribute("projectAdmin", true);
-                }
-                myAuthorizer.close();
-
-                authenticator.close();
-                if (return_to != null) {
-                    return Response.ok("{\"url\": \"" + return_to +
-                            new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
-                            .build();
-                } else {
-                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
-                }
-            }
-            // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
-            else {
-                authenticator.close();
-                session.invalidate();
-            }
-            // Shouldn't need this anymore due to new error handling
-            // Check for error message on LDAP
-//            if (authenticator.getLdapAuthentication() != null) {
-//                System.out.println("start6");
-//                if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
-//                    res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
-//                    System.out.println("start8");
-//                    return;
-//                }
-//            }
-        }
-
-        return Response.status(400)
-                .entity(new errorInfo("Bad Credentials", 400).toJSON())
-                .build();
-    }
-
-    /**
-     * Service to log a user into the bcid system using Entrust Identity Guard
-     *
-     * @param usr
-     * @param return_to the url to return to after login
-     *
-     * @throws IOException
-     */
-    @POST
-    @Path("/loginEntrust")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response loginEntrust(@FormParam("username") String usr,
-                                 @QueryParam("return_to") String return_to,
-                                 @Context HttpServletResponse res) {
-
-        if (!usr.isEmpty()) {
-            authenticator authenticator = new auth.authenticator();
             String[] challengeQuestions;
 
             // Retrieve challenge questions from IG server
-            challengeQuestions = authenticator.loginEntrust(usr);
+            challengeQuestions = authenticator.loginLDAP(usr, pass, true);
 
-            //Construct query params
-            String queryParams = "?userid=" + usr;
-            for (int i = 0; i < challengeQuestions.length; i++) {
-                queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
+            // if challengeQuestions is null, then ldap authentication failed
+            if (challengeQuestions != null) {
+                //Construct query params
+                String queryParams = "?userid=" + usr;
+                for (int i = 0; i < challengeQuestions.length; i++) {
+                    queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
+                }
+                queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
+
+                return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
+                        .build();
             }
-            queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
-
-            return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
-                    .build();
         }
 
         return Response.status(400)
