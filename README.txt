@@ -1,3 +1,1 @@
-Installation instructions and all help is now available on the BCID code page at:
-
-https://code.google.com/p/bcid/
+For information about this project, please visit the <a href='https://github.com/biscicol/bcid/wiki'>wiki</a>
