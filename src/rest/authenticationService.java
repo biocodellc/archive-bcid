@@ -1,6 +1,7 @@
 package rest;
 
 import auth.EntrustIGAuthentication;
+import auth.LDAPAuthentication;
 import auth.authenticator;
 import auth.authorizer;
 import auth.oauth2.provider;
@@ -142,81 +143,55 @@ public class authenticationService {
                               @FormParam("password") String pass,
                               @QueryParam("return_to") String return_to,
                               @Context HttpServletResponse res) {
-        HttpSession session = request.getSession();
+        LDAPAuthentication ldapAuthentication = new LDAPAuthentication();
         Integer numLdapAttemptsAllowed = Integer.parseInt(sm.retrieveValue("ldapAttempts"));
         Integer ldapLockout = Integer.parseInt(sm.retrieveValue("ldapLockedAccountTimeout"));
-        Object ldapLockoutTS = session.getAttribute("ldapLockoutTS");
-        Integer ldapAttempts;
-        Object ldapAttemptsObject = session.getAttribute("ldapAttempts");
 
-        // ldap accounts lock after x # of attempts. We need to determine how many attempts the user currently has and inform
-        // the user of a locked account
-        if (ldapAttemptsObject == null) {
-            ldapAttempts = 0;
-        } else {
-            String[] ldapAttemptUsr = ((String) ldapAttemptsObject).split(":");
-            // if different user, then set the ldapAttempts to 0
-            if (!ldapAttemptUsr[1].equalsIgnoreCase(usr)) ldapAttempts = 0;
-            else ldapAttempts = Integer.parseInt(((String) ldapAttemptsObject).split(":")[0]);
-        }
+        if (!usr.isEmpty() && !pass.isEmpty()) {
+            // ldap accounts lock after x # of attempts. We need to determine how many attempts the user currently has and inform
+            // the user of a locked account
+            Integer ldapAttempts = ldapAuthentication.getLoginAttempts(usr);
 
-        if (ldapAttempts > numLdapAttemptsAllowed) {
-            if (ldapLockoutTS != null) {
-                Timestamp ts = new Timestamp(((Number) session.getAttribute("ldapLockoutTS")).longValue());
-                // Convert ldapLockout to miliseconds and get a TS that is the current time - lockout
-                Timestamp lockedTS = new Timestamp(System.currentTimeMillis() - (ldapLockout * 60 * 1000));
+            if (ldapAttempts < numLdapAttemptsAllowed) {
+                authenticator authenticator = new auth.authenticator();
+                String[] challengeQuestions;
 
-                // if the account lock has expired, then reset the number of attempts to 0 and continue
-                if (ts.before(lockedTS)) {
-                    ldapAttempts = 0;
+                // attempt to login via ldap server. If ldap authentication is successful, then challenge questions are
+                // retrieved from the Entrust IG server
+                challengeQuestions = authenticator.loginLDAP(usr, pass, true);
+
+                // if challengeQuestions is null, then ldap authentication failed
+                if (challengeQuestions != null) {
+                    //Construct query params
+                    String queryParams = "?userid=" + usr;
+                    for (int i = 0; i < challengeQuestions.length; i++) {
+                        queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
+                    }
+                    queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
+
+                    return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
+                            .build();
                 }
+
+                // increase the number of attempts
+                ldapAttempts += 1;
             }
 
-        }
 
-        // need to determine is ldapAttempts is > then numLdapAttemptsAllowed again b/c it is possible that the
-        // "ldapLockoutTS" session attribute was null. Then we don't want to try and login again, but we need to place the
-        // attribute in the session which is done below or the account lock has been lifted.
-        if (!usr.isEmpty() && !pass.isEmpty() && ldapAttempts < numLdapAttemptsAllowed) {
-            authenticator authenticator = new auth.authenticator();
-            String[] challengeQuestions;
-
-            // attempt to login via ldap server. If ldap authentication is successful, then challenge questions are
-            // retrieved from the Entrust IG server
-            challengeQuestions = authenticator.loginLDAP(usr, pass, true);
-
-            // if challengeQuestions is null, then ldap authentication failed
-            if (challengeQuestions != null) {
-                //Construct query params
-                String queryParams = "?userid=" + usr;
-                for (int i = 0; i < challengeQuestions.length; i++) {
-                    queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
-                }
-                queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
-
-                return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
+            // if more then allowed number of ldap attempts, then the user is locked out of their account. We need to inform the user
+            if (ldapAttempts >= numLdapAttemptsAllowed) {
+                return Response.status(400)
+                        .entity(new errorInfo("Your account is now locked for " + ldapLockout + " mins.", 400).toJSON())
                         .build();
             }
-        }
 
-        // place the number of ldap login attempts as well as the user in the session
-        ldapAttempts += 1;
-        session.setAttribute("ldapAttempts", ldapAttempts + ":" + usr);
-
-        // if more then allowed number of ldap attempts, then the user is locked out of their account. We need to inform the user and place
-        // a ts in the session to determine when the account is unlocked.
-        if (ldapAttempts >= numLdapAttemptsAllowed) {
-            if (ldapLockoutTS == null) {
-                session.setAttribute("ldapLockoutTS", System.currentTimeMillis());
-            }
             return Response.status(400)
-                    .entity(new errorInfo("Your account is now locked for " + ldapLockout + " mins.", 400).toJSON())
+                    .entity(new errorInfo("Bad Credentials. " + (numLdapAttemptsAllowed - ldapAttempts) + " attempts remaining.",
+                            400).toJSON())
                     .build();
         }
-
         return Response.status(400)
-                .entity(new errorInfo("Bad Credentials. " + (numLdapAttemptsAllowed - ldapAttempts) + " attempts remaining.",
-                        400).toJSON())
+                .entity(new errorInfo("Empty Username or Password.", 400).toJSON())
                 .build();
     }
 

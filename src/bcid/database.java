@@ -44,10 +44,10 @@ public class database {
         return conn;
     }
 
-    public void close(PreparedStatement ps, ResultSet rs) {
-        if (ps != null) {
+    public void close(Statement stmt, ResultSet rs) {
+        if (stmt != null) {
             try {
-                ps.close();
+                stmt.close();
             } catch (SQLException e) {
                 logger.warn("SQLException while attempting to close PreparedStatement.", e);
             }

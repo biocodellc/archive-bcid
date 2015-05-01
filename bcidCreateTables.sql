@@ -181,3 +181,14 @@ CREATE TABLE `oauthTokens` (
   CONSTRAINT `FK_oauthTokens_users_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `FK_oauthTokens_client` FOREIGN KEY (`client_id`) REFERENCES `oauthClients` (`client_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `ldapNonces`;
+
+CREATE TABLE `ldapNonces` (
+  `ldapNonces_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL DEFAULT '' COMMENT 'The username of the login attempt',
+  `ts` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'timestamp of the ldap user lockout or when the users first login attempt was',
+  `attempts` int(11) NOT NULL DEFAULT '1' COMMENT 'the number of ldap login attempts',
+  PRIMARY KEY (`ldapNonces_id`),
+  UNIQUE KEY `ldapNonces_usernamex` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
