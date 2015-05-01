@@ -194,7 +194,7 @@ public class provider {
                 // 10 minutes previous
                 Timestamp expiredTs = new Timestamp(currentTs.getTime() - 600000);
 
-                // if ts is older then 10 mins, we can't proceed
+                // if ts is less then 10 mins old, code is valid
                 if (ts != null && ts.after(expiredTs)) {
                     return true;
                 }
