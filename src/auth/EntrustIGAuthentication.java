@@ -133,7 +133,14 @@ public class EntrustIGAuthentication {
             if (ex.getErrorCode() == ErrorCode.USER_NO_CHALLENGE) {
                 throw new BCIDRuntimeException("Error while logging in. Please try again.", null, 400, ex);
             } else if (ex.getErrorCode() == ErrorCode.USER_LOCKED || ex.getErrorCode() == ErrorCode.AUTH_FAILED_USER_LOCKED) {
-                throw new BCIDRuntimeException("User account is locked. Please try again later.", "user account is locked", 401, ex);
+                String msg;
+                Integer entrustLockout = Integer.parseInt(sm.retrieveValue("entrustLockout"));
+                if (ex.getErrorCode() == ErrorCode.USER_LOCKED) {
+                    msg = "User account is locked. Your account will unlock " + entrustLockout + "mins after fist becoming locked.";
+                } else {
+                    msg = "User account is locked. You account will unlock in " + entrustLockout + "mins.";
+                }
+                throw new BCIDRuntimeException(msg, "user account is locked", 401, ex);
             } else if (ex.getErrorCode() == ErrorCode.INVALID_RESPONSE) {
                 // Parse remaining attempts from exception message
                 String remainingAttempts =  ex.getMessage().split("Invalid response to a challenge. ")[1].substring(0, 1);

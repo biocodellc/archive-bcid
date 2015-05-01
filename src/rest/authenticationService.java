@@ -144,6 +144,8 @@ public class authenticationService {
                               @Context HttpServletResponse res) {
         HttpSession session = request.getSession();
         Integer numLdapAttemptsAllowed = Integer.parseInt(sm.retrieveValue("ldapAttempts"));
+        Integer ldapLockout = Integer.parseInt(sm.retrieveValue("ldapLockedAccountTimeout"));
+        Object ldapLockoutTS = session.getAttribute("ldapLockoutTS");
         Integer ldapAttempts;
         Object ldapAttemptsObject = session.getAttribute("ldapAttempts");
 
@@ -159,9 +161,8 @@ public class authenticationService {
         }
 
         if (ldapAttempts > numLdapAttemptsAllowed) {
-            if (session.getAttribute("ldapLockoutTS") != null) {
+            if (ldapLockoutTS != null) {
                 Timestamp ts = new Timestamp(((Number) session.getAttribute("ldapLockoutTS")).longValue());
-                Integer ldapLockout = Integer.parseInt(sm.retrieveValue("ldapLockedAccountTimeout"));
                 // Convert ldapLockout to miliseconds and get a TS that is the current time - lockout
                 Timestamp lockedTS = new Timestamp(System.currentTimeMillis() - (ldapLockout * 60 * 1000));
 
@@ -205,9 +206,11 @@ public class authenticationService {
         // if more then allowed number of ldap attempts, then the user is locked out of their account. We need to inform the user and place
         // a ts in the session to determine when the account is unlocked.
         if (ldapAttempts >= numLdapAttemptsAllowed) {
-            session.setAttribute("ldapLockoutTS", System.currentTimeMillis());
+            if (ldapLockoutTS == null) {
+                session.setAttribute("ldapLockoutTS", System.currentTimeMillis());
+            }
             return Response.status(400)
-                    .entity(new errorInfo("Your account is now locked. Please try again later.", 400).toJSON())
+                    .entity(new errorInfo("Your account is now locked for " + ldapLockout + " mins.", 400).toJSON())
                     .build();
         }
 
