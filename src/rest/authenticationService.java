@@ -25,6 +25,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -127,10 +128,9 @@ public class authenticationService {
     }
 
     /**
-     * Service to log a user into the bcid system using LDAP
+     * Service to log a user into the bcid system with 2-factor authentication using LDAP & Entrust Identity Guard
      *
      * @param usr
-     * @param pass
      * @param return_to the url to return to after login
      *
      * @throws IOException
@@ -142,93 +142,81 @@ public class authenticationService {
                               @FormParam("password") String pass,
                               @QueryParam("return_to") String return_to,
                               @Context HttpServletResponse res) {
+        HttpSession session = request.getSession();
+        Integer numLdapAttemptsAllowed = Integer.parseInt(sm.retrieveValue("ldapAttempts"));
+        Integer ldapLockout = Integer.parseInt(sm.retrieveValue("ldapLockedAccountTimeout"));
+        Object ldapLockoutTS = session.getAttribute("ldapLockoutTS");
+        Integer ldapAttempts;
+        Object ldapAttemptsObject = session.getAttribute("ldapAttempts");
 
-        if (!usr.isEmpty() && !pass.isEmpty()) {
-            authenticator authenticator = new auth.authenticator();
-            Boolean isAuthenticated = false;
-
-            // Verify that the entered and stored passwords match
-            isAuthenticated = authenticator.loginLDAP(usr, pass, true);
-            HttpSession session = request.getSession();
-
-            if (isAuthenticated) {
-                // Place the user in the session
-                session.setAttribute("user", usr);
-                authorizer myAuthorizer = null;
-
-                myAuthorizer = new auth.authorizer();
-                // Check if the user is an admin for any projects
-                if (myAuthorizer.userProjectAdmin(usr)) {
-                    session.setAttribute("projectAdmin", true);
-                }
-                myAuthorizer.close();
-
-                authenticator.close();
-                if (return_to != null) {
-                    return Response.ok("{\"url\": \"" + return_to +
-                            new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
-                            .build();
-                } else {
-                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
-                }
-            }
-            // stored and entered passwords don't match, invalidate the session to be sure that a user is not in the session
-            else {
-                authenticator.close();
-                session.invalidate();
-            }
-            // Shouldn't need this anymore due to new error handling
-            // Check for error message on LDAP
-//            if (authenticator.getLdapAuthentication() != null) {
-//                System.out.println("start6");
-//                if (authenticator.getLdapAuthentication().getStatus() != authenticator.getLdapAuthentication().SUCCESS) {
-//                    res.sendRedirect("/bcid/login.jsp?error=" + authenticator.getLdapAuthentication().getMessage() + new queryParams().getQueryParams(request.getParameterMap(), false));
-//                    System.out.println("start8");
-//                    return;
-//                }
-//            }
+        // ldap accounts lock after x # of attempts. We need to determine how many attempts the user currently has and inform
+        // the user of a locked account
+        if (ldapAttemptsObject == null) {
+            ldapAttempts = 0;
+        } else {
+            String[] ldapAttemptUsr = ((String) ldapAttemptsObject).split(":");
+            // if different user, then set the ldapAttempts to 0
+            if (!ldapAttemptUsr[1].equalsIgnoreCase(usr)) ldapAttempts = 0;
+            else ldapAttempts = Integer.parseInt(((String) ldapAttemptsObject).split(":")[0]);
         }
 
-        return Response.status(400)
-                .entity(new errorInfo("Bad Credentials", 400).toJSON())
-                .build();
-    }
+        if (ldapAttempts > numLdapAttemptsAllowed) {
+            if (ldapLockoutTS != null) {
+                Timestamp ts = new Timestamp(((Number) session.getAttribute("ldapLockoutTS")).longValue());
+                // Convert ldapLockout to miliseconds and get a TS that is the current time - lockout
+                Timestamp lockedTS = new Timestamp(System.currentTimeMillis() - (ldapLockout * 60 * 1000));
 
-    /**
-     * Service to log a user into the bcid system using Entrust Identity Guard
-     *
-     * @param usr
-     * @param return_to the url to return to after login
-     *
-     * @throws IOException
-     */
-    @POST
-    @Path("/loginEntrust")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response loginEntrust(@FormParam("username") String usr,
-                                 @QueryParam("return_to") String return_to,
-                                 @Context HttpServletResponse res) {
+                // if the account lock has expired, then reset the number of attempts to 0 and continue
+                if (ts.before(lockedTS)) {
+                    ldapAttempts = 0;
+                }
+            }
 
-        if (!usr.isEmpty()) {
+        }
+
+        // need to determine is ldapAttempts is > then numLdapAttemptsAllowed again b/c it is possible that the
+        // "ldapLockoutTS" session attribute was null. Then we don't want to try and login again, but we need to place the
+        // attribute in the session which is done below or the account lock has been lifted.
+        if (!usr.isEmpty() && !pass.isEmpty() && ldapAttempts < numLdapAttemptsAllowed) {
             authenticator authenticator = new auth.authenticator();
             String[] challengeQuestions;
 
-            // Retrieve challenge questions from IG server
-            challengeQuestions = authenticator.loginEntrust(usr);
+            // attempt to login via ldap server. If ldap authentication is successful, then challenge questions are
+            // retrieved from the Entrust IG server
+            challengeQuestions = authenticator.loginLDAP(usr, pass, true);
 
-            //Construct query params
-            String queryParams = "?userid=" + usr;
-            for (int i = 0; i < challengeQuestions.length; i++) {
-                queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
+            // if challengeQuestions is null, then ldap authentication failed
+            if (challengeQuestions != null) {
+                //Construct query params
+                String queryParams = "?userid=" + usr;
+                for (int i = 0; i < challengeQuestions.length; i++) {
+                    queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
+                }
+                queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
+
+                return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
+                        .build();
             }
-            queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
+        }
 
-            return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
+        // place the number of ldap login attempts as well as the user in the session
+        ldapAttempts += 1;
+        session.setAttribute("ldapAttempts", ldapAttempts + ":" + usr);
+
+        // if more then allowed number of ldap attempts, then the user is locked out of their account. We need to inform the user and place
+        // a ts in the session to determine when the account is unlocked.
+        if (ldapAttempts >= numLdapAttemptsAllowed) {
+            if (ldapLockoutTS == null) {
+                session.setAttribute("ldapLockoutTS", System.currentTimeMillis());
+            }
+            return Response.status(400)
+                    .entity(new errorInfo("Your account is now locked for " + ldapLockout + " mins.", 400).toJSON())
                     .build();
         }
 
         return Response.status(400)
-                .entity(new errorInfo("Bad Credentials", 400).toJSON())
+                .entity(new errorInfo("Bad Credentials. " + (numLdapAttemptsAllowed - ldapAttempts) + " attempts remaining.",
+                        400).toJSON())
                 .build();
     }
 
@@ -254,7 +242,6 @@ public class authenticationService {
 //        SortedMap<String, String> resp = (SortedMap) challengeResponse;
 //        Iterator<String> it = challengeResponse.keySet().iterator();
 
-        System.out.println(challengeResponse);
 //        while (it.hasNext()) {
 //            String key = it.next();
 //            if (key.startsWith("question")) {
@@ -277,6 +264,8 @@ public class authenticationService {
             authenticator authenticator = new authenticator();
             HttpSession session = request.getSession();
 
+            // verify with the entrust IG server that the correct responses were provided to the challenge questions
+            // If so, then the user is logged in
             if (authenticator.entrustChallenge(userid, respChallenge)) {
                 // Place the user in the session
                 session.setAttribute("user", userid);

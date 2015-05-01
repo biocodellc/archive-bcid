@@ -30,6 +30,10 @@
                     <td align="right">Username</td>
                     <td><input type="text" name="username" autofocus></td>
                 </tr>
+                <tr>
+                    <td align="right">Password</td>
+                    <td><input type="password" name="password"></td>
+                </tr>
                 <tr></tr>
                 <tr>
                     <td></td>

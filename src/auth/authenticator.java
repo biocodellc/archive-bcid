@@ -53,7 +53,7 @@ public class authenticator {
     }
 
     /**
-     * Process login as LDAP
+     * Process 2-factor login as LDAP first and then entrust QA
      *
      * @param username
      * @param password
@@ -61,89 +61,48 @@ public class authenticator {
      *
      * @return
      */
-    public Boolean loginLDAP(String username, String password, Boolean recognizeDemo) {
-        // 1. check that this is a valid username in this system
-        if (!validUser(LDAPAuthentication.showShortUserName(username))) {
-//            System.out.println("attempting to add user " + username+" to system");
-            /*
-            ADD LDAP authenticated user
-            */
-            // A. Check LDAP authentication
-//            System.out.println("LDAP authentication");
-            ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
-//            System.out.println("message = " + ldapAuthentication.getMessage() + ";status=" + ldapAuthentication.getStatus());
+    public String[] loginLDAP(String username, String password, Boolean recognizeDemo) {
+        ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
 
-            if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
+        // If ldap authentication is successful, then retrieve the challange questions from the entrust server
+        if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
+            EntrustIGAuthentication igAuthentication = new EntrustIGAuthentication();
+            // get the challenge questions from entrust IG server
+            String [] challengeQuestions = igAuthentication.getGenericChallenge(username);
 
-                // B. If LDAP is good, then insert account into database (if not return false)
-//                System.out.println("create LDAP user");
-                createLdapUser(LDAPAuthentication.showShortUserName(username));
-
-                // C. enable this user for all projects
-//                System.out.println("add user to projects");
-                projectMinter p = new projectMinter();
-                // get the user_id for this username
-                int user_id = getUserId(username);
-                // Loop projects and assign user to them
-                ArrayList<Integer> projects = p.getAllProjects();
-                Iterator projectsIt = projects.iterator();
-                while (projectsIt.hasNext()) {
-                    p.addUserToProject(user_id, (Integer) projectsIt.next());
-                }
-                // D. return true because we got this far and already authenticated
-                p.close();
-                return true;
-            } else {
-                return false;
+            // challengeQuestions should never return null from here since the ldap authentication was successful.
+            // However entrust IG server didn't provide any challenge questions, so throw an exception.
+            if (challengeQuestions == null || challengeQuestions.length == 0) {
+                throw new ServerErrorException("Server Error.", "No challenge questions provided");
             }
-        }
-        // 2. If a valid username, we just need to check that the LDAP authentication worked
-        else {
-//            System.out.println("the user exists, just authenticating using LDAP");
-            ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
-            if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
 
-    /**
-     * process to login via Entrust Identity Guard
-     *
-     * @return
-     */
-    public String[] loginEntrust(String username) {
-        EntrustIGAuthentication igAuthentication = new EntrustIGAuthentication();
-        String[] challengeQuestions = igAuthentication.getGenericChallenge(username);
-
-        if (challengeQuestions == null || challengeQuestions.length == 0) {
-            throw new ServerErrorException("No challenge questions provided");
+            return challengeQuestions;
+        } else {
+            // return null if the ldap authentication failed
+            return null;
         }
-
-        return challengeQuestions;
     }
 
     /**
      * respond to a challenge from the Entrust Identity Guard Server
-     * @param userid
+     * @param username
      * @param challengeResponse
      * @return
      */
-    public boolean entrustChallenge(String userid, String[] challengeResponse) {
+    public boolean entrustChallenge(String username, String[] challengeResponse) {
         EntrustIGAuthentication igAuthentication = new EntrustIGAuthentication();
-        boolean isAuthenticated = igAuthentication.authenticateGenericChallange(userid, challengeResponse);
+        // verify the user's responses to the challenge questions
+        boolean isAuthenticated = igAuthentication.authenticateGenericChallange(username, challengeResponse);
 
         if (isAuthenticated) {
-            if (!validUser(userid)) {
+            if (!validUser(username)) {
                 // If authentication is good and user doesn't exist in bcid db, then insert account into database
-                createLdapUser(userid);
+                createLdapUser(username);
 
                 // enable this user for all projects
                 projectMinter p = new projectMinter();
                 // get the user_id for this username
-                int user_id = getUserId(userid);
+                int user_id = getUserId(username);
                 // Loop projects and assign user to them
                 ArrayList<Integer> projects = p.getAllProjects();
                 Iterator projectsIt = projects.iterator();
@@ -571,8 +530,8 @@ public class authenticator {
         // LDAP option
         if (cl.hasOption("ldap")) {
             System.out.println("authenticating using LDAP");
-            Boolean success = authenticator.loginLDAP(username, password, true);
-            if (!success) {
+            String[] challengeQuestions = authenticator.loginLDAP(username, password, true);
+            if (challengeQuestions == null) {
                 System.out.println("Error logging in using LDAP");
             }
             return;
