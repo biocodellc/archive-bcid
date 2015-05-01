@@ -64,15 +64,16 @@ public class authenticator {
     public String[] loginLDAP(String username, String password, Boolean recognizeDemo) {
         ldapAuthentication = new LDAPAuthentication(username, password, recognizeDemo);
 
+        // If ldap authentication is successful, then retrieve the challange questions from the entrust server
         if (ldapAuthentication.getStatus() == ldapAuthentication.SUCCESS) {
             EntrustIGAuthentication igAuthentication = new EntrustIGAuthentication();
             // get the challenge questions from entrust IG server
             String [] challengeQuestions = igAuthentication.getGenericChallenge(username);
 
-            // this should never return null. the ldap authentication was successful, however entrust IG server didn't provide
-            // any challenge questions.
+            // challengeQuestions should never return null from here since the ldap authentication was successful.
+            // However entrust IG server didn't provide any challenge questions, so throw an exception.
             if (challengeQuestions == null || challengeQuestions.length == 0) {
-                throw new ServerErrorException("No challenge questions provided");
+                throw new ServerErrorException("Server Error.", "No challenge questions provided");
             }
 
             return challengeQuestions;
@@ -90,6 +91,7 @@ public class authenticator {
      */
     public boolean entrustChallenge(String username, String[] challengeResponse) {
         EntrustIGAuthentication igAuthentication = new EntrustIGAuthentication();
+        // verify the user's responses to the challenge questions
         boolean isAuthenticated = igAuthentication.authenticateGenericChallange(username, challengeResponse);
 
         if (isAuthenticated) {
