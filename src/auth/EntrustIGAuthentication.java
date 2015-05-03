@@ -102,6 +102,7 @@ public class EntrustIGAuthentication {
             if (ex.getErrorCode() == ErrorCode.USER_LOCKED) {
                 throw new BCIDRuntimeException("User account is locked. Please try again later", "user account is locked", 401, ex);
             } else {
+                // TODO: this throws "Server Error" if user actually doesn't exist it should say something like "Invalid User/Password Combination"
                 throw new ServerErrorException("Server Error","Either user doesn't exist or there was a problem connecting to the server", ex);
             }
         } catch (RemoteException ex) {
