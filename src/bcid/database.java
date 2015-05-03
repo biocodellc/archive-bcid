@@ -62,6 +62,11 @@ public class database {
         return;
     }
 
+
+    public void close(PreparedStatement stmt, ResultSet rs) {
+       close((Statement)stmt,rs);
+    }
+
     public void close() {
         try {
             conn.close();
