@@ -81,7 +81,7 @@ public class LDAPAuthentication {
         try {
             // only retrieve the row if the nonce isn't expired
             String selectString = "SELECT current_timestamp() as current, attempts, ts FROM ldapNonces WHERE username = " +
-                    "? && ts > (NOW() - INTERVAL " + ldapTimeout + " MINUTE";
+                    "? && ts > (NOW() - INTERVAL " + ldapTimeout + " MINUTE)";
             stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, showLongUsername(username));
