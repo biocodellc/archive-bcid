@@ -44,9 +44,9 @@ public class expeditionService {
         expedition = new expeditionMinter();
         expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
         expedition.close();
+        String deepRootsString = expedition.getDeepRoots(expedition_code,project_id);
 
-        return Response.ok("{\"success\": \"Associated all concepts associated with dataset code '" + expedition_code +
-                "' to the dataset instance = '" + bcid + "'\"}").build();
+        return Response.ok("{\"success\": \"Data Elements Root: " + deepRootsString +"\"}").build();
     }
 
     /**
