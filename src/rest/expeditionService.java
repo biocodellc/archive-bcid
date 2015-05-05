@@ -44,9 +44,10 @@ public class expeditionService {
         expedition = new expeditionMinter();
         expedition.attachReferenceToExpedition(expedition_code, bcid, project_id);
         expedition.close();
-        String deepRootsString = expedition.getDeepRoots(expedition_code,project_id);
+        //String deepRootsString = expedition.getDeepRoots(expedition_code,project_id);
 
-        return Response.ok("{\"success\": \"Data Elements Root: " + deepRootsString +"\"}").build();
+        //return Response.ok("{\"success\": \"Data Elements Root: " + deepRootsString +"\"}").build();
+        return Response.ok("{\"success\": \"Data Elements Root: " + expedition_code +"\"}").build();
     }
 
     /**
