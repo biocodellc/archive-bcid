@@ -93,7 +93,7 @@ public class LDAPAuthentication {
                 // Get the current time from the database (in case the application server is in a different timezone)
                 Timestamp currentTs = rs.getTimestamp("current");
                 // convert minutes to miliseconds
-                Timestamp expiredTs = new Timestamp(currentTs.getTime() - (ldapTimeout * 60 * 100));
+                Timestamp expiredTs = new Timestamp(currentTs.getTime() - (ldapTimeout * 60 * 1000));
 
                 // if nonce isn't expired, then return the number of attempts
                 if (ts != null && ts.after(expiredTs)) {
