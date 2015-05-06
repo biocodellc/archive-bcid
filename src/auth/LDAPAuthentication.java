@@ -111,15 +111,20 @@ public class LDAPAuthentication {
     }
 
     /**
-     * delete any ldapNonce rows that are expired
+     * delete any ldapNonce rows that are expired or for the logged in user
      */
     private void deleteExpiredNonces() {
         Integer ldapTimeout = Integer.parseInt(sm.retrieveValue("ldapLockedAccountTimeout"));
-        Statement stmt = null;
+        PreparedStatement stmt = null;
 
         try {
-            stmt = conn.createStatement();
-            stmt.execute("DELETE FROM ldapNonces WHERE ts < (NOW() - INTERVAL " + ldapTimeout + " MINUTE)");
+            String sql = "DELETE FROM ldapNonces WHERE ts < (NOW() - INTERVAL ? MINUTE) OR username = ?";
+            stmt = conn.prepareStatement(sql);
+
+            stmt.setInt(1, ldapTimeout);
+            stmt.setString(2, longUsername);
+
+            stmt.execute();
         } catch (SQLException e) {
             logger.warn(null, e);
         } finally {
