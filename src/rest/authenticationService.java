@@ -167,7 +167,7 @@ public class authenticationService {
                     for (int i = 0; i < challengeQuestions.length; i++) {
                         queryParams += "&question_" + (i + 1) + "=" + challengeQuestions[i];
                     }
-                    queryParams += new queryParams().getQueryParams(request.getParameterMap(), false);
+                    queryParams += "&" + request.getQueryString();
 
                     return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
                             .build();
