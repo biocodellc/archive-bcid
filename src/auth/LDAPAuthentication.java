@@ -119,7 +119,7 @@ public class LDAPAuthentication {
 
         try {
             stmt = conn.createStatement();
-            stmt.execute("DELETE FROM ldapNonces WHERE ts < (NOW() - INTERVAL " + ldapTimeout + " MINUTE");
+            stmt.execute("DELETE FROM ldapNonces WHERE ts < (NOW() - INTERVAL " + ldapTimeout + " MINUTE)");
         } catch (SQLException e) {
             logger.warn(null, e);
         } finally {
