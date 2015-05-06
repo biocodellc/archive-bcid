@@ -137,7 +137,9 @@ public class LDAPAuthentication {
             stmt = conn.prepareStatement(insertString);
 
             stmt.setString(1, longUsername);
-            stmt.setInt(1, numLdapAttemptsAllowed);
+            stmt.setInt(2, numLdapAttemptsAllowed);
+
+            stmt.execute();
         } catch (SQLException e) {
             // silence the exception since the nonce is only used as a warning feature for users, not mandatory for
             // ldap login
