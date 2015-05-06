@@ -726,7 +726,11 @@ function login() {
         .done(function(data) {
             window.location.replace(data.url);
         }).fail(function(jqxhr) {
-            $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
+            if (jqxhr.status == 404) {
+                $(".error").html("page not found");
+            } else {
+                $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
+            }
         });
     loadingDialog(jqxhr);
 }
