@@ -203,11 +203,11 @@ public class projectMinter {
 
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, project_id);
-            //stmt.setInt(2, project_id);
-            if (username != null) {
+            stmt.setInt(2, project_id);
+            /*if (username != null) {
                 Integer userId = db.getUserId(username);
                 stmt.setInt(3, userId);
-            }
+            } */
 
             //System.out.println(sql);
             sb.append("{\n\t\"data\": [\n");
