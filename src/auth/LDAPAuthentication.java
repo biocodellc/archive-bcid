@@ -93,7 +93,7 @@ public class LDAPAuthentication {
                 // Get the current time from the database (in case the application server is in a different timezone)
                 Timestamp currentTs = rs.getTimestamp("current");
                 // convert minutes to miliseconds
-                Timestamp expiredTs = new Timestamp(currentTs.getTime() - (ldapTimeout * 60 * 100));
+                Timestamp expiredTs = new Timestamp(currentTs.getTime() - (ldapTimeout * 60 * 1000));
 
                 // if nonce isn't expired, then return the number of attempts
                 if (ts != null && ts.after(expiredTs)) {
@@ -111,15 +111,20 @@ public class LDAPAuthentication {
     }
 
     /**
-     * delete any ldapNonce rows that are expired
+     * delete any ldapNonce rows that are expired or for the logged in user
      */
     private void deleteExpiredNonces() {
         Integer ldapTimeout = Integer.parseInt(sm.retrieveValue("ldapLockedAccountTimeout"));
-        Statement stmt = null;
+        PreparedStatement stmt = null;
 
         try {
-            stmt = conn.createStatement();
-            stmt.execute("DELETE FROM ldapNonces WHERE ts < (NOW() - INTERVAL " + ldapTimeout + " MINUTE");
+            String sql = "DELETE FROM ldapNonces WHERE ts < (NOW() - INTERVAL ? MINUTE) OR username = ?";
+            stmt = conn.prepareStatement(sql);
+
+            stmt.setInt(1, ldapTimeout);
+            stmt.setString(2, longUsername);
+
+            stmt.execute();
         } catch (SQLException e) {
             logger.warn(null, e);
         } finally {
@@ -137,7 +142,9 @@ public class LDAPAuthentication {
             stmt = conn.prepareStatement(insertString);
 
             stmt.setString(1, longUsername);
-            stmt.setInt(1, numLdapAttemptsAllowed);
+            stmt.setInt(2, numLdapAttemptsAllowed);
+
+            stmt.execute();
         } catch (SQLException e) {
             // silence the exception since the nonce is only used as a warning feature for users, not mandatory for
             // ldap login
