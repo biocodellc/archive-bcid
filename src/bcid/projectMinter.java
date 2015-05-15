@@ -194,15 +194,16 @@ public class projectMinter {
                     " and pB.expedition_id=p.expedition_id\n" +
                     " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
                     "    and p.project_id =?";
-            if (username != null) {
+            // Removing public restriction on getAllGraphs for project...
+            /*if (username != null) {
                 sql += "    and (p.public = 1 or p.users_id = ?)";
             } else {
                 sql += "    and p.public = 1";
-            }
+            } */
+
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, project_id);
-            stmt.setInt(2, project_id);
-
+            //stmt.setInt(2, project_id);
             if (username != null) {
                 Integer userId = db.getUserId(username);
                 stmt.setInt(3, userId);
@@ -241,7 +242,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("results = \n" + project.getLatestGraphs(22, "dbaxter"));
+        System.out.println("results = \n" + project.getLatestGraphs(5, "biocode"));
         project.close();
     }
 
