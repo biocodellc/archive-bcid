@@ -194,22 +194,24 @@ public class projectMinter {
                     " and pB.expedition_id=p.expedition_id\n" +
                     " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
                     "    and p.project_id =?";
-            // Removing public restriction on getAllGraphs for project...
-            /*if (username != null) {
+
+            // Enforce restriction on viewing particular datasets -- this is important for protected datasets
+            if (username != null) {
                 sql += "    and (p.public = 1 or p.users_id = ?)";
             } else {
                 sql += "    and p.public = 1";
-            } */
+            }
 
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, project_id);
             stmt.setInt(2, project_id);
-            /*if (username != null) {
+
+            // Enforce restriction on viewing particular datasets -- this is important for protected datasets
+            if (username != null) {
                 Integer userId = db.getUserId(username);
                 stmt.setInt(3, userId);
-            } */
+            }
 
-            //System.out.println(sql);
             sb.append("{\n\t\"data\": [\n");
             rs = stmt.executeQuery();
             while (rs.next()) {
