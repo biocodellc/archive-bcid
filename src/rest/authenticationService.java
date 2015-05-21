@@ -381,6 +381,7 @@ public class authenticationService {
         if (state != null) {
             redirectURL += "&state=" + state;
         }
+        System.out.println("BCID redirecting to " + redirectURL);
         try {
             return Response.status(302)
                     .location(new URI(redirectURL))
@@ -409,6 +410,7 @@ public class authenticationService {
                                  @FormParam("client_secret") String clientSecret,
                                  @FormParam("redirect_uri") String redirectURL,
                                  @FormParam("state") String state) {
+        System.out.println("BCID oauth/access_token method START");
         provider p = null;
         p = new provider();
         if (redirectURL == null) {
@@ -435,6 +437,7 @@ public class authenticationService {
         String response = p.generateToken(clientId, state, code);
         p.close();
 
+        System.out.println("BCID oauth/access_token method END");
         return Response.ok(response)
                 .header("Cache-Control", "no-store")
                 .header("Pragma", "no-cache")
