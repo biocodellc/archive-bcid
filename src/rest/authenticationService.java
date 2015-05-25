@@ -106,9 +106,15 @@ public class authenticationService {
                     authenticator.close();
                 }
 
-
                 // Redirect to return_to uri if provided
                 if (return_to != null) {
+
+                    // check to see if oAuthLogin is in the session and set to true is so.
+                    Object oAuthLogin = session.getAttribute("oAuthLogin");
+                    if (oAuthLogin != null) {
+                        session.setAttribute("oAuthLogin", true);
+                    }
+
                     return Response.ok("{\"url\": \"" + return_to +
                                 new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
                             .build();
@@ -132,7 +138,6 @@ public class authenticationService {
      * Service to log a user into the bcid system with 2-factor authentication using LDAP & Entrust Identity Guard
      *
      * @param usr
-     * @param return_to the url to return to after login
      *
      * @throws IOException
      */
@@ -141,7 +146,6 @@ public class authenticationService {
     @Produces(MediaType.APPLICATION_JSON)
     public Response loginLDAP(@FormParam("username") String usr,
                               @FormParam("password") String pass,
-                              @QueryParam("return_to") String return_to,
                               @Context HttpServletResponse res) {
         LDAPAuthentication ldapAuthentication = new LDAPAuthentication();
         Integer numLdapAttemptsAllowed = Integer.parseInt(sm.retrieveValue("ldapAttempts"));
@@ -258,6 +262,13 @@ public class authenticationService {
 
                 // Redirect to return_to uri if provided
                 if (return_to != null) {
+
+                    // check to see if oAuthLogin is in the session and set to true is so.
+                    Object oAuthLogin = session.getAttribute("oAuthLogin");
+                    if (oAuthLogin != null) {
+                        session.setAttribute("oAuthLogin", true);
+                    }
+
                     return Response.ok("{\"url\": \"" + return_to +
                             new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
                             .build();
@@ -325,6 +336,13 @@ public class authenticationService {
                               @Context HttpServletResponse response) {
         HttpSession session = request.getSession();
         Object username = session.getAttribute("user");
+        Object sessionoAuthLogin = session.getAttribute("oAuthLogin");
+        Boolean oAuthLogin = false;
+
+        // oAuthLogin is used to force the user to re-authenticate for oAuth
+        if (sessionoAuthLogin != null && ((Boolean) sessionoAuthLogin)) {
+            oAuthLogin = true;
+        }
 
         provider p = new provider();
 
@@ -359,7 +377,8 @@ public class authenticationService {
             }
         }
 
-        if (username == null) {
+        if (username == null || !oAuthLogin) {
+            session.setAttribute("oAuthLogin", "false");
             // need the user to login
             try {
                 p.close();
@@ -375,6 +394,9 @@ public class authenticationService {
         //TODO ask user if they want to share profile information with requesting party
         String code = p.generateCode(clientId, redirectURL, username.toString());
         p.close();
+
+        // no longer need oAuthLogin session attribute
+        session.removeAttribute("oAuthLogin");
 
         redirectURL += "?code=" + code;
 
