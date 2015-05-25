@@ -60,7 +60,9 @@
                 </tr>
             </table>
         </form>
-
+        <p>
+            For assistance with your account login or challenge questions call (202) 633-4000 or
+            visit <a href="http://myid.si.edu/">http://myid.si.edu/</a>
     </div>
 </div>
  <div class="clearfooter"></div>
