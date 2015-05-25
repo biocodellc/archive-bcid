@@ -167,49 +167,70 @@ public class projectMinter {
      * This is a public accessible function from the REST service so it only returns results that are declared as public
      *
      * @param project_id pass in an project identifier to limit the set of expeditions we are looking at
+     * @param includePublic whether or not you want to include public graphs
      * @return
      */
-    public String getLatestGraphs(int project_id, String username) {
+    public String getLatestGraphs(Object project_id, String username, Boolean includePublic) {
         StringBuilder sb = new StringBuilder();
         PreparedStatement stmt = null;
         ResultSet rs = null;
+
+        // We either need a username or includePublic to be true
+        if (username == null && !includePublic) {
+            throw new ServerErrorException("server error", "username can't be null if includePublic is false");
+        }
 
         try {
             // Construct the query
             // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
             // maximum timestamp (latest) loaded for a particular expedition.
             // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
-            String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress, d1.prefix as ark, d1.datasets_id as id, p.project_id as project_id \n" +
+            String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress, d1.prefix as ark, d1.datasets_id as id, p.project_id as project_id, p.public as public \n" +
                     "from datasets as d1, \n" +
                     "(select p.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress, d.prefix as ark, d.datasets_id as id, p.project_id as project_id \n" +
                     "    \tfrom datasets d,expeditions p, expeditionsBCIDs pB\n" +
                     "    \twhere pB.datasets_id=d.datasets_id\n" +
                     "    \tand pB.expedition_id=p.expedition_id\n" +
-                    " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                    "    and p.project_id = ?\n" +
-                    "    \tgroup by p.expedition_code) as  d2,\n" +
-                    "expeditions p,  expeditionsBCIDs pB\n" +
-                    "where p.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
-                    " and pB.datasets_id=d1.datasets_id \n" +
-                    " and pB.expedition_id=p.expedition_id\n" +
-                    " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
-                    "    and p.project_id =?";
+                    " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
+
+            if (project_id != null) {
+                sql += "    and p.project_id = ?\n";
+            }
+
+            sql += "    \tgroup by p.expedition_code) as  d2,\n" +
+                   "expeditions p,  expeditionsBCIDs pB\n" +
+                   "where p.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
+                   " and pB.datasets_id=d1.datasets_id \n" +
+                   " and pB.expedition_id=p.expedition_id\n" +
+                   " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
+
+            if (project_id != null) {
+                sql += "    and p.project_id =?";
+            }
 
             // Enforce restriction on viewing particular datasets -- this is important for protected datasets
-            if (username != null) {
+            if (username != null && includePublic) {
                 sql += "    and (p.public = 1 or p.users_id = ?)";
+            } else if (username != null && !includePublic) {
+                sql += "    and p.users_id = ?";
             } else {
                 sql += "    and p.public = 1";
             }
 
             stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, project_id);
-            stmt.setInt(2, project_id);
+            if (project_id != null) {
+                stmt.setInt(1, (Integer) project_id);
+                stmt.setInt(2, (Integer) project_id);
+            }
 
             // Enforce restriction on viewing particular datasets -- this is important for protected datasets
             if (username != null) {
                 Integer userId = db.getUserId(username);
-                stmt.setInt(3, userId);
+                if (project_id != null) {
+                    stmt.setInt(3, userId);
+                } else {
+                    stmt.setInt(1, userId);
+                }
             }
 
             sb.append("{\n\t\"data\": [\n");
@@ -225,6 +246,7 @@ public class projectMinter {
                 sb.append("\t\t\t\"project_id\":\"" + rs.getString("project_id") + "\",\n");
                 sb.append("\t\t\t\"webaddress\":\"" + rs.getString("webaddress") + "\",\n");
                 sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
+                sb.append("\t\t\t\"public\":\"" + rs.getString("public") + "\"\n");
                 sb.append("\t\t}");
                 if (!rs.isLast())
                     sb.append(",");
@@ -244,7 +266,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("results = \n" + project.getLatestGraphs(5, "biocode"));
+        System.out.println("results = \n" + project.getLatestGraphs(5, "biocode", true));
         project.close();
     }
 

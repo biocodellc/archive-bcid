@@ -100,7 +100,40 @@ public class projectService {
         }
         projectMinter project= new projectMinter();
 
-        String response = project.getLatestGraphs(project_id, username);
+        String response = project.getLatestGraphs(project_id, username, true);
+        project.close();
+
+        return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
+    }
+
+    /**
+     * Given an project identifier, get the users latest datasets by expedition
+     *
+     * @return
+     */
+    @GET
+    @Path("/myGraphs/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getMyLatestGraphs(@QueryParam("access_token") String accessToken) {
+        String username;
+
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+            p.close();
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
+
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must login to retrieve you're graphs.");
+        }
+
+        projectMinter project= new projectMinter();
+
+        String response = project.getLatestGraphs(null, username, false);
         project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
