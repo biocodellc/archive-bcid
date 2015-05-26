@@ -2,6 +2,9 @@ package bcid;
 
 import bcidExceptions.BadRequestException;
 import bcidExceptions.ServerErrorException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.SettingsManager;
@@ -167,70 +170,49 @@ public class projectMinter {
      * This is a public accessible function from the REST service so it only returns results that are declared as public
      *
      * @param project_id pass in an project identifier to limit the set of expeditions we are looking at
-     * @param includePublic whether or not you want to include public graphs
      * @return
      */
-    public String getLatestGraphs(Object project_id, String username, Boolean includePublic) {
+    public String getLatestGraphs(int project_id, String username) {
         StringBuilder sb = new StringBuilder();
         PreparedStatement stmt = null;
         ResultSet rs = null;
-
-        // We either need a username or includePublic to be true
-        if (username == null && !includePublic) {
-            throw new ServerErrorException("server error", "username can't be null if includePublic is false");
-        }
 
         try {
             // Construct the query
             // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
             // maximum timestamp (latest) loaded for a particular expedition.
             // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
-            String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress, d1.prefix as ark, d1.datasets_id as id, p.project_id as project_id, p.public as public \n" +
+            String sql = "select p.expedition_code as expedition_code,p.expedition_title,d1.graph as graph,d1.ts as ts, d1.webaddress as webaddress, d1.prefix as ark, d1.datasets_id as id, p.project_id as project_id \n" +
                     "from datasets as d1, \n" +
                     "(select p.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress, d.prefix as ark, d.datasets_id as id, p.project_id as project_id \n" +
                     "    \tfrom datasets d,expeditions p, expeditionsBCIDs pB\n" +
                     "    \twhere pB.datasets_id=d.datasets_id\n" +
                     "    \tand pB.expedition_id=p.expedition_id\n" +
-                    " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
-
-            if (project_id != null) {
-                sql += "    and p.project_id = ?\n";
-            }
-
-            sql += "    \tgroup by p.expedition_code) as  d2,\n" +
-                   "expeditions p,  expeditionsBCIDs pB\n" +
-                   "where p.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
-                   " and pB.datasets_id=d1.datasets_id \n" +
-                   " and pB.expedition_id=p.expedition_id\n" +
-                   " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n";
-
-            if (project_id != null) {
-                sql += "    and p.project_id =?";
-            }
+                    " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                    "    and p.project_id = ?\n" +
+                    "    \tgroup by p.expedition_code) as  d2,\n" +
+                    "expeditions p,  expeditionsBCIDs pB\n" +
+                    "where p.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
+                    " and pB.datasets_id=d1.datasets_id \n" +
+                    " and pB.expedition_id=p.expedition_id\n" +
+                    " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                    "    and p.project_id =?";
 
             // Enforce restriction on viewing particular datasets -- this is important for protected datasets
-            if (username != null && includePublic) {
+            if (username != null) {
                 sql += "    and (p.public = 1 or p.users_id = ?)";
-            } else if (username != null && !includePublic) {
-                sql += "    and p.users_id = ?";
             } else {
                 sql += "    and p.public = 1";
             }
 
             stmt = conn.prepareStatement(sql);
-            if (project_id != null) {
-                stmt.setInt(1, (Integer) project_id);
-                stmt.setInt(2, (Integer) project_id);
-            }
+            stmt.setInt(1, project_id);
+            stmt.setInt(2, project_id);
 
             // Enforce restriction on viewing particular datasets -- this is important for protected datasets
             if (username != null) {
                 Integer userId = db.getUserId(username);
-                if (project_id != null) {
-                    stmt.setInt(3, userId);
-                } else {
-                    stmt.setInt(1, userId);
-                }
+                stmt.setInt(3, userId);
             }
 
             sb.append("{\n\t\"data\": [\n");
@@ -246,7 +228,6 @@ public class projectMinter {
                 sb.append("\t\t\t\"project_id\":\"" + rs.getString("project_id") + "\",\n");
                 sb.append("\t\t\t\"webaddress\":\"" + rs.getString("webaddress") + "\",\n");
                 sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
-                sb.append("\t\t\t\"public\":\"" + rs.getString("public") + "\"\n");
                 sb.append("\t\t}");
                 if (!rs.isLast())
                     sb.append(",");
@@ -266,7 +247,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("results = \n" + project.getLatestGraphs(5, "biocode", true));
+        System.out.println("datasets = \n" + project.getMyLatestGraphs("demo"));
         project.close();
     }
 
@@ -722,6 +703,90 @@ public class projectMinter {
             return sb.toString();
         } catch (SQLException e) {
             throw new ServerErrorException("Server error retrieving project users.", e);
+        } finally {
+            db.close(stmt, rs);
+        }
+    }
+
+    /**
+     * A utility function to get the very latest graph loads that belong to a user
+     *
+     * @return
+     */
+    public String getMyLatestGraphs(String username) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        JSONObject response = new JSONObject();
+        HashMap projectMap = new HashMap();
+        JSONArray projectDatasets;
+
+        JSONObject projectResponse = ((JSONObject) JSONValue.parse(listUsersProjects(username)));
+        JSONArray projects = ((JSONArray) projectResponse.get("projects"));
+
+        for (Object p:  projects) {
+            JSONObject project = (JSONObject) p;
+            projectMap.put(project.get("project_title"), new JSONArray());
+        }
+
+        // We need a username
+        if (username == null) {
+            throw new ServerErrorException("server error", "username can't be null");
+        }
+
+        try {
+            // Construct the query
+            // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
+            // maximum timestamp (latest) loaded for a particular expedition.
+            // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
+            String sql = "select e.expedition_code, e.expedition_title, d1.graph, d1.ts, d1.datasets_id as id, e.project_id, e.public, p.project_title\n" +
+                    "from datasets as d1, \n" +
+                    "(select e.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress, d.prefix as ark, d.datasets_id as id, e.project_id as project_id \n" +
+                    "    \tfrom datasets d,expeditions e, expeditionsBCIDs pB\n" +
+                    "    \twhere pB.datasets_id=d.datasets_id\n" +
+                    "    \tand pB.expedition_id=e.expedition_id\n" +
+                    " and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                    "    \tgroup by e.expedition_code) as  d2,\n" +
+                    "expeditions e,  expeditionsBCIDs pB, projects p\n" +
+                    "where e.expedition_code = d2.expedition_code and d1.ts = d2.maxts\n" +
+                    " and pB.datasets_id=d1.datasets_id \n" +
+                    " and pB.expedition_id=e.expedition_id\n" +
+                    " and p.project_id=e.project_id\n" +
+                    " and d1.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                    "    and e.users_id = ?";
+
+            stmt = conn.prepareStatement(sql);
+            Integer userId = db.getUserId(username);
+            stmt.setInt(1, userId);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                JSONObject dataset = new JSONObject();
+                String project_title = rs.getString("project_title");
+
+                // Grap the prefixes and concepts associated with this
+                dataset.put("expedition_code", rs.getString("expedition_code"));
+                dataset.put("expedition_title", rs.getString("expedition_title"));
+                dataset.put("ts", rs.getString("ts"));
+                dataset.put("dataset_id", rs.getString("id"));
+                dataset.put("project_id", rs.getString("project_id"));
+                dataset.put("graph", rs.getString("graph"));
+                dataset.put("public", rs.getString("public"));
+
+                if (project_title != null && !project_title.isEmpty()) {
+                    projectDatasets = (JSONArray) projectMap.get(project_title);
+                    // TODO What should we do if a project_title shows up that wasn't before fetched? ignore it? or add the project?
+                    if (projectDatasets == null) {
+                        projectDatasets = new JSONArray();
+                    }
+                    projectDatasets.add(dataset);
+                    projectMap.put(project_title, projectDatasets);
+                }
+            }
+
+            response.put("data", projectMap);
+            return response.toJSONString();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "Trouble getting latest graphs.", e);
         } finally {
             db.close(stmt, rs);
         }
