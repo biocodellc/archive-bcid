@@ -245,7 +245,7 @@ public class projectMinter {
                 sb.append("\t\t\t\"dataset_id\":\"" + rs.getString("id") + "\",\n");
                 sb.append("\t\t\t\"project_id\":\"" + rs.getString("project_id") + "\",\n");
                 sb.append("\t\t\t\"webaddress\":\"" + rs.getString("webaddress") + "\",\n");
-                sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\"\n");
+                sb.append("\t\t\t\"graph\":\"" + rs.getString("graph") + "\",\n");
                 sb.append("\t\t\t\"public\":\"" + rs.getString("public") + "\"\n");
                 sb.append("\t\t}");
                 if (!rs.isLast())

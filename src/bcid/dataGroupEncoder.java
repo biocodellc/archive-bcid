@@ -216,6 +216,7 @@ public class dataGroupEncoder extends GenericIdentifier implements encoder {
             "ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                     .toCharArray();
 
+
     /** Lookup table for converting shoulder characters to values **/
     static public byte[] codes = new byte[256];
 
@@ -280,9 +281,11 @@ public class dataGroupEncoder extends GenericIdentifier implements encoder {
      * @param args
      */
     public static void main(String args[]) {
-        dataGroupEncoder shoulderEncoder = new dataGroupEncoder();
 
-        BigInteger i = new BigInteger("6900000");
+        dataGroupEncoder shoulderEncoder = new dataGroupEncoder();
+        shoulderEncoder.setDebug(true);
+
+        BigInteger i = new BigInteger("10000000");
         String result = shoulderEncoder.encode(i);
         System.out.println("Encode/Decode Unique Value and Back");
         System.out.println("  Encoding " + i + " = " + result);
