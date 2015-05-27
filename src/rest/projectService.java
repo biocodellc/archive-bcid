@@ -100,7 +100,7 @@ public class projectService {
         }
         projectMinter project= new projectMinter();
 
-        String response = project.getLatestGraphs(project_id, username, true);
+        String response = project.getLatestGraphs(project_id, username);
         project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
@@ -133,7 +133,7 @@ public class projectService {
 
         projectMinter project= new projectMinter();
 
-        String response = project.getLatestGraphs(null, username, false);
+        String response = project.getMyLatestGraphs(username);
         project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
