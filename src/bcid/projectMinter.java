@@ -772,7 +772,7 @@ public class projectMinter {
                 dataset.put("graph", rs.getString("graph"));
                 dataset.put("public", rs.getString("public"));
                 dataset.put("ark", rs.getString("ark"));
-                dataset.put("ark", rs.getString("webaddress"));
+                dataset.put("webaddress", rs.getString("webaddress"));
 
 
                 if (project_title != null && !project_title.isEmpty()) {
