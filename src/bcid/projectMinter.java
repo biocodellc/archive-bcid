@@ -738,7 +738,7 @@ public class projectMinter {
             // This query is built to give us a groupwise maximum-- we want the graphs that correspond to the
             // maximum timestamp (latest) loaded for a particular expedition.
             // Help on solving this problem came from http://jan.kneschke.de/expeditions/mysql/groupwise-max/
-            String sql = "select e.expedition_code, e.expedition_title, d1.graph, d1.ts, d1.datasets_id as id, e.project_id, e.public, p.project_title\n" +
+            String sql = "select e.expedition_code, e.expedition_title, d1.graph, d1.ts, d1.datasets_id as id, d1.prefix as ark, e.project_id, e.public, p.project_title\n" +
                     "from datasets as d1, \n" +
                     "(select e.expedition_code as expedition_code,d.graph as graph,max(d.ts) as maxts, d.webaddress as webaddress, d.prefix as ark, d.datasets_id as id, e.project_id as project_id \n" +
                     "    \tfrom datasets d,expeditions e, expeditionsBCIDs pB\n" +
@@ -771,6 +771,7 @@ public class projectMinter {
                 dataset.put("project_id", rs.getString("project_id"));
                 dataset.put("graph", rs.getString("graph"));
                 dataset.put("public", rs.getString("public"));
+                dataset.put("ark", rs.getString("ark"));
 
                 if (project_title != null && !project_title.isEmpty()) {
                     projectDatasets = (JSONArray) projectMap.get(project_title);
