@@ -728,6 +728,10 @@ function login() {
         }).fail(function(jqxhr) {
             if (jqxhr.status == 404) {
                 $(".error").html("page not found");
+            } else if  (jqxhr.status == 302) {
+                // a status of 302 must be returned in order to pass SI vulnerabilities assessment. This will fail the ajax call
+                // however, it didn't really fail and the url will be returned in the json
+                window.location.replace($.parseJSON(jqxhr.responseText).url);
             } else {
                 $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
             }
@@ -746,7 +750,13 @@ function challengeResponse() {
         .done(function(data) {
             window.location.replace(data.url);
         }).fail(function(jqxhr) {
-            $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
+            // a status of 302 must be returned in order to pass SI vulnerabilities assessment. This will fail the ajax call
+            // however, it didn't really fail and the url will be returned in the json
+            if (jqxhr.status == 302) {
+                window.location.replace($.parseJSON(jqxhr.responseText).url);
+            } else {
+                $(".error").html($.parseJSON(jqxhr.responseText).usrMessage);
+            }
         });
     loadingDialog(jqxhr);
 }

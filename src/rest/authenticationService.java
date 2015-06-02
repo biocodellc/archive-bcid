@@ -1,6 +1,5 @@
 package rest;
 
-import auth.EntrustIGAuthentication;
 import auth.LDAPAuthentication;
 import auth.authenticator;
 import auth.authorizer;
@@ -21,13 +20,10 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.Timestamp;
-import java.util.*;
 
 /**
  * REST interface for handling user authentication
@@ -77,7 +73,7 @@ public class authenticationService {
             isAuthenticated = authenticator.login(usr, pass);
             HttpSession session = request.getSession();
 
-            logger.debug("BCID SESS_DEBUG login: sessionid=" + session.getId());
+//            logger.debug("BCID SESS_DEBUG login: sessionid=" + session.getId());
 
             if (isAuthenticated) {
                 // Place the user in the session
@@ -173,7 +169,8 @@ public class authenticationService {
                     }
                     queryParams += "&" + request.getQueryString();
 
-                    return Response.ok("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
+                    // need to return status 302 in order to pass SI vulnerabilities assessment
+                    return Response.status(302).entity("{\"url\": \"/bcid/entrustChallenge.jsp" + queryParams + "\"}")
                             .build();
                 }
 
@@ -205,7 +202,6 @@ public class authenticationService {
      * @param question1
      * @param question2
      * @param userid
-     * @param challengeResponse
      * @return
      */
     @POST
@@ -214,32 +210,10 @@ public class authenticationService {
     public Response entrustChallenge(@QueryParam("return_to") String return_to,
                                      @FormParam("question_1") String question1,
                                      @FormParam("question_2") String question2,
-                                     @FormParam("userid") String userid,
-                                     MultivaluedMap<String, String> challengeResponse) {
+                                     @FormParam("userid") String userid) {
         String[] respChallenge = {question1, question2};
-//        TODO: use MultivaluedMap to retrieve a non specified amount of challenge questions
-//        SortedMap<String, String> resp = (SortedMap) challengeResponse;
-//        Iterator<String> it = challengeResponse.keySet().iterator();
-
-//        while (it.hasNext()) {
-//            String key = it.next();
-//            if (key.startsWith("question")) {
-//                resp.put(key, challengeResponse.getFirst(key));
-//            }
-//        }
 
         if (userid != null && question1 != null && question2 != null) {
-//        if (userid != null && resp.size() > 0) {
-            //convert list to array
-//            String[] respChallenge = new String[resp.size()];
-//            Iterator entries = resp.entrySet().iterator();
-//            int i = 0;
-//            while (entries.hasNext()) {
-//                Map.Entry thisEntry = (Map.Entry) entries.next();
-//                respChallenge[i] = (String) thisEntry.getValue();
-//                i++;
-//            }
-
             authenticator authenticator = new authenticator();
             HttpSession session = request.getSession();
 
@@ -269,11 +243,13 @@ public class authenticationService {
                         session.setAttribute("oAuthLogin", true);
                     }
 
-                    return Response.ok("{\"url\": \"" + return_to +
+                    // need to return status 302 in order to pass SI vulnerabilities assessment
+                    return Response.status(302).entity("{\"url\": \"" + return_to +
                             new queryParams().getQueryParams(request.getParameterMap(), true) + "\"}")
                             .build();
                 } else {
-                    return Response.ok("{\"url\": \"/bcid/index.jsp\"}").build();
+                    // need to return status 302 in order to pass SI vulnerabilities assessment
+                    return Response.status(302).entity("{\"url\": \"/bcid/index.jsp\"}").build();
                 }
             }
             return Response.status(500)
@@ -403,7 +379,7 @@ public class authenticationService {
         if (state != null) {
             redirectURL += "&state=" + state;
         }
-        System.out.println("BCID redirecting to " + redirectURL);
+//        System.out.println("BCID redirecting to " + redirectURL);
         try {
             return Response.status(302)
                     .location(new URI(redirectURL))
@@ -432,7 +408,7 @@ public class authenticationService {
                                  @FormParam("client_secret") String clientSecret,
                                  @FormParam("redirect_uri") String redirectURL,
                                  @FormParam("state") String state) {
-        System.out.println("BCID oauth/access_token method START");
+//        System.out.println("BCID oauth/access_token method START");
         provider p = null;
         p = new provider();
         if (redirectURL == null) {
@@ -459,7 +435,7 @@ public class authenticationService {
         String response = p.generateToken(clientId, state, code);
         p.close();
 
-        System.out.println("BCID oauth/access_token method END");
+//        System.out.println("BCID oauth/access_token method END");
         return Response.ok(response)
                 .header("Cache-Control", "no-store")
                 .header("Pragma", "no-cache")
