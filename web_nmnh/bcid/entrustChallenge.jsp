@@ -24,11 +24,11 @@
             <table>
                 <tr>
                     <td align="right">${param.question_1}</td>
-                    <td><input type="password" name="question_1" autofocus></td>
+                    <td><input type="password" name="question_1" autocomplete="off" autofocus></td>
                 </tr>
                 <tr>
                     <td align="right">${param.question_2}</td>
-                    <td><input type="password" name="question_2"></td>
+                    <td><input type="password" name="question_2" autocomplete="off"></td>
                 </tr>
                 <tr>
                     <td></td>

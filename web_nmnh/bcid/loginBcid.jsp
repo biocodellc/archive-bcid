@@ -32,7 +32,7 @@
                 </tr>
                 <tr>
                     <td align="right">Password</td>
-                    <td><input type="password" name="password"></td>
+                    <td><input type="password" name="password" autocomplete="off"></td>
                 </tr>
                 <tr></tr>
                 <tr>

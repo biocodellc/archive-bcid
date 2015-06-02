@@ -3,11 +3,11 @@
     <div class="sectioncontent" id="pass_reset">
         <h2>BCID Password Reset</h2>
 
-        <form method="POST" action="/id/authenticationService/reset/">
+        <form method="POST" action="/id/authenticationService/reset/" autocomplete="off">
             <table>
                 <tr>
                     <td align="right">New Password</td>
-                    <td><input class="pwcheck" type="password" data-indicator="pwindicator" name="password"></td>
+                    <td><input class="pwcheck" type="password" autocomplete="off" data-indicator="pwindicator" name="password"></td>
                 </tr>
                 <tr>
                     <td></td>
