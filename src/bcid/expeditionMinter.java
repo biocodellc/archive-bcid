@@ -437,7 +437,7 @@ public class expeditionMinter {
     }
 
     /**
-     * Generate a Deep Links Format data file for describing a set of root prefixes and associated concepts
+     * Get Metadata on a named graph
      *
      * @param graphName
      *

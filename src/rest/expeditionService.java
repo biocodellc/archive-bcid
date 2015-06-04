@@ -229,7 +229,7 @@ public class expeditionService {
     }
 
     /**
-     * Given a expedition code and a resource alias, return a BCID
+     * Given a graph name, return metadata
      *
      * @param graph
      *
