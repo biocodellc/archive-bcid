@@ -193,3 +193,18 @@ CREATE TABLE `ldapNonces` (
   PRIMARY KEY (`ldapNonces_id`),
   UNIQUE KEY `ldapNonces_usernamex` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `templateConfigs`;
+
+CREATE TABLE `templateConfigs` (
+  `templateConfigs_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `users_id` int(11) UNSIGNED NOT NULL COMMENT 'The users id',
+  `project_id` int(11) NOT NULL COMMENT 'The project Id',
+  `public` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether or not this is a public template config?',
+  `config` varchar(1000) NOT NULL COMMENT 'The array of uris to be checked when generating a template',
+  KEY `templateConfigs_projects_id` (`project_id`),
+  KEY `templateConfigs_users_id` (`users_id`),
+  CONSTRAINT `FK_templateConfigs_user`  FOREIGN KEY (`users_id`) REFERENCES `users` (`USER_ID`),
+  CONSTRAINT `FK_templateConfigs_project` FOREIGN KEY(`project_id`) REFERENCES `projects` (`project_id`),
+  PRIMARY KEY (`templateConfigs_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
