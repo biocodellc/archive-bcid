@@ -167,7 +167,8 @@ public class elementService {
                     doi,
                     webaddress,
                     graph,
-                    title);
+                    title,
+                    false);
             // Load an existing dataset we've made already
         } else {
             dataset = new dataGroupMinter(dataset_id);

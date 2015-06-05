@@ -40,7 +40,8 @@ public class dataGroupMinterTest {
                 null,
                 "http://biocode.berkeley.edu/specimens/",
                 null,
-                "TEST minter");
+                "TEST minter",
+                false);
         minter.close();
         String datasetPrefix = minter.getPrefix();
 

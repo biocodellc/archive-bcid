@@ -68,6 +68,7 @@ public class groupService {
                          @FormParam("resourceType") String resourceTypeString,
                          @FormParam("resourceTypesMinusDataset") Integer resourceTypesMinusDataset,
                          @FormParam("suffixPassThrough") String stringSuffixPassThrough,
+                         @FormParam("finalCopy") @DefaultValue("false") Boolean finalCopy,
                          @QueryParam("access_token") String accessToken,
                          @Context HttpServletRequest request) {
 
@@ -132,7 +133,8 @@ public class groupService {
                 doi,
                 webaddress,
                 graph,
-                title);
+                title,
+                finalCopy);
         minterDataset.close();
         String datasetPrefix = minterDataset.getPrefix();
 

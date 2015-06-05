@@ -465,6 +465,7 @@ public class expeditionMinter {
                             " d.ts as timestamp," +
                             " d.prefix as BCID, " +
                             " d.resourceType as resourceType," +
+                            " d.finalCopy as finalCopy," +
                             " a.expedition_code as expedition_code, " +
                             " a.expedition_title as expedition_title, " +
                             " a.public as public " +
@@ -497,6 +498,7 @@ public class expeditionMinter {
                 sb.append("\t\t\t\"timestamp\":\"" + rs.getString("timestamp") + "\",\n");
                 sb.append("\t\t\t\"bcid\":\"" + rs.getString("BCID") + "\",\n");
                 sb.append("\t\t\t\"resourceType\":\"" + rs.getString("resourceType") + "\",\n");
+                sb.append("\t\t\t\"finalCopy\":\"" + rs.getBoolean("finalCopy") + "\",\n");
                 sb.append("\t\t\t\"public\":\"" + rs.getBoolean("public") + "\",\n");
                 sb.append("\t\t\t\"expedition_code\":\"" + rs.getString("expedition_code") + "\",\n");
                 sb.append("\t\t\t\"expedition_title\":\"" + rs.getString("expedition_title") + "\"\n");

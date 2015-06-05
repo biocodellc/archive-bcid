@@ -230,7 +230,7 @@ public class run {
         // Create a new dataset
         System.out.println("\nCreating a new dataset");
         dataset = new dataGroupMinter(true, true);
-        dataset.mint(NAAN, user_id, new ResourceTypes().get(ResourceType).uri, doi, webaddress, null,title);
+        dataset.mint(NAAN, user_id, new ResourceTypes().get(ResourceType).uri, doi, webaddress, null, title, false);
         dataset.close();
 
         /*

@@ -231,7 +231,7 @@ public class dataGroupMinter extends dataGroupEncoder {
      * @param webaddress
      * @param title
      */
-    public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title) {
+    public Integer mint(Integer NAAN, Integer who, String resourceType, String doi, String webaddress, String graph, String title, Boolean finalCopy) {
 
         // Never request EZID for user=demo
         if (db.getUserName(who).equalsIgnoreCase("demo")) {
@@ -247,8 +247,8 @@ public class dataGroupMinter extends dataGroupEncoder {
         PreparedStatement updateStatement = null;
         try {
             // Use auto increment in database to assign the actual identifier.. this is threadsafe this way
-            String insertString = "INSERT INTO datasets (users_id, resourceType, doi, webaddress, graph, title, internalID, ezidRequest, suffixPassThrough) " +
-                    "values (?,?,?,?,?,?,?,?,?)";
+            String insertString = "INSERT INTO datasets (users_id, resourceType, doi, webaddress, graph, title, internalID, ezidRequest, suffixPassThrough, finalCopy) " +
+                    "values (?,?,?,?,?,?,?,?,?,?)";
 
             insertStatement = conn.prepareStatement(insertString);
             insertStatement.setInt(1, who);
@@ -260,6 +260,7 @@ public class dataGroupMinter extends dataGroupEncoder {
             insertStatement.setString(7, internalID.toString());
             insertStatement.setBoolean(8, ezidRequest);
             insertStatement.setBoolean(9, suffixPassThrough);
+            insertStatement.setBoolean(10, finalCopy);
             insertStatement.execute();
 
             // Get the datasets_id that was assigned
