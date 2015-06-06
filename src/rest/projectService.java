@@ -14,6 +14,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Hashtable;
+import java.util.List;
 
 /**
  * REST interface calls for working with projects.  This includes fetching details associated with projects.
@@ -390,6 +391,90 @@ public class projectService {
         projectMinter p = new projectMinter();
         String response = p.listUsersProjects(username);
         p.close();
+        return Response.ok(response).build();
+    }
+
+    /**
+     * Service used to save a fims template generator configuration
+     * @param checkedOptions
+     * @param configName
+     * @param projectId
+     * @param accessToken
+     * @return
+     */
+    @POST
+    @Path("/saveTemplateConfig")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response saveTemplateConfig(@FormParam("checkedOptions") List<String> checkedOptions,
+                                       @FormParam("configName") String configName,
+                                       @FormParam("projectId") Integer projectId,
+                                       @QueryParam("access_token") String accessToken) {
+
+        if (configName.equalsIgnoreCase("default")) {
+            return Response.ok("{\"error\": \"To change the default config, talk to the project admin.\"}").build();
+        }
+
+        Integer userId = null;
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            String username = p.validateToken(accessToken);
+            p.close();
+            database db = new database();
+            userId = db.getUserId(username);
+            db.close();        }
+
+        if (userId == null) {
+            throw new UnauthorizedRequestException("authorization_error");
+        }
+
+        projectMinter p = new projectMinter();
+
+        if (p.configExists(configName, projectId)) {
+            if (p.usersConfig(configName, projectId, userId)) {
+                p.updateTemplateConfig(configName, projectId, userId, checkedOptions);
+            } else {
+                return Response.ok("{\"error\": \"A configuration with that name already exists, and you are not the owner.\"}").build();
+            }
+        } else {
+            p.saveTemplateConfig(configName, projectId, userId, checkedOptions);
+        }
+        p.close();
+
+        return Response.ok("{\"success\": \"Successfully saved template configuration.\"}").build();
+    }
+
+    /**
+     * Service used to get the fims template generator configurations for a given project
+     * @param projectId
+     * @return
+     */
+    @GET
+    @Path("/getTemplateConfigs/{project_id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTemplateConfigs(@PathParam("project_id") Integer projectId) {
+        projectMinter p = new projectMinter();
+        String response = p.getTemplateConfigs(projectId);
+        p.close();
+
+        return Response.ok(response).build();
+    }
+
+    /**
+     * Service used to get a specific fims template generator configuration
+     * @param configName
+     * @param projectId
+     * @return
+     */
+    @GET
+    @Path("/getTemplateConfig/{projectId}/{configName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getConfig(@PathParam("configName") String configName,
+                              @PathParam("projectId") Integer projectId) {
+        projectMinter p = new projectMinter();
+        String response = p.getTemplateConfig(configName, projectId);
+        p.close();
+
         return Response.ok(response).build();
     }
 }

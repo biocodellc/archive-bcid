@@ -794,5 +794,180 @@ public class projectMinter {
             db.close(stmt, rs);
         }
     }
+
+    /**
+     * save a template generator configuration
+     * @param configName
+     * @param projectId
+     * @param userId
+     * @param checkedOptions
+     */
+    public void saveTemplateConfig(String configName, Integer projectId, Integer userId, List<String> checkedOptions) {
+        PreparedStatement stmt = null;
+
+        try {
+            String insertStatement = "INSERT INTO templateConfigs (users_id, project_id, config_name, config) " +
+                    "VALUES(?,?,?,?)";
+            stmt = conn.prepareStatement(insertStatement);
+
+            stmt.setInt(1, userId);
+            stmt.setInt(2, projectId);
+            stmt.setString(3, configName);
+            stmt.setString(4, JSONValue.toJSONString(checkedOptions));
+
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server error while adding user to project.", e);
+        } finally {
+            db.close(stmt, null);
+        }
+    }
+
+    /**
+     * check if a config exists
+     * @param configName
+     * @param projectId
+     * @return
+     */
+    public boolean configExists(String configName, Integer projectId) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            String sql = "SELECT count(*) as count " +
+                    "FROM templateConfigs " +
+                    "WHERE config_name = ? and project_id = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, configName);
+            stmt.setInt(2, projectId);
+
+            rs = stmt.executeQuery();
+            rs.next();
+
+            if (rs.getInt("count") > 0) {
+                return true;
+            }
+            return false;
+        }  catch (SQLException e) {
+            throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
+        }
+    }
+
+    /**
+     * check if a user owns the config
+     */
+    public boolean usersConfig(String configName, Integer projectId, Integer userId) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            String sql = "SELECT count(*) as count " +
+                    "FROM templateConfigs " +
+                    "WHERE config_name = ? and project_id = ? and users_id = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, configName);
+            stmt.setInt(2, projectId);
+            stmt.setInt(3, userId);
+
+            rs = stmt.executeQuery();
+            rs.next();
+
+            if (rs.getInt("count") > 0) {
+                return true;
+            }
+            return false;
+        }  catch (SQLException e) {
+            throw new ServerErrorException(e);
+        } finally {
+            db.close(stmt, rs);
+        }
+    }
+
+    /**
+     * get the template generator configuration for the given project
+     * @param projectId
+     * @return
+     */
+    public String getTemplateConfigs(Integer projectId) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        JSONObject obj = new JSONObject();
+        JSONArray configNames = new JSONArray();
+
+        configNames.add("Default");
+
+        try {
+            String sql = "SELECT config_name FROM templateConfigs WHERE project_id = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, projectId);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                configNames.add(rs.getString("config_name"));
+            }
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "SQLException retrieving template configurations for projectID: " +
+                    projectId, e);
+        } finally {
+            db.close(stmt, rs);
+        }
+        obj.put("configNames", configNames);
+        return obj.toJSONString();
+    }
+
+    /**
+     * get a specific template generator configuration
+     * @param configName
+     * @param projectId
+     * @return
+     */
+    public String getTemplateConfig(String configName, Integer projectId) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        JSONObject obj = new JSONObject();
+
+        try {
+            String sql = "SELECT config FROM templateConfigs WHERE project_id = ? AND config_name = ?";
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, projectId);
+            stmt.setString(2, configName);
+
+            rs = stmt.executeQuery();
+            if (rs.next()) {
+                obj.put("checkedOptions", JSONValue.parse(rs.getString("config")));
+            } else {
+                obj.put("error", configName + " template configuration not found.");
+            }
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "SQLException retrieving template config.", e);
+        } finally {
+            db.close(stmt, rs);
+        }
+
+        return obj.toJSONString();
+    }
+
+    public void updateTemplateConfig(String configName, Integer projectId, Integer userId, List<String> checkedOptions) {
+        PreparedStatement stmt = null;
+
+        try {
+            String updateStatement = "UPDATE templateConfigs SET config = ? WHERE " +
+                    "users_id = ? AND project_id = ? and config_name = ?";
+            stmt = conn.prepareStatement(updateStatement);
+
+            stmt.setString(1, JSONValue.toJSONString(checkedOptions));
+            stmt.setInt(2, userId);
+            stmt.setInt(3, projectId);
+            stmt.setString(4, configName);
+
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server error while adding user to project.", e);
+        } finally {
+            db.close(stmt, null);
+        }
+    }
 }
 
