@@ -969,5 +969,23 @@ public class projectMinter {
             db.close(stmt, null);
         }
     }
+
+    public void removeTemplateConfig(String configName, Integer projectId) {
+        PreparedStatement stmt = null;
+
+        try {
+            String sql = "DELETE FROM templateConfigs WHERE project_id = ? AND config_name = ?";
+
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, projectId);
+            stmt.setString(2, configName);
+
+            stmt.execute();
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server error while removing template config.");
+        } finally {
+            db.close(stmt, null);
+        }
+    }
 }
 

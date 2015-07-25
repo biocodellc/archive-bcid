@@ -477,4 +477,44 @@ public class projectService {
 
         return Response.ok(response).build();
     }
+    /**
+     * Service used to delete a specific fims template generator configuration
+     * @param configName
+     * @param projectId
+     * @return
+     */
+    @GET
+    @Path("/removeTemplateConfig/{projectId}/{configName}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeConfig(@PathParam("configName") String configName,
+                                 @PathParam("projectId") Integer projectId,
+                                 @QueryParam("access_token") String accessToken) {
+        if (configName.equalsIgnoreCase("default")) {
+            return Response.ok("{\"error\": \"To remove the default config, talk to the project admin.\"}").build();
+        }
+
+        Integer userId = null;
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            String username = p.validateToken(accessToken);
+            p.close();
+            database db = new database();
+            userId = db.getUserId(username);
+            db.close();        }
+
+        if (userId == null) {
+            throw new UnauthorizedRequestException("authorization_error");
+        }
+
+        projectMinter p = new projectMinter();
+        if (p.configExists(configName, projectId) && p.usersConfig(configName, projectId, userId)) {
+            p.removeTemplateConfig(configName, projectId);
+        } else {
+            return Response.ok("{\"error\": \"Only the owners of a configuration can remove the configuration.\"}").build();
+        }
+        p.close();
+
+        return Response.ok("{\"success\": \"Successfully removed template configuration.\"}").build();
+    }
 }
