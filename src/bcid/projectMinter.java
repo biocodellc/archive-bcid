@@ -817,7 +817,7 @@ public class projectMinter {
 
             stmt.execute();
         } catch (SQLException e) {
-            throw new ServerErrorException("Server error while adding user to project.", e);
+            throw new ServerErrorException("Server error while saving template config.", e);
         } finally {
             db.close(stmt, null);
         }
@@ -964,7 +964,7 @@ public class projectMinter {
 
             stmt.execute();
         } catch (SQLException e) {
-            throw new ServerErrorException("Server error while adding user to project.", e);
+            throw new ServerErrorException("Server error while updating template config.", e);
         } finally {
             db.close(stmt, null);
         }

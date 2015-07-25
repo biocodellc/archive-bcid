@@ -202,7 +202,7 @@ CREATE TABLE `templateConfigs` (
   `project_id` int(11) NOT NULL COMMENT 'The project Id',
   `config_name` varchar(100) NOT NULL COMMENT 'The name of the config',
   `public` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Whether or not this is a public template config?',
-  `config` varchar(1000) NOT NULL COMMENT 'The array of uris to be checked when generating a template',
+  `config` MEDIUMTEXT NOT NULL COMMENT 'The array of uris to be checked when generating a template',
   UNIQUE KEY `templateConfigs_config_name_project_id` (`config_name`, `project_id`),
   KEY `templateConfigs_projects_id` (`project_id`),
   KEY `templateConfigs_users_id` (`users_id`),
