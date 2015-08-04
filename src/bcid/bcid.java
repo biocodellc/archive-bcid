@@ -63,6 +63,8 @@ public class bcid extends GenericIdentifier {
      */
     public bcid(Integer datasets_id) {
         dataGroupMinter dataset = setDatasets_id(datasets_id);
+        projectCode = dataset.getProject(dataset_id);
+
         dataset.close();
     }
 
@@ -85,7 +87,7 @@ public class bcid extends GenericIdentifier {
             //TODO should we silence this exception?
             logger.warn("URISyntaxException thrown", e);
         }
-        projectCode = dataset.projectCode;
+        projectCode = dataset.getProject(dataset_id);
         dataset.close();
     }
 
