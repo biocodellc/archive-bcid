@@ -41,7 +41,7 @@ public class resolver extends database {
         sm.loadProperties();
     }
 
-    private  String project;
+    private String project;
 
     /**
      * Pass an ARK identifier to the resolver
@@ -50,7 +50,6 @@ public class resolver extends database {
      */
     public resolver(String ark) {
         super();
-
 
 
         this.ark = ark;
@@ -72,6 +71,7 @@ public class resolver extends database {
      *
      * @param expedition_code defines the BCID expedition_code to lookup
      * @param conceptAlias    defines the alias to narrow this,  a one-word reference denoting a BCID
+     *
      * @return returns the BCID for this expedition and conceptURI combination
      */
     public resolver(String expedition_code, Integer project_id, String conceptAlias) {
@@ -179,7 +179,7 @@ public class resolver extends database {
 
             String resolutionTarget = "";
             if (bcid.getResolutionTarget() != null) {
-                 resolutionTarget = bcid.getResolutionTarget().toString().trim();
+                resolutionTarget = bcid.getResolutionTarget().toString().trim();
             }
 
             // Group has a specified resolution target
@@ -214,7 +214,7 @@ public class resolver extends database {
         // DEbugging:
         System.out.println("datagroup_id = " + datagroup_id);
 
-        this.project =  getProjectID(datagroup_id);
+        this.project = getProjectID(datagroup_id);
 
         // Project is empty after this call!
         System.out.println("project = " + this.project);
@@ -280,6 +280,7 @@ public class resolver extends database {
      * Resolve an EZID version of this ARK
      *
      * @param ezidService
+     *
      * @return JSON string to send to interface
      */
     public String resolveEZID(EZIDService ezidService, Renderer renderer) {
@@ -300,6 +301,7 @@ public class resolver extends database {
      * Resolve identifiers through BCID AND EZID -- This method assumes JSONRenderer
      *
      * @param ezidService
+     *
      * @return JSON string with information about BCID/EZID results
      */
     public String resolveAllAsJSON(EZIDService ezidService) {
@@ -372,38 +374,39 @@ public class resolver extends database {
     }
 
     /**
-         * Get the projectId given a dataset_id
-         *
-         * @param datasets_id
-         */
-        public String getProjectID(Integer datasets_id) {
-            String project_id = "";
-            String sql = "select p.project_id from projects p, expeditionsBCIDs eb, expeditions e, " +
-                    "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
-                    "and e.`project_id`=p.`project_id` and d.datasets_id= ?";
+     * Get the projectId given a dataset_id
+     *
+     * @param datasets_id
+     */
+    public String getProjectID(Integer datasets_id) {
+        String project_id = "";
+        String sql = "select p.project_id from projects p, expeditionsBCIDs eb, expeditions e, " +
+                "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
+                "and e.`project_id`=p.`project_id` and d.datasets_id= ?";
 
-            System.out.println("sql = " + sql + "    datasets_id = " + datasets_id);
+        System.out.println("sql = " + sql + "    datasets_id = " + datasets_id);
 
-            PreparedStatement stmt = null;
-            ResultSet rs = null;
-            try {
-                stmt = conn.prepareStatement(sql);
-                stmt.setInt(1, datasets_id);
-                rs = stmt.executeQuery();
-                if (rs.isLast())
-                if (rs.next()) {
-                    project_id = rs.getString("project_code");
-                }
-            } catch (SQLException e) {
-                throw new ServerErrorException("Server Error",
-                        "Exception retrieving projectCode for dataset: " + datasets_id, e);
-            } finally {
-                close(stmt, rs);
-            }
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, datasets_id);
+            rs = stmt.executeQuery();
 
-            System.out.println(project_id);
-            return project_id;
+            project_id = rs.getString("project_id");
+
+
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error",
+                    "Exception retrieving projectCode for dataset: " + datasets_id, e);
+        } finally {
+            close(stmt, rs);
         }
+
+        System.out.println(project_id);
+        return project_id;
+    }
+
     /**
      * Tell us if this ARK is a BCID that has an individually resolvable suffix.  This means that the user has
      * registered the identifier and provided a specific target URL
@@ -505,7 +508,7 @@ public class resolver extends database {
             e.printStackTrace();
         }
 
-         try {
+        try {
             r = new resolver("ark:/21547/lN2");
             System.out.println("  " + r.resolveARK());
 
@@ -597,7 +600,9 @@ public class resolver extends database {
 
     /**
      * Return a graph in a particular format
+     *
      * @param format
+     *
      * @return
      */
     public URI resolveArkAs(String format) throws URISyntaxException {
@@ -606,6 +611,6 @@ public class resolver extends database {
         // TODO: Set the content resolution root in Properties File
         String contentResolutionRoot = "http://biscicol.org:8179/biocode-fims/rest/query/";
 
-        return new URI(contentResolutionRoot + format +"?graphs="+ graph + "&project_id=" + project);
+        return new URI(contentResolutionRoot + format + "?graphs=" + graph + "&project_id=" + project);
     }
 }
