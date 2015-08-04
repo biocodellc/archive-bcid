@@ -216,6 +216,7 @@ public class resolver extends database {
 
         this.project =  new dataGroupMinter().getProject(datagroup_id);
 
+        // Project is empty after this call!
         System.out.println("project = " + this.project);
 
         return resolution;
