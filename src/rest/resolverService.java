@@ -67,7 +67,7 @@ public class resolverService {
             URI seeOtherUri = null;
             try {
                 // Resolve data as RDF+XML
-                System.out.println("accept = " + accept);
+                //System.out.println("accept = " + accept);
                 if (accept.equalsIgnoreCase("rdf+xml") ||
                         accept.equalsIgnoreCase("application/rdf+xml")) {
                     seeOtherUri = r.resolveARK();
@@ -77,7 +77,7 @@ public class resolverService {
                     r.resolveARK();
                     seeOtherUri = r.resolveArkAs("tab");
                 }
-                System.out.println("seeotheruri = " + seeOtherUri);
+                //System.out.println("seeotheruri = " + seeOtherUri);
 
             } catch (URISyntaxException e) {
                 logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
