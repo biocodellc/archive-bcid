@@ -608,9 +608,8 @@ public class resolver extends database {
     public URI resolveArkAs(String format) throws URISyntaxException {
         // Example
         //http://biscicol.org:8179/biocode-fims/rest/query/tab?graphs=urn:uuid:ec90c3b6-cc75-4090-b03d-cf3d76a27783&project_id=1
-        // TODO: Set the content resolution root in Properties File
-        String contentResolutionRoot = "http://biscicol.org:8179/biocode-fims/rest/query/";
 
+        String contentResolutionRoot = sm.retrieveValue("contentResolutionRoot");
         return new URI(contentResolutionRoot + format + "?graphs=" + graph + "&project_id=" + project);
     }
 }
