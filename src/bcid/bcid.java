@@ -85,6 +85,7 @@ public class bcid extends GenericIdentifier {
             //TODO should we silence this exception?
             logger.warn("URISyntaxException thrown", e);
         }
+        projectCode = dataset.projectCode;
         dataset.close();
     }
 
