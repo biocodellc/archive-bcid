@@ -29,6 +29,7 @@ public class resolver extends database {
     String sourceID = null;        // The local identifier
     BigInteger element_id = null;
     Integer datagroup_id = null;
+    String graph = null;
     static SettingsManager sm;
 
     /**
@@ -39,6 +40,8 @@ public class resolver extends database {
         sm = SettingsManager.getInstance();
         sm.loadProperties();
     }
+
+    private  String project;
 
     /**
      * Pass an ARK identifier to the resolver
@@ -173,6 +176,7 @@ public class resolver extends database {
         // First  option is check if dataset, then look at other options after this is determined
         if (isDataGroup()) {
             bcid = new bcid(sourceID, datagroup_id);
+
             String resolutionTarget = "";
             if (bcid.getResolutionTarget() != null) {
                  resolutionTarget = bcid.getResolutionTarget().toString().trim();
@@ -203,6 +207,11 @@ public class resolver extends database {
             }
 
         }
+
+        // Set the graph variable
+        this.graph = bcid.getGraph();
+        this.project = bcid.projectCode;
+
         return resolution;
     }
 
@@ -456,21 +465,21 @@ public class resolver extends database {
             e.printStackTrace();
         }
 
-        /* try {
-            r = new resolver("ark:/87286/C2/AOkI");
+         try {
+            r = new resolver("ark:/21547/lN2");
             System.out.println("  " + r.resolveARK());
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+         /*
         try {
             r = new resolver("ark:/87286/C2/64c82d19-6562-4174-a5ea-e342eae353e8");
             System.out.println("  " + r.resolveARK());
         } catch (Exception e) {
             e.printStackTrace();
         }
-         */
+          */
 
         try {
             String expected = "";
@@ -546,5 +555,17 @@ public class resolver extends database {
 
     }
 
+    /**
+     * Return a graph in a particular format
+     * @param format
+     * @return
+     */
+    public URI resolveArkAs(String format) throws URISyntaxException {
+        // Example
+        //http://biscicol.org:8179/biocode-fims/rest/query/tab?graphs=urn:uuid:ec90c3b6-cc75-4090-b03d-cf3d76a27783&project_id=1
+        // TODO: Set the content resolution root in Properties File
+        String contentResolutionRoot = "http://biscicol.org:8179/biocode-fims/rest/query/";
 
+        return new URI(contentResolutionRoot + format +"?graphs="+ graph + "&project_id=" + project);
+    }
 }

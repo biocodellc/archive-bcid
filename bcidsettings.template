@@ -64,3 +64,6 @@ publisher = Biocode FIMS System
 
 # Set the following only if you want a default creator to override system settings (based on user name)
 # creator = SI-NMNH Field Information Management System
+
+# web root for negotiating different types of content resolution
+contentResolutionRoot = http://biscicol.org:8179/biocode-fims/rest/query/

@@ -35,6 +35,7 @@ public class resolverService {
      *
      * @param naan
      * @param shoulderPlusIdentifier
+     *
      * @return
      */
     @GET
@@ -56,10 +57,22 @@ public class resolverService {
             if (accept.equalsIgnoreCase("application/rdf+xml")) {
                 return Response.ok(r.printMetadata(new RDFRenderer())).build();
                 // All other Accept Headers, or none specified, then attempt a redirect
+
+                // Use this for accept header = "text/tab-separated-values"
+                //} else if {
+
             } else {
                 URI seeOtherUri = null;
                 try {
-                    seeOtherUri = r.resolveARK();
+                    // In this section resolve various types of data
+                    if (accept.equalsIgnoreCase("text/tab-separated-values")) {
+                        r.resolveARK();
+                        seeOtherUri = r.resolveArkAs("tab");
+                    }
+                    // This is the default mechanism
+                    else {
+                        seeOtherUri = r.resolveARK();
+                    }
                     //                System.out.println(seeOtherUri);
                 } catch (URISyntaxException e) {
                     logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
