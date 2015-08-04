@@ -392,7 +392,7 @@ public class resolver extends database {
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, datasets_id);
             rs = stmt.executeQuery();
-
+            rs.next();
             project_id = rs.getString("project_id");
 
 
