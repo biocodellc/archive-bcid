@@ -64,15 +64,17 @@ public class resolverService {
             } else {
                 URI seeOtherUri = null;
                 try {
+                    System.out.println("accept = " + accept);
                     // In this section resolve various types of data
                     if (accept.equalsIgnoreCase("text")) {
                         r.resolveARK();
                         seeOtherUri = r.resolveArkAs("tab");
-                        System.out.println(seeOtherUri);
+                        System.out.println("in TAB delimited " + seeOtherUri);
                     }
                     // This is the default mechanism
                     else {
                         seeOtherUri = r.resolveARK();
+                        System.out.println("not tab delimited " + seeOtherUri);
                     }
                     //                System.out.println(seeOtherUri);
                 } catch (URISyntaxException e) {
