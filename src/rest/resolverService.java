@@ -54,34 +54,34 @@ public class resolverService {
         // When the Accept Header = "application/rdf+xml" return Metadata as RDF
         resolver r = new resolver(element);
         try {
-            if (accept.equalsIgnoreCase("application/rdf+xml")) {
-                return Response.ok(r.printMetadata(new RDFRenderer())).build();
-                // All other Accept Headers, or none specified, then attempt a redirect
+            // NOTE: Turning OFF RDF/XML Header resolution and instead opting to use this for
+            // RDF/XML Data
+            //if (accept.equalsIgnoreCase("application/rdf+xml")) {
+            //    return Response.ok(r.printMetadata(new RDFRenderer())).build();
+            // All other Accept Headers, or none specified, then attempt a redirect
 
-                // Use this for accept header = "text/tab-separated-values"
-                //} else if {
+            // Use this for accept header = "text/tab-separated-values"
+            //} else if {
 
-            } else {
-                URI seeOtherUri = null;
-                try {
-                    System.out.println("accept = " + accept);
-                    // In this section resolve various types of data
-                    if (accept.equalsIgnoreCase("text")) {
-                        r.resolveARK();
-                        seeOtherUri = r.resolveArkAs("tab");
-                        System.out.println("in TAB delimited " + seeOtherUri);
-                    }
-                    // This is the default mechanism
-                    else {
-                        seeOtherUri = r.resolveARK();
-                        System.out.println("not tab delimited " + seeOtherUri);
-                    }
-                    //                System.out.println(seeOtherUri);
-                } catch (URISyntaxException e) {
-                    logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
-                    throw new BadRequestException("Server error while trying to resolve ARK. Did you supply a valid naan?");
+            //} else {
+            URI seeOtherUri = null;
+            try {
+                // Resolve data as RDF+XML
+                if (accept.equalsIgnoreCase("rdf+xml") ||
+                        accept.equalsIgnoreCase("application/rdf+xml")) {
+                    seeOtherUri = r.resolveARK();
                 }
-                // if the URI is null just print metadata
+                // This is the default mechanism
+                else {
+                    r.resolveARK();
+                    seeOtherUri = r.resolveArkAs("tab");
+                }
+
+            } catch (URISyntaxException e) {
+                logger.warn("URISyntaxException while trying to resolve ARK for element: {}", element, e);
+                throw new BadRequestException("Server error while trying to resolve ARK. Did you supply a valid naan?");
+            }
+            // if the URI is null just print metadata
                 /*System.out.println("value of seeOtherUri:" + seeOtherUri.toString() + "END");
                 if (seeOtherUri == null || seeOtherUri.toString().contains("null")) {
                     try {
@@ -92,9 +92,9 @@ public class resolverService {
                     }
                 } */
 
-                // The expected response for IDentifiers without a URL
-                return Response.status(Response.Status.SEE_OTHER).location(seeOtherUri).build();
-            }
+            // The expected response for IDentifiers without a URL
+            return Response.status(Response.Status.SEE_OTHER).location(seeOtherUri).build();
+            //}
         } finally {
             r.close();
         }
