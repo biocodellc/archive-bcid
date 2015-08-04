@@ -65,7 +65,7 @@ public class resolverService {
                 URI seeOtherUri = null;
                 try {
                     // In this section resolve various types of data
-                    if (accept.equalsIgnoreCase("text/tab-separated-values")) {
+                    if (accept.equalsIgnoreCase("text")) {
                         r.resolveARK();
                         seeOtherUri = r.resolveArkAs("tab");
                         System.out.println(seeOtherUri);
