@@ -68,6 +68,7 @@ public class resolverService {
                     if (accept.equalsIgnoreCase("text/tab-separated-values")) {
                         r.resolveARK();
                         seeOtherUri = r.resolveArkAs("tab");
+                        System.out.println(seeOtherUri);
                     }
                     // This is the default mechanism
                     else {
