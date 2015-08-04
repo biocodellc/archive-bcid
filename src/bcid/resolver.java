@@ -214,7 +214,7 @@ public class resolver extends database {
         // DEbugging:
         System.out.println("datagroup_id = " + datagroup_id);
 
-        this.project =  new dataGroupMinter().getProject(datagroup_id);
+        this.project =  getProjectID(datagroup_id);
 
         // Project is empty after this call!
         System.out.println("project = " + this.project);
@@ -371,6 +371,39 @@ public class resolver extends database {
         }
     }
 
+    /**
+         * Get the projectId given a dataset_id
+         *
+         * @param datasets_id
+         */
+        public String getProjectID(Integer datasets_id) {
+            String project_id = "";
+            String sql = "select p.project_id from projects p, expeditionsBCIDs eb, expeditions e, " +
+                    "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
+                    "and e.`project_id`=p.`project_id` and d.datasets_id= ?";
+
+            System.out.println("sql = " + sql + "    datasets_id = " + datasets_id);
+
+            PreparedStatement stmt = null;
+            ResultSet rs = null;
+            try {
+                stmt = conn.prepareStatement(sql);
+                stmt.setInt(1, datasets_id);
+                rs = stmt.executeQuery();
+                if (rs.isLast())
+                if (rs.next()) {
+                    project_id = rs.getString("project_code");
+                }
+            } catch (SQLException e) {
+                throw new ServerErrorException("Server Error",
+                        "Exception retrieving projectCode for dataset: " + datasets_id, e);
+            } finally {
+                close(stmt, rs);
+            }
+
+            System.out.println(project_id);
+            return project_id;
+        }
     /**
      * Tell us if this ARK is a BCID that has an individually resolvable suffix.  This means that the user has
      * registered the identifier and provided a specific target URL

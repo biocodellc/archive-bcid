@@ -197,7 +197,7 @@ public class dataGroupMinter extends dataGroupEncoder {
                 "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
                 "and e.`project_id`=p.`project_id` and d.datasets_id= ?";
 
-        System.out.println("sql = " + sql);
+        System.out.println("sql = " + sql + "    datasets_id = " + datasets_id);
 
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -215,6 +215,8 @@ public class dataGroupMinter extends dataGroupEncoder {
         } finally {
             db.close(stmt, rs);
         }
+
+        System.out.println(project_code);
         return project_code;
     }
 
