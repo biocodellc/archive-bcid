@@ -210,8 +210,13 @@ public class resolver extends database {
 
         // Set the graph variable
         this.graph = bcid.getGraph();
-        this.project =  new dataGroupMinter(datagroup_id).getProject(datagroup_id);
 
+        // DEbugging:
+        System.out.println("datagroup_id = " + datagroup_id);
+
+        this.project =  new dataGroupMinter().getProject(datagroup_id);
+
+        System.out.println("project = " + this.project);
 
         return resolution;
     }
