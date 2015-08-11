@@ -140,6 +140,38 @@ public class projectService {
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
     }
 
+     /**
+     * Get the users datasets
+     *
+     * @return
+     */
+    @GET
+    @Path("/myDatasets/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDatasets(@QueryParam("access_token") String accessToken) {
+        String username;
+
+        // if accessToken != null, then OAuth client is accessing on behalf of a user
+        if (accessToken != null) {
+            provider p = new provider();
+            username = p.validateToken(accessToken);
+            p.close();
+        } else {
+            HttpSession session = request.getSession();
+            username = (String) session.getAttribute("user");
+        }
+
+        if (username == null) {
+            throw new UnauthorizedRequestException("You must login to retrieve you're graphs.");
+        }
+
+        projectMinter project= new projectMinter();
+
+        String response = project.getMyDatasets(username);
+        project.close();
+
+        return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
+    }
     /**
      * Return a json representation to be used for select options of the projects that a user is an admin to
      * @return

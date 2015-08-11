@@ -247,7 +247,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("datasets = \n" + project.getMyLatestGraphs("demo"));
+        System.out.println("datasets = \n" + project.getMyDatasets("demo"));
         project.close();
     }
 
@@ -709,6 +709,73 @@ public class projectMinter {
     }
 
     /**
+     * A utility function to get all the dataset loads that belong to a user
+     *
+     * @return
+     */
+    public String getMyDatasets(String username) {
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        JSONObject response = new JSONObject();
+        HashMap projectMap = new HashMap();
+
+        // We need a username
+        if (username == null) {
+            throw new ServerErrorException("server error", "username can't be null");
+        }
+
+        try {
+            String sql = "select e.expedition_code, e.expedition_title, d.ts, d.datasets_id as id, d.finalCopy, e.project_id, p.project_title\n" +
+                    "from datasets d, expeditions e,  expeditionsBCIDs pB, projects p\n" +
+                    "where d.users_id = ? and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
+                    " and pB.datasets_id=d.datasets_id \n" +
+                    " and e.expedition_id=pB.expedition_id\n" +
+                    " and p.project_id=e.project_id\n" +
+                    " order by project_id, expedition_code, ts desc";
+
+            stmt = conn.prepareStatement(sql);
+            Integer userId = db.getUserId(username);
+            stmt.setInt(1, userId);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                JSONObject dataset = new JSONObject();
+                String project_title = rs.getString("project_title");
+                String expedition_title = rs.getString("expedition_title");
+
+                // Grap the prefixes and concepts associated with this
+                dataset.put("expedition_code", rs.getString("expedition_code"));
+                dataset.put("ts", rs.getString("ts"));
+                dataset.put("dataset_id", rs.getString("id"));
+                dataset.put("project_id", rs.getString("project_id"));
+                dataset.put("finalCopy", rs.getString("finalCopy"));
+
+
+                if (project_title != null && !project_title.isEmpty()) {
+                    // if the project isn't in the map, then add it
+                    if (!projectMap.containsKey(project_title)) {
+                        projectMap.put(project_title, new JSONObject());
+                    }
+
+                    // if the expedition isn't in the project then add it
+                    JSONObject p = (JSONObject) projectMap.get(project_title);
+                    if (!p.containsKey(expedition_title)) {
+                        p.put(expedition_title, new JSONArray());
+                    }
+
+                    ((JSONArray) p.get(expedition_title)).add(dataset);
+                }
+            }
+
+            return JSONValue.toJSONString(projectMap);
+        } catch (SQLException e) {
+            throw new ServerErrorException("Server Error", "Trouble getting latest graphs.", e);
+        } finally {
+            db.close(stmt, rs);
+        }
+    }
+
+    /**
      * A utility function to get the very latest graph loads that belong to a user
      *
      * @return
@@ -786,8 +853,7 @@ public class projectMinter {
                 }
             }
 
-            response.put("data", projectMap);
-            return response.toJSONString();
+            return JSONValue.toJSONString(projectMap);
         } catch (SQLException e) {
             throw new ServerErrorException("Server Error", "Trouble getting latest graphs.", e);
         } finally {
