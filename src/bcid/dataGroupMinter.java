@@ -40,6 +40,12 @@ public class dataGroupMinter extends dataGroupEncoder {
     protected URI webAddress;
     public String projectCode;
 
+
+
+    protected String graph;
+
+    public String getGraph() {return graph;}
+
     /**
      * Default to ezidRequest = false using default Constructor
      */
@@ -113,7 +119,8 @@ public class dataGroupMinter extends dataGroupEncoder {
                 "d.title as title," +
                 "d.ts as ts, " +
                 "CONCAT_WS(' ',u.firstName, u.lastName) as who, " +
-                "d.webAddress as webAddress" +
+                "d.webAddress as webAddress," +
+                "d.graph as graph" +
                 // NOTE: the projectCode query here fails if dataset has not been associated yet.
                 // I removed the reference here so we can return just information on the datagroup and
                 // not rely on any other dependencies.
@@ -155,6 +162,12 @@ public class dataGroupMinter extends dataGroupEncoder {
             setBow(naan);
 
             try {
+                this.graph = rs.getString("graph");
+            } catch(Exception e) {
+                this.graph = null;
+            }
+
+            try {
                 this.webAddress = new URI(rs.getString("webAddress"));
             } catch (NullPointerException e) {
                 logger.info("webAddress doesn't exist for datasetId: {}", datasets_id, e);
@@ -184,6 +197,8 @@ public class dataGroupMinter extends dataGroupEncoder {
                 "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
                 "and e.`project_id`=p.`project_id` and d.datasets_id= ?";
 
+        System.out.println("sql = " + sql + "    datasets_id = " + datasets_id);
+
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
@@ -200,6 +215,8 @@ public class dataGroupMinter extends dataGroupEncoder {
         } finally {
             db.close(stmt, rs);
         }
+
+        System.out.println(project_code);
         return project_code;
     }
 

@@ -36,6 +36,7 @@ public class bcid extends GenericIdentifier {
     //protected String ark;
     protected String doi;
     protected Integer dataset_id;
+    protected String graph = null;
 
     protected String level;
     final static String UNREGISTERED_ELEMENT = "Unregistered Element";
@@ -62,6 +63,8 @@ public class bcid extends GenericIdentifier {
      */
     public bcid(Integer datasets_id) {
         dataGroupMinter dataset = setDatasets_id(datasets_id);
+        projectCode = dataset.getProject(dataset_id);
+
         dataset.close();
     }
 
@@ -84,6 +87,7 @@ public class bcid extends GenericIdentifier {
             //TODO should we silence this exception?
             logger.warn("URISyntaxException thrown", e);
         }
+        projectCode = dataset.getProject(dataset_id);
         dataset.close();
     }
 
@@ -98,6 +102,7 @@ public class bcid extends GenericIdentifier {
     public bcid(String sourceID, URI webAddress, Integer dataset_id) {
         dataGroupMinter dataset = setDatasets_id(dataset_id);
         this.webAddress = webAddress;
+
         try {
             if (sourceID != null && !sourceID.equals("")) {
                 identifier = new URI(dataset.identifier + sm.retrieveValue("divider") + sourceID);
@@ -268,6 +273,7 @@ public class bcid extends GenericIdentifier {
         //when =  new dates().now();
         when = dataset.ts;
 
+        this.graph = dataset.getGraph();
         this.webAddress = dataset.getWebAddress();
         this.dataset_id = pDatasets_id;
         this.what = dataset.getResourceType();
@@ -343,6 +349,9 @@ public class bcid extends GenericIdentifier {
         }
     }
 
+    public String getGraph() {
+        return graph;
+    }
     public Boolean getDatasetsSuffixPassthrough() {
         return datasetsSuffixPassthrough;
     }

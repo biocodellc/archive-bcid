@@ -149,6 +149,7 @@ public class authenticator {
         ResultSet rs = null;
         try {
             String selectString = "SELECT password FROM users WHERE username = ?";
+            System.out.println(selectString + " " + username);
             stmt = conn.prepareStatement(selectString);
 
             stmt.setString(1, username);
