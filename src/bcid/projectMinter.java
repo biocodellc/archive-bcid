@@ -709,7 +709,8 @@ public class projectMinter {
     }
 
     /**
-     * A utility function to get all the dataset loads that belong to a user
+     * A utility function to get all the datasets that belong to a user
+     * This function returns only Expeditions that have loaded Datasets.
      *
      * @return
      */
