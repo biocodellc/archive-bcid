@@ -716,7 +716,6 @@ public class projectMinter {
     public String getMyTemplatesAndDatasets(String username) {
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        JSONObject response = new JSONObject();
         HashMap projectMap = new HashMap();
 
         // We need a username
@@ -754,7 +753,7 @@ public class projectMinter {
 
             }
 
-            String sql2 = "select e.expedition_code, e.expedition_title, d.ts, d.datasets_id as id, d.finalCopy, e.project_id, p.project_title\n" +
+            String sql2 = "select e.expedition_code, e.expedition_title, d.ts, d.prefix as ark, d.datasets_id as id, d.finalCopy, e.project_id, p.project_title\n" +
                     "from datasets d, expeditions e,  expeditionsBCIDs pB, projects p\n" +
                     "where d.users_id = ? and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
                     " and pB.datasets_id=d.datasets_id \n" +
@@ -772,10 +771,9 @@ public class projectMinter {
                 String expedition_title = rs.getString("expedition_title");
 
                 // Grap the prefixes and concepts associated with this
-                dataset.put("expedition_code", rs.getString("expedition_code"));
                 dataset.put("ts", rs.getString("ts"));
                 dataset.put("dataset_id", rs.getString("id"));
-                dataset.put("project_id", rs.getString("project_id"));
+                dataset.put("ark", rs.getString("ark"));
                 dataset.put("finalCopy", rs.getString("finalCopy"));
 
                 JSONObject p = (JSONObject) projectMap.get(project_title);
