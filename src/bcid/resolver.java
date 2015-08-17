@@ -29,7 +29,8 @@ public class resolver extends database {
     String sourceID = null;        // The local identifier
     BigInteger element_id = null;
     Integer datagroup_id = null;
-    String graph = null;
+    public boolean forwardingResolution = false;
+    public String graph = null;
     static SettingsManager sm;
 
     /**
@@ -186,6 +187,8 @@ public class resolver extends database {
             if (bcid.getResolutionTarget() != null && !resolutionTarget.equals("")) {
                 // A resolution target is specified AND there is a sourceID
                 if (sourceID != null && bcid.getResolutionTarget() != null && !sourceID.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
+                    forwardingResolution = true;
+
                     // Immediately return resolution result
                     return new URI(bcid.getResolutionTarget() + sourceID);
                 }
@@ -195,7 +198,8 @@ public class resolver extends database {
                 }
                 // If there is some resolution target then return that
                 else if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().toString().equalsIgnoreCase("null")) {
-                    resolution = bcid.getResolutionTarget();
+                    forwardingResolution = true;
+                    return bcid.getResolutionTarget();
                 }
                 // All other cases just return metadata
                 else {
@@ -515,8 +519,10 @@ public class resolver extends database {
         }
 
         try {
-            r = new resolver("ark:/21547/S2MBIO56");
+            //r = new resolver("ark:/21547/S2MBIO56");
+            r = new resolver("ark:/21547/fR2");
             System.out.println("  " + r.resolveARK());
+            System.out.println(r.resolveArkAs("tab"));
 
         } catch (Exception e) {
             e.printStackTrace();

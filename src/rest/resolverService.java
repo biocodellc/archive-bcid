@@ -74,8 +74,12 @@ public class resolverService {
                 }
                 // This is the default mechanism
                 else {
-                    r.resolveARK();
-                    seeOtherUri = r.resolveArkAs("tab");
+
+                    seeOtherUri = r.resolveARK();
+                    // If graph not null and no forwarding resolution we can return the dataset
+                    if (r.graph != null && !r.forwardingResolution) {
+                        seeOtherUri = r.resolveArkAs("tab");
+                    }
                 }
                 //System.out.println("seeotheruri = " + seeOtherUri);
 
