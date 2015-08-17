@@ -247,7 +247,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("datasets = \n" + project.getMyDatasets("demo"));
+        System.out.println("datasets = \n" + project.getMyTemplatesAndDatasets("demo"));
         project.close();
     }
 
@@ -713,7 +713,7 @@ public class projectMinter {
      *
      * @return
      */
-    public String getMyDatasets(String username) {
+    public String getMyTemplatesAndDatasets(String username) {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         JSONObject response = new JSONObject();
@@ -723,9 +723,38 @@ public class projectMinter {
         if (username == null) {
             throw new ServerErrorException("server error", "username can't be null");
         }
+        Integer userId = db.getUserId(username);
+
 
         try {
-            String sql = "select e.expedition_code, e.expedition_title, d.ts, d.datasets_id as id, d.finalCopy, e.project_id, p.project_title\n" +
+            String sql1 = "select e.expedition_title, p.project_title from expeditions e, projects p " +
+                    "where e.users_id = ? and p.project_id = e.project_id";
+            stmt = conn.prepareStatement(sql1);
+            stmt.setInt(1, userId);
+
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                String project_title = rs.getString("project_title");
+                String expedition_title = rs.getString("expedition_title");
+
+                if (project_title != null && !project_title.isEmpty()) {
+                    // if the project isn't in the map, then add it
+                    if (!projectMap.containsKey(project_title)) {
+                        projectMap.put(project_title, new JSONObject());
+                    }
+
+                    // if the expedition isn't in the project then add it
+                    JSONObject p = (JSONObject) projectMap.get(project_title);
+                    if (!p.containsKey(expedition_title)) {
+                        p.put(expedition_title, new JSONArray());
+                    }
+
+                }
+
+            }
+
+            String sql2 = "select e.expedition_code, e.expedition_title, d.ts, d.datasets_id as id, d.finalCopy, e.project_id, p.project_title\n" +
                     "from datasets d, expeditions e,  expeditionsBCIDs pB, projects p\n" +
                     "where d.users_id = ? and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
                     " and pB.datasets_id=d.datasets_id \n" +
@@ -733,8 +762,7 @@ public class projectMinter {
                     " and p.project_id=e.project_id\n" +
                     " order by project_id, expedition_code, ts desc";
 
-            stmt = conn.prepareStatement(sql);
-            Integer userId = db.getUserId(username);
+            stmt = conn.prepareStatement(sql2);
             stmt.setInt(1, userId);
 
             rs = stmt.executeQuery();
@@ -750,26 +778,13 @@ public class projectMinter {
                 dataset.put("project_id", rs.getString("project_id"));
                 dataset.put("finalCopy", rs.getString("finalCopy"));
 
-
-                if (project_title != null && !project_title.isEmpty()) {
-                    // if the project isn't in the map, then add it
-                    if (!projectMap.containsKey(project_title)) {
-                        projectMap.put(project_title, new JSONObject());
-                    }
-
-                    // if the expedition isn't in the project then add it
-                    JSONObject p = (JSONObject) projectMap.get(project_title);
-                    if (!p.containsKey(expedition_title)) {
-                        p.put(expedition_title, new JSONArray());
-                    }
-
-                    ((JSONArray) p.get(expedition_title)).add(dataset);
-                }
+                JSONObject p = (JSONObject) projectMap.get(project_title);
+                ((JSONArray) p.get(expedition_title)).add(dataset);
             }
 
             return JSONValue.toJSONString(projectMap);
         } catch (SQLException e) {
-            throw new ServerErrorException("Server Error", "Trouble getting latest graphs.", e);
+            throw new ServerErrorException("Server Error", "Trouble getting users datasets.", e);
         } finally {
             db.close(stmt, rs);
         }

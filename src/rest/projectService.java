@@ -167,7 +167,7 @@ public class projectService {
 
         projectMinter project= new projectMinter();
 
-        String response = project.getMyDatasets(username);
+        String response = project.getMyTemplatesAndDatasets(username);
         project.close();
 
         return Response.ok(response).header("Access-Control-Allow-Origin", "*").build();
