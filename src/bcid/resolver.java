@@ -186,7 +186,8 @@ public class resolver extends database {
             if (bcid.getResolutionTarget() != null && !resolutionTarget.equals("")) {
                 // A resolution target is specified AND there is a sourceID
                 if (sourceID != null && bcid.getResolutionTarget() != null && !sourceID.trim().equals("") && !bcid.getResolutionTarget().equals("")) {
-                    resolution = new URI(bcid.getResolutionTarget() + sourceID);
+                    // Immediately return resolution result
+                    return new URI(bcid.getResolutionTarget() + sourceID);
                 }
                 // If the database indicates this is a suffixPassthrough dataset then return the MetadataTarget
                 else if (bcid.getDatasetsSuffixPassthrough()) {
@@ -211,13 +212,18 @@ public class resolver extends database {
         // Set the graph variable
         this.graph = bcid.getGraph();
 
-        // DEbugging:
-        System.out.println("datagroup_id = " + datagroup_id);
+        // Debugging:
+        //System.out.println("datagroup_id = " + datagroup_id);
 
-        this.project = getProjectID(datagroup_id);
+       // There are cases where project can be null, don't get caught on exception
+        try {
+            this.project = getProjectID(datagroup_id);
+        } catch (Exception e) {
+            // do nothing, project is just null?
+        }
 
         // Project is empty after this call!
-        System.out.println("project = " + this.project);
+        //System.out.println("project = " + this.project);
 
         return resolution;
     }
@@ -378,7 +384,7 @@ public class resolver extends database {
      *
      * @param datasets_id
      */
-    public String getProjectID(Integer datasets_id) {
+    public String getProjectID(Integer datasets_id) throws Exception {
         String project_id = "";
         String sql = "select p.project_id from projects p, expeditionsBCIDs eb, expeditions e, " +
                 "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
@@ -509,7 +515,7 @@ public class resolver extends database {
         }
 
         try {
-            r = new resolver("ark:/21547/lN2");
+            r = new resolver("ark:/21547/S2MBIO56");
             System.out.println("  " + r.resolveARK());
 
         } catch (Exception e) {
@@ -532,8 +538,10 @@ public class resolver extends database {
             System.out.println(r.resolveARK());
                   */
             // suffixPassthrough = 1; webaddress specified; has a SourceID
-            r = new resolver("ark:/21547/R2");
-            System.out.println(r.printMetadata(new RDFRenderer()));
+            //r = new resolver("ark:/21547/R2");
+            //System.out.println(r.printMetadata(new RDFRenderer()));
+            //System.out.println(r.resolveARK());
+
             //System.out.println(r.resolveARK());
             //expected = "http://biocode.berkeley.edu/specimens/MBIO56";
             //System.out.println(r.printMetadata(new RDFRenderer()));
