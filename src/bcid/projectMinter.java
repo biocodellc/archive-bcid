@@ -42,10 +42,12 @@ public class projectMinter {
     public void close() {
         db.close();
     }
+
     /**
      * Find the BCID that denotes the validation file location for a particular expedition
      *
      * @param project_id defines the project_id to lookup
+     *
      * @return returns the BCID for this expedition and conceptURI combination
      */
     public String getValidationXML(Integer project_id) {
@@ -141,35 +143,37 @@ public class projectMinter {
     }
 
     /**
-        * List all the defined projects
-        *
-        * @return returns the BCID for this expedition and conceptURI combination
-        */
-       public ArrayList<Integer> getAllProjects() {
-           ArrayList<Integer> projects = new ArrayList<Integer>();
-           PreparedStatement stmt = null;
-           ResultSet rs = null;
+     * List all the defined projects
+     *
+     * @return returns the BCID for this expedition and conceptURI combination
+     */
+    public ArrayList<Integer> getAllProjects() {
+        ArrayList<Integer> projects = new ArrayList<Integer>();
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
 
-           try {
-               String sql = "SELECT project_id FROM projects";
-               stmt = conn.prepareStatement(sql);
-               rs = stmt.executeQuery();
-               while (rs.next()) {
-                   projects.add(rs.getInt("project_id"));
-               }
-               return projects;
-           } catch (SQLException e) {
-               throw new ServerErrorException("Trouble getting project List", e);
-           } finally {
-               db.close(stmt, rs);
-           }
-       }
+        try {
+            String sql = "SELECT project_id FROM projects";
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                projects.add(rs.getInt("project_id"));
+            }
+            return projects;
+        } catch (SQLException e) {
+            throw new ServerErrorException("Trouble getting project List", e);
+        } finally {
+            db.close(stmt, rs);
+        }
+    }
 
     /**
      * A utility function to get the very latest graph loads for each expedition
-     * This is a public accessible function from the REST service so it only returns results that are declared as public
+     * This is a public accessible function from the REST service so it only returns results that are declared as
+     * public
      *
      * @param project_id pass in an project identifier to limit the set of expeditions we are looking at
+     *
      * @return
      */
     public String getLatestGraphs(int project_id, String username) {
@@ -247,7 +251,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("datasets = \n" + project.getMyTemplatesAndDatasets("demo"));
+        System.out.println("datasets = \n" + project.getMyTemplatesAndDatasets("deckj"));
         project.close();
     }
 
@@ -255,6 +259,7 @@ public class projectMinter {
      * Return a JSON representation of the projects a user is an admin for
      *
      * @param username
+     *
      * @return
      */
     public String listUserAdminProjects(String username) {
@@ -296,7 +301,9 @@ public class projectMinter {
 
     /**
      * return a JSON representation of the projects that a user is a member of
+     *
      * @param username
+     *
      * @return
      */
     public String listUsersProjects(String username) {
@@ -339,8 +346,10 @@ public class projectMinter {
 
     /**
      * return an HTML table of a project's configuration.
+     *
      * @param project_id
      * @param username
+     *
      * @return
      */
     public String getProjectConfigAsTable(Integer project_id, String username) {
@@ -382,8 +391,10 @@ public class projectMinter {
 
     /**
      * return an HTML table in order to edit a project's configuration
+     *
      * @param projectId
      * @param username
+     *
      * @return
      */
     public String getProjectConfigEditorAsTable(Integer projectId, String username) {
@@ -431,8 +442,10 @@ public class projectMinter {
 
     /**
      * Update the project's configuration with the values in the Hashtable.
+     *
      * @param updateTable
      * @param projectId
+     *
      * @return
      */
     public Boolean updateConfig(Hashtable<String, String> updateTable, Integer projectId) {
@@ -489,8 +502,10 @@ public class projectMinter {
 
     /**
      * Return a hashTable of project configuration options for a given project_id and user_id
+     *
      * @param projectId
      * @param username
+     *
      * @return
      */
     public Hashtable<String, String> getProjectConfig(Integer projectId, String username) {
@@ -545,7 +560,7 @@ public class projectMinter {
 
             // If the user belongs to this project then there will be a >=1 value and returns true, otherwise false.
             return rs.getInt("count") >= 1;
-        }  catch (SQLException e) {
+        } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
             db.close(stmt, rs);
@@ -554,8 +569,10 @@ public class projectMinter {
 
     /**
      * Check if a user is a given project's admin
+     *
      * @param userId
      * @param projectId
+     *
      * @return
      */
     public Boolean userProjectAdmin(Integer userId, Integer projectId) {
@@ -580,8 +597,10 @@ public class projectMinter {
 
     /**
      * Remove a user from a project. Once removed, a user can no longer create/view expeditions in the project.
+     *
      * @param userId
      * @param projectId
+     *
      * @return
      */
     public void removeUser(Integer userId, Integer projectId) {
@@ -602,8 +621,10 @@ public class projectMinter {
 
     /**
      * Add a user as a member to the project. This user can then create expeditions in this project.
+     *
      * @param userId
      * @param projectId
+     *
      * @return
      */
     public void addUserToProject(Integer userId, Integer projectId) {
@@ -626,7 +647,9 @@ public class projectMinter {
 
     /**
      * return an HTML table of all the members of a given project.
+     *
      * @param projectId
+     *
      * @return
      */
     public String listProjectUsersAsTable(Integer projectId) {
@@ -727,16 +750,27 @@ public class projectMinter {
 
 
         try {
-            String sql1 = "select e.expedition_title, p.project_title from expeditions e, projects p " +
-                    "where e.users_id = ? and p.project_id = e.project_id";
+
+            // Get a list of ALL expeditions owned by a particular plus expeditions with datasets owned by that user
+            // This handles the case where a user owns a dataset but not the expedition, we still want to list it.
+            String sql1 = "select e.expedition_title, p.project_title, u.username as expeditionCreator\n" +
+                    "from expeditions e, projects p , datasets d, expeditionsBCIDs eb, users u \n" +
+                    "where (d.users_id = ? || e.users_id = ?) and\n" +
+                    "d.datasets_id = eb.datasets_id and\n" +
+                    "eb.expedition_id = e.expedition_id and\n" +
+                    "p.project_id = e.project_id and\n" +
+                    "u.user_id = e.users_id";
             stmt = conn.prepareStatement(sql1);
             stmt.setInt(1, userId);
+            stmt.setInt(2, userId);
 
             rs = stmt.executeQuery();
 
             while (rs.next()) {
                 String project_title = rs.getString("project_title");
-                String expedition_title = rs.getString("expedition_title");
+
+                // use the following function to get the expedition title, important that it is consistent
+                String expedition_title = getFormattedExpeditionTitle(username, rs.getString("expeditionCreator"), rs.getString("expedition_title"));
 
                 if (project_title != null && !project_title.isEmpty()) {
                     // if the project isn't in the map, then add it
@@ -749,18 +783,20 @@ public class projectMinter {
                     if (!p.containsKey(expedition_title)) {
                         p.put(expedition_title, new JSONArray());
                     }
-
                 }
-
             }
 
-            String sql2 = "select e.expedition_code, e.expedition_title, d.ts, d.prefix as ark, d.datasets_id as id, d.finalCopy, e.project_id, p.project_title\n" +
-                    "from datasets d, expeditions e,  expeditionsBCIDs pB, projects p\n" +
+
+            // Get all datasets owned by a particular user (these we will match to a particular expedition)
+            String sql2 = "select e.expedition_code, e.expedition_title, d.ts, d.prefix as ark, d.datasets_id as id, d.finalCopy, e.project_id, p.project_title, u.username as expeditionCreator\n" +
+                    "from datasets d, expeditions e,  expeditionsBCIDs pB, projects p, users u \n" +
                     "where d.users_id = ? and d.resourceType = \"http://purl.org/dc/dcmitype/Dataset\"\n" +
                     " and pB.datasets_id=d.datasets_id \n" +
                     " and e.expedition_id=pB.expedition_id\n" +
                     " and p.project_id=e.project_id\n" +
-                    " order by project_id, expedition_code, ts desc";
+                    " and u.user_id=e.users_id\n" +
+                    " " +
+                    "";
 
             stmt = conn.prepareStatement(sql2);
             stmt.setInt(1, userId);
@@ -769,7 +805,7 @@ public class projectMinter {
             while (rs.next()) {
                 JSONObject dataset = new JSONObject();
                 String project_title = rs.getString("project_title");
-                String expedition_title = rs.getString("expedition_title");
+                String expedition_title = getFormattedExpeditionTitle(username, rs.getString("expeditionCreator"), rs.getString("expedition_title"));
 
                 // Grap the prefixes and concepts associated with this
                 dataset.put("ts", rs.getString("ts"));
@@ -777,8 +813,12 @@ public class projectMinter {
                 dataset.put("ark", rs.getString("ark"));
                 dataset.put("finalCopy", rs.getString("finalCopy"));
 
-                JSONObject p = (JSONObject) projectMap.get(project_title);
-                ((JSONArray) p.get(expedition_title)).add(dataset);
+                try {
+                    JSONObject p = (JSONObject) projectMap.get(project_title);
+                    ((JSONArray) p.get(expedition_title)).add(dataset);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
 
             return JSONValue.toJSONString(projectMap);
@@ -786,6 +826,24 @@ public class projectMinter {
             throw new ServerErrorException("Server Error", "Trouble getting users datasets.", e);
         } finally {
             db.close(stmt, rs);
+        }
+    }
+
+    /**
+     * Provide a consistent way to get the expedition title, which sometimes has explanatory information about the
+     * username
+     *
+     * @param username
+     * @param expeditionCreatorUsername
+     * @param expedition_title
+     *
+     * @return
+     */
+    private String getFormattedExpeditionTitle(String username, String expeditionCreatorUsername, String expedition_title) {
+        if (!username.equals(expeditionCreatorUsername)) {
+            return expedition_title + " (expedition owned by " + expeditionCreatorUsername + ", listed datasets owned by " + username + ")";
+        } else {
+            return expedition_title;
         }
     }
 
@@ -804,7 +862,7 @@ public class projectMinter {
         JSONObject projectResponse = ((JSONObject) JSONValue.parse(listUsersProjects(username)));
         JSONArray projects = ((JSONArray) projectResponse.get("projects"));
 
-        for (Object p:  projects) {
+        for (Object p : projects) {
             JSONObject project = (JSONObject) p;
             projectMap.put(project.get("project_title"), new JSONArray());
         }
@@ -877,6 +935,7 @@ public class projectMinter {
 
     /**
      * save a template generator configuration
+     *
      * @param configName
      * @param projectId
      * @param userId
@@ -905,8 +964,10 @@ public class projectMinter {
 
     /**
      * check if a config exists
+     *
      * @param configName
      * @param projectId
+     *
      * @return
      */
     public boolean configExists(String configName, Integer projectId) {
@@ -927,7 +988,7 @@ public class projectMinter {
                 return true;
             }
             return false;
-        }  catch (SQLException e) {
+        } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
             db.close(stmt, rs);
@@ -956,7 +1017,7 @@ public class projectMinter {
                 return true;
             }
             return false;
-        }  catch (SQLException e) {
+        } catch (SQLException e) {
             throw new ServerErrorException(e);
         } finally {
             db.close(stmt, rs);
@@ -965,7 +1026,9 @@ public class projectMinter {
 
     /**
      * get the template generator configuration for the given project
+     *
      * @param projectId
+     *
      * @return
      */
     public String getTemplateConfigs(Integer projectId) {
@@ -998,8 +1061,10 @@ public class projectMinter {
 
     /**
      * get a specific template generator configuration
+     *
      * @param configName
      * @param projectId
+     *
      * @return
      */
     public String getTemplateConfig(String configName, Integer projectId) {
