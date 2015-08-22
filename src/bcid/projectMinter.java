@@ -208,7 +208,7 @@ public class projectMinter {
             } else {
                 sql += "    and p.public = 1";
             }
-
+       System.out.println("sql = " + sql);
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, project_id);
             stmt.setInt(2, project_id);
@@ -251,7 +251,7 @@ public class projectMinter {
         // See if the user owns this expedition or no
         projectMinter project = new projectMinter();
         //System.out.println(project.listProjects());
-        System.out.println("datasets = \n" + project.getMyTemplatesAndDatasets("deckj"));
+        System.out.println("datasets = \n" + project.getMyTemplatesAndDatasets("dipnetCurator"));
         project.close();
     }
 
