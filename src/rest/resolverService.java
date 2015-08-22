@@ -77,7 +77,11 @@ public class resolverService {
 
                     seeOtherUri = r.resolveARK();
                     // If graph not null and no forwarding resolution we can return the dataset
-                    if (r.graph != null && !r.forwardingResolution) {
+                     // if (r.graph != null && !r.forwardingResolution) {
+                    // FOR NOW, ignoring forwarding resolution and just returning TAB if it isn't rdf+xml accept header
+                    // This is because we've hardcoded a response from data.biscicol.org that forces RDF/XML, even if the
+                    // user doesn't want that.
+                    if (r.graph != null ) {
                         seeOtherUri = r.resolveArkAs("tab");
                     }
                 }
