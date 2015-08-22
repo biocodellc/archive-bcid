@@ -190,7 +190,7 @@ public class resolver extends database {
                     forwardingResolution = true;
 
                     // Immediately return resolution result
-                    return new URI(bcid.getResolutionTarget() + sourceID);
+                    resolution = new URI(bcid.getResolutionTarget() + sourceID);
                 }
                 // If the database indicates this is a suffixPassthrough dataset then return the MetadataTarget
                 else if (bcid.getDatasetsSuffixPassthrough()) {
@@ -199,7 +199,7 @@ public class resolver extends database {
                 // If there is some resolution target then return that
                 else if (bcid.getResolutionTarget() != null && !bcid.getResolutionTarget().toString().equalsIgnoreCase("null")) {
                     forwardingResolution = true;
-                    return bcid.getResolutionTarget();
+                    resolution = bcid.getResolutionTarget();
                 }
                 // All other cases just return metadata
                 else {
@@ -394,7 +394,7 @@ public class resolver extends database {
                 "datasets d where d.datasets_id = eb.datasets_id and e.expedition_id=eb.`expedition_id` " +
                 "and e.`project_id`=p.`project_id` and d.datasets_id= ?";
 
-        System.out.println("sql = " + sql + "    datasets_id = " + datasets_id);
+        //System.out.println("sql = " + sql + "    datasets_id = " + datasets_id);
 
         PreparedStatement stmt = null;
         ResultSet rs = null;
