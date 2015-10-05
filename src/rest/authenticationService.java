@@ -354,7 +354,7 @@ public class authenticationService {
         }
 
         if (username == null || !oAuthLogin) {
-            session.setAttribute("oAuthLogin", "false");
+            session.setAttribute("oAuthLogin", false);
             // need the user to login
             try {
                 p.close();
