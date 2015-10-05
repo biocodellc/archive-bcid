@@ -316,8 +316,14 @@ public class authenticationService {
         Boolean oAuthLogin = false;
 
         // oAuthLogin is used to force the user to re-authenticate for oAuth
-        if (sessionoAuthLogin != null && ((Boolean) sessionoAuthLogin)) {
-            oAuthLogin = true;
+        try {
+             if (sessionoAuthLogin != null) {
+                 oAuthLogin = (Boolean) sessionoAuthLogin;
+             }
+        } catch (ClassCastException e) {
+            if (sessionoAuthLogin.equals("true")) {
+                oAuthLogin = true;
+            }
         }
 
         provider p = new provider();
