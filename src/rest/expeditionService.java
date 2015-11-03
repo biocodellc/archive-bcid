@@ -493,7 +493,7 @@ public class expeditionService {
         Integer userId = db.getUserId(username.toString());
 
         if (!e.userOwnsExpedition(userId, expeditionCode, projectId)) {
-            throw new ForbiddenRequestException("You must be the owner of this expedition to update the public status.");
+            throw new ForbiddenRequestException("You must be the owner of this expedition to update its status.");
         }
 
         // Update the expedition public status for what was just passed in
